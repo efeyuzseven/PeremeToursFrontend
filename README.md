@@ -19,6 +19,8 @@ npm run build
 
 Tur içerikleri ve fiyatlar demo verisidir. Gerçek envanter, kullanıcı hesabı ve ödeme sistemi sonraki fazda API üzerinden bağlanacaktır.
 
+Arayüz Türkçe ve İngilizce çalışır. Dil seçimi tarayıcıda saklanır; yeni diller `src/App.tsx` içindeki yerelleştirme sözlüğüne eklenebilir.
+
 ## AWS test yayını
 
 Test ortamı: <https://d2bmjk2h6qp4lz.cloudfront.net>

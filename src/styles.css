@@ -101,64 +101,22 @@ img {
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  color: var(--navy);
   flex: 0 0 auto;
 }
 
-.logo--light,
-.site-header:not(.site-header--scrolled) .logo {
-  color: #fff;
+.logo img {
+  width: auto;
+  height: 66px;
+  transition: filter 250ms ease, opacity 250ms ease;
 }
 
-.logo__mark {
-  width: 38px;
-  height: 30px;
-  position: relative;
-  display: inline-block;
-  overflow: hidden;
+.logo--light img,
+.site-header:not(.site-header--scrolled) .logo img {
+  filter: brightness(0) invert(1);
 }
 
-.logo__mark::before {
-  content: '';
-  position: absolute;
-  width: 12px;
-  height: 21px;
-  left: 12px;
-  top: 0;
-  border: 2px solid currentColor;
-  border-top-left-radius: 16px;
-  transform: skewX(-18deg);
-  opacity: .95;
-}
-
-.logo__mark span {
-  position: absolute;
-  width: 27px;
-  height: 9px;
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  left: 2px;
-  bottom: 3px;
-  transform: rotate(-5deg);
-}
-
-.logo__mark span:last-child {
-  left: 10px;
-  bottom: -2px;
-  opacity: .58;
-}
-
-.logo__text {
-  font-family: 'Manrope', sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  letter-spacing: .1em;
-}
-
-.logo__text span {
-  margin-left: 4px;
-  font-weight: 400;
+.logo:hover img {
+  opacity: .82;
 }
 
 .desktop-nav {
@@ -1744,8 +1702,7 @@ footer {
 @media (max-width: 720px) {
   .shell { width: min(100% - 32px, 1180px); }
   .header__inner { height: 72px; }
-  .logo__text { font-size: 15px; }
-  .logo__mark { width: 33px; transform: scale(.9); transform-origin: left; }
+  .logo img { height: 52px; }
   .language,
   .nav-cta { display: none; }
   .hero { min-height: 710px; height: 88svh; margin-bottom: 180px; align-items: flex-start; }

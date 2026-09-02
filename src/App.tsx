@@ -147,14 +147,8 @@ const formatPrice = (price: number) => new Intl.NumberFormat('tr-TR').format(pri
 
 function Logo({ light = false }: { light?: boolean }) {
   return (
-    <a href="#top" className={`logo ${light ? 'logo--light' : ''}`} aria-label="PeremeTours ana sayfa">
-      <span className="logo__mark" aria-hidden="true">
-        <span />
-        <span />
-      </span>
-      <span className="logo__text">
-        PEREME<span>TOURS</span>
-      </span>
+    <a href="#top" className={`logo ${light ? 'logo--light' : ''}`} aria-label="Dentur Pereme ana sayfa">
+      <img src="/assets/pereme-logo.svg" alt="" />
     </a>
   )
 }

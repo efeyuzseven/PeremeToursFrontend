@@ -23,6 +23,21 @@ export class ApiError extends Error {
   }
 }
 
+async function readApiResponse<T>(response: Response): Promise<T> {
+  if (response.status === 204) return undefined as T
+  const data = await response.json().catch(() => ({})) as ProblemDetails
+  if (!response.ok) {
+    const validationMessage = data.errors
+      ? Object.values(data.errors).flat().join(' ')
+      : undefined
+    throw new ApiError(
+      response.status,
+      validationMessage || data.detail || data.message || data.title || 'İşlem tamamlanamadı.',
+    )
+  }
+  return data as T
+}
+
 export async function apiRequest<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const headers = new Headers(options.headers)
   if (options.body !== undefined) headers.set('content-type', 'application/json')
@@ -39,16 +54,19 @@ export async function apiRequest<T>(path: string, options: ApiOptions = {}): Pro
     throw new ApiError(0, 'Sunucuya ulaşılamadı. Lütfen bağlantınızı kontrol edin.')
   }
 
-  if (response.status === 204) return undefined as T
-  const data = await response.json().catch(() => ({})) as ProblemDetails
-  if (!response.ok) {
-    const validationMessage = data.errors
-      ? Object.values(data.errors).flat().join(' ')
-      : undefined
-    throw new ApiError(
-      response.status,
-      validationMessage || data.detail || data.message || data.title || 'İşlem tamamlanamadı.',
-    )
+  return readApiResponse<T>(response)
+}
+
+export async function apiUpload<T>(path: string, formData: FormData, token: string): Promise<T> {
+  let response: Response
+  try {
+    response = await fetch(`${apiBaseUrl}${path}`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}` },
+      body: formData,
+    })
+  } catch {
+    throw new ApiError(0, 'Sunucuya ulaşılamadı. Lütfen bağlantınızı kontrol edin.')
   }
-  return data as T
+  return readApiResponse<T>(response)
 }

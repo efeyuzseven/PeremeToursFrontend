@@ -28,7 +28,7 @@ import {
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
-import { apiRequest } from './lib/api'
+import { apiBaseUrl, apiRequest } from './lib/api'
 
 type Language = 'tr' | 'en'
 type Category = 'bosphorus' | 'turkish-night' | 'sunset' | 'daytime'
@@ -41,6 +41,14 @@ type CatalogTour = {
   categoryKey: Category
   categoryName: string
   name: string
+  titleTr?: string | null
+  titleEn?: string | null
+  descriptionTr?: string | null
+  descriptionEn?: string | null
+  badgeTr?: string | null
+  badgeEn?: string | null
+  imageUrl?: string | null
+  sortOrder?: number
 }
 
 type Tour = {
@@ -58,6 +66,7 @@ type Tour = {
   image: string
   imagePosition?: string
   remaining?: number
+  sortOrder?: number
 }
 
 const localized = (tr: string, en: string): LocalizedText => ({ tr, en })
@@ -141,9 +150,17 @@ const experienceKeys: Category[] = ['turkish-night', 'sunset', 'daytime', 'bosph
 const categoryKeys: CategoryFilter[] = ['all', ...experienceKeys]
 const categoryPriority = new Map(experienceKeys.map((category, index) => [category, index]))
 
-const orderTours = (items: Tour[]) => [...items].sort(
-  (left, right) => (categoryPriority.get(left.category) ?? 99) - (categoryPriority.get(right.category) ?? 99),
+const tourOrder = (tour: Tour) => tour.sortOrder
+  ?? (categoryPriority.get(tour.category) ?? 99) * 100
+
+const orderTours = (items: Tour[]) => [...items].sort((left, right) =>
+  tourOrder(left) - tourOrder(right) || left.id - right.id,
 )
+
+const resolveCatalogImage = (imageUrl: string | null | undefined, fallback: string) => {
+  if (!imageUrl) return fallback
+  return imageUrl.startsWith('/') ? `${apiBaseUrl}${imageUrl}` : imageUrl
+}
 
 const isCategory = (value: string): value is Category => experienceKeys.includes(value as Category)
 
@@ -155,16 +172,20 @@ const mergeCatalogTours = (catalog: CatalogTour[]): Tour[] => {
     return [{
       ...template,
       id: item.externalTourId,
-      title: localized(item.name, item.name),
+      title: localized(item.titleTr || item.name, item.titleEn || item.name),
+      description: localized(
+        item.descriptionTr || template.description.tr,
+        item.descriptionEn || template.description.en,
+      ),
+      badge: localized(
+        item.badgeTr || template.badge.tr,
+        item.badgeEn || template.badge.en,
+      ),
+      image: resolveCatalogImage(item.imageUrl, template.image),
+      sortOrder: item.sortOrder,
     }]
   })
-  if (liveTours.length === 0) return orderTours(fallbackTours)
-
-  const liveCategories = new Set(liveTours.map((tour) => tour.category))
-  return orderTours([
-    ...liveTours,
-    ...fallbackTours.filter((tour) => !liveCategories.has(tour.category)),
-  ])
+  return orderTours(liveTours)
 }
 
 const copy = {

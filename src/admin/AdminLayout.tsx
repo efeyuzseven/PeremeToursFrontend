@@ -1,4 +1,4 @@
-import { ArrowUpRight, Globe2, LayoutDashboard, LogOut, Menu, ShipWheel, TicketCheck, UsersRound, X } from 'lucide-react'
+import { ArrowUpRight, Globe2, Images, LayoutDashboard, LogOut, Menu, ShipWheel, TicketCheck, UsersRound, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
@@ -7,8 +7,8 @@ import './admin.css'
 export type AdminLanguage = 'tr' | 'en'
 
 const copy = {
-  tr: { panel: 'Yönetim Paneli', tickets: 'Tur Biletleri', users: 'Kullanıcılar', home: 'Siteyi görüntüle', logout: 'Çıkış yap', workspace: 'Operasyon merkezi' },
-  en: { panel: 'Admin Panel', tickets: 'Tour Tickets', users: 'Users', home: 'View website', logout: 'Sign out', workspace: 'Operations hub' },
+  tr: { panel: 'Yönetim Paneli', tickets: 'Tur Biletleri', tourContents: 'Tur İçerikleri', users: 'Kullanıcılar', home: 'Siteyi görüntüle', logout: 'Çıkış yap', workspace: 'Operasyon merkezi' },
+  en: { panel: 'Admin Panel', tickets: 'Tour Tickets', tourContents: 'Tour Content', users: 'Users', home: 'View website', logout: 'Sign out', workspace: 'Operations hub' },
 }
 
 export default function AdminLayout() {
@@ -41,6 +41,7 @@ export default function AdminLayout() {
         <nav className="admin-nav">
           <span>MENU</span>
           <NavLink to="/admin/tickets" onClick={() => setMenuOpen(false)}><TicketCheck /> {c.tickets}</NavLink>
+          <NavLink to="/admin/tour-contents" onClick={() => setMenuOpen(false)}><Images /> {c.tourContents}</NavLink>
           <NavLink to="/admin/users" onClick={() => setMenuOpen(false)}><UsersRound /> {c.users}</NavLink>
         </nav>
         <div className="admin-sidebar__bottom">

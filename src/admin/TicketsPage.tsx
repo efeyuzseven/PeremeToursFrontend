@@ -12,6 +12,11 @@ type TourTicket = {
   customerName: string; customerEmail: string; guestCount: number; amount: number; currency: string
   status: TicketStatus; channel: TicketChannel; createdAtUtc: string; updatedAtUtc: string
 }
+type CatalogTour = {
+  externalTourId: number
+  categoryName: string
+  name: string
+}
 
 const pageCopy = {
   tr: { eyebrow: 'SATIŞ & REZERVASYON', title: 'Tur Biletleri', subtitle: 'Tüm tur satışlarını, yolcu bilgilerini ve bilet durumlarını yönetin.', create: 'Yeni bilet', total: 'Toplam bilet', revenue: 'Onaylı ciro', pending: 'Bekleyen', guests: 'Toplam misafir', search: 'Bilet, tur veya müşteri ara...', all: 'Tüm durumlar', code: 'Bilet', customer: 'Müşteri', tour: 'Tur & tarih', count: 'Kişi', amount: 'Tutar', channel: 'Kanal', status: 'Durum', empty: 'Aramanızla eşleşen bilet bulunamadı.', modalTitle: 'Yeni tur bileti', modalText: 'Manuel satış veya rezervasyon ekleyin.', tourName: 'Tur adı', date: 'Tur tarihi', time: 'Kalkış saati', name: 'Müşteri adı', email: 'Müşteri e-postası', guestCount: 'Misafir sayısı', save: 'Bileti oluştur', cancel: 'Vazgeç', web: 'Web sitesi', admin: 'Yönetici', error: 'Biletler yüklenemedi.' },
@@ -27,6 +32,7 @@ export default function TicketsPage() {
   const { language } = useOutletContext<{ language: AdminLanguage }>()
   const { session } = useAuth()
   const [tickets, setTickets] = useState<TourTicket[]>([])
+  const [catalogTours, setCatalogTours] = useState<CatalogTour[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -47,6 +53,14 @@ export default function TicketsPage() {
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [c.error, session])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    apiRequest<CatalogTour[]>('/api/v1/tours', { signal: controller.signal })
+      .then((result) => setCatalogTours(result))
+      .catch(() => undefined)
+    return () => controller.abort()
+  }, [])
 
   const visibleTickets = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase(language === 'tr' ? 'tr-TR' : 'en-US')
@@ -110,7 +124,7 @@ export default function TicketsPage() {
     </section>
 
     {createOpen && <div className="admin-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreateOpen(false) }}><section className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="ticket-modal-title"><button className="admin-modal__close" onClick={() => setCreateOpen(false)}><X /></button><div className="admin-modal__heading"><span><TicketCheck /></span><div><h2 id="ticket-modal-title">{c.modalTitle}</h2><p>{c.modalText}</p></div></div><form onSubmit={createTicket}>
-      <label className="field-wide">{c.tourName}<input name="tourName" required maxLength={160} /></label><label>{c.date}<input type="date" name="tourDate" required /></label><label>{c.time}<input type="time" name="departureTime" required /></label><label className="field-wide">{c.name}<input name="customerName" required maxLength={160} /></label><label className="field-wide">{c.email}<input type="email" name="customerEmail" required maxLength={320} /></label><label>{c.guestCount}<input type="number" name="guestCount" defaultValue={2} min={1} max={100} required /></label><label>{c.amount}<span className="money-input"><input type="number" name="amount" min="0.01" step="0.01" required /><i>₺</i></span></label><div className="admin-modal__actions field-wide"><button type="button" onClick={() => setCreateOpen(false)}>{c.cancel}</button><button className="admin-primary-button" disabled={saving} type="submit">{saving ? <span className="button-spinner" /> : <><CheckCircle2 /> {c.save}</>}</button></div>
+      <label className="field-wide">{c.tourName}{catalogTours.length > 0 ? <select name="tourName" required defaultValue=""><option value="" disabled>—</option>{catalogTours.map((tour) => <option key={tour.externalTourId} value={tour.name}>{tour.categoryName} · {tour.name}</option>)}</select> : <input name="tourName" required maxLength={160} />}</label><label>{c.date}<input type="date" name="tourDate" required /></label><label>{c.time}<input type="time" name="departureTime" required /></label><label className="field-wide">{c.name}<input name="customerName" required maxLength={160} /></label><label className="field-wide">{c.email}<input type="email" name="customerEmail" required maxLength={320} /></label><label>{c.guestCount}<input type="number" name="guestCount" defaultValue={2} min={1} max={100} required /></label><label>{c.amount}<span className="money-input"><input type="number" name="amount" min="0.01" step="0.01" required /><i>₺</i></span></label><div className="admin-modal__actions field-wide"><button type="button" onClick={() => setCreateOpen(false)}>{c.cancel}</button><button className="admin-primary-button" disabled={saving} type="submit">{saving ? <span className="button-spinner" /> : <><CheckCircle2 /> {c.save}</>}</button></div>
     </form></section></div>}
   </>
 }

@@ -30,11 +30,20 @@ import {
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
+import { apiRequest } from './lib/api'
 
 type Language = 'tr' | 'en'
-type Category = 'sunset' | 'dinner' | 'day' | 'private'
+type Category = 'bosphorus' | 'turkish-night' | 'sunset' | 'daytime'
 type CategoryFilter = 'all' | Category
 type LocalizedText = Record<Language, string>
+
+type CatalogTour = {
+  externalTourId: number
+  externalCategoryId: number
+  categoryKey: Category
+  categoryName: string
+  name: string
+}
 
 type Tour = {
   id: number
@@ -55,33 +64,33 @@ type Tour = {
 
 const localized = (tr: string, en: string): LocalizedText => ({ tr, en })
 
-const tours: Tour[] = [
+const fallbackTours: Tour[] = [
   {
     id: 1,
-    category: 'sunset',
+    category: 'bosphorus',
     badge: localized('En çok sevilen', 'Guest favourite'),
-    title: localized('Boğaz’da Gün Batımı', 'Sunset on the Bosphorus'),
+    title: localized('Boğaz Turu', 'Bosphorus Cruise'),
     description: localized(
-      'Altın saatte, ikramlar ve çok dilli sesli rehber eşliğinde İstanbul.',
-      'Istanbul at golden hour with refreshments and a multilingual audio guide.',
+      'İstanbul’un iki yakasını, saraylarını ve yalılarını denizden keşfet.',
+      'Discover both shores, palaces and waterfront mansions from the sea.',
     ),
-    duration: localized('2 saat', '2 hours'),
-    location: localized('Karaköy kalkışlı', 'Departs from Karaköy'),
+    duration: localized('1,5 saat', '1.5 hours'),
+    location: localized('İstanbul Boğazı', 'Istanbul Bosphorus'),
     rating: 4.9,
     reviews: 328,
-    price: 790,
-    oldPrice: 940,
-    image: '/assets/tour-sunset.webp',
-    remaining: 6,
+    price: 590,
+    image: '/assets/hero-bosphorus.webp',
+    imagePosition: '38% center',
+    remaining: 9,
   },
   {
     id: 2,
-    category: 'dinner',
+    category: 'turkish-night',
     badge: localized('Geceye özel', 'Made for the night'),
-    title: localized('Işıklar Altında Akşam', 'Dinner Beneath the Lights'),
+    title: localized('Türk Gecesi Dinner Cruise', 'Turkish Night Dinner Cruise'),
     description: localized(
-      'Özel masa, seçkin akşam menüsü ve canlı İstanbul manzarası.',
-      'A private table, a curated dinner menu and Istanbul glowing outside.',
+      'Akşam yemeği, canlı gösteriler ve ışıklar içindeki İstanbul aynı teknede.',
+      'Dinner, live performances and Istanbul’s night lights aboard one cruise.',
     ),
     duration: localized('3 saat', '3 hours'),
     location: localized('Kabataş kalkışlı', 'Departs from Kabataş'),
@@ -94,31 +103,33 @@ const tours: Tour[] = [
   },
   {
     id: 3,
-    category: 'private',
-    badge: localized('Sana özel', 'Exclusively yours'),
-    title: localized('İstanbul Senin Rotan', 'Istanbul, Your Route'),
+    category: 'sunset',
+    badge: localized('Altın saat', 'Golden hour'),
+    title: localized('Sunset', 'Sunset Cruise'),
     description: localized(
-      '2–8 kişilik özel yat, esnek rota ve kişiselleştirilebilir deneyim.',
-      'A private yacht for 2–8 guests with a flexible, personalised route.',
+      'Gün batımının renkleri, Boğaz manzarası ve sakin bir akşam yolculuğu.',
+      'Golden-hour colours, Bosphorus views and an unhurried evening cruise.',
     ),
-    duration: localized('2–4 saat', '2–4 hours'),
-    location: localized('Bebek kalkışlı', 'Departs from Bebek'),
-    rating: 5,
-    reviews: 86,
-    price: 7450,
-    image: '/assets/tour-private.webp',
+    duration: localized('2 saat', '2 hours'),
+    location: localized('Kabataş kalkışlı', 'Departs from Kabataş'),
+    rating: 4.9,
+    reviews: 286,
+    price: 790,
+    oldPrice: 940,
+    image: '/assets/tour-sunset.webp',
+    remaining: 6,
   },
   {
     id: 4,
-    category: 'day',
+    category: 'daytime',
     badge: localized('Yeni rota', 'New route'),
-    title: localized('İki Kıta, Tek Hikâye', 'Two Continents, One Story'),
+    title: localized('DayTime', 'Daytime Cruise'),
     description: localized(
-      'Boğaz’ın sarayları, yalıları ve kıyı hikâyeleriyle dolu keşif turu.',
-      'A discovery cruise through the palaces, mansions and stories of the strait.',
+      'Gün ışığında İstanbul silueti ve Boğaz’ın kıyı hikâyeleriyle dolu bir rota.',
+      'A daylight route through Istanbul’s skyline and the stories of its shores.',
     ),
-    duration: localized('1,5 saat', '1.5 hours'),
-    location: localized('Eminönü kalkışlı', 'Departs from Eminönü'),
+    duration: localized('2 saat', '2 hours'),
+    location: localized('Kabataş kalkışlı', 'Departs from Kabataş'),
     rating: 4.7,
     reviews: 142,
     price: 590,
@@ -126,45 +137,32 @@ const tours: Tour[] = [
     imagePosition: '38% center',
     remaining: 9,
   },
-  {
-    id: 5,
-    category: 'dinner',
-    badge: localized('Pazar keyfi', 'Sunday favourite'),
-    title: localized('Boğaz’da Brunch', 'Bosphorus Brunch'),
-    description: localized(
-      'Uzun kahvaltı, taze lezzetler ve sakin bir pazar rotası.',
-      'A leisurely breakfast, fresh flavours and a serene Sunday route.',
-    ),
-    duration: localized('2,5 saat', '2.5 hours'),
-    location: localized('Kuruçeşme kalkışlı', 'Departs from Kuruçeşme'),
-    rating: 4.9,
-    reviews: 67,
-    price: 1290,
-    image: '/assets/tour-dinner.webp',
-    imagePosition: 'left center',
-  },
-  {
-    id: 6,
-    category: 'private',
-    badge: localized('Kutlamalara özel', 'For celebrations'),
-    title: localized('Mavi Saat Kutlaması', 'Blue Hour Celebration'),
-    description: localized(
-      'Doğum günü ve özel anlar için dekore edilen size özel bir tekne.',
-      'A private boat styled around birthdays and the moments worth celebrating.',
-    ),
-    duration: localized('3 saat', '3 hours'),
-    location: localized('Arnavutköy kalkışlı', 'Departs from Arnavutköy'),
-    rating: 4.9,
-    reviews: 103,
-    price: 8950,
-    image: '/assets/hero-bosphorus.webp',
-    imagePosition: 'right center',
-    remaining: 2,
-  },
 ]
 
-const categoryKeys: CategoryFilter[] = ['all', 'sunset', 'dinner', 'day', 'private']
-const experienceKeys: Category[] = ['sunset', 'dinner', 'day', 'private']
+const categoryKeys: CategoryFilter[] = ['all', 'bosphorus', 'turkish-night', 'sunset', 'daytime']
+const experienceKeys: Category[] = ['bosphorus', 'turkish-night', 'sunset', 'daytime']
+
+const isCategory = (value: string): value is Category => experienceKeys.includes(value as Category)
+
+const mergeCatalogTours = (catalog: CatalogTour[]): Tour[] => {
+  const liveTours = catalog.flatMap((item) => {
+    if (!isCategory(item.categoryKey)) return []
+    const template = fallbackTours.find((tour) => tour.category === item.categoryKey)
+    if (!template) return []
+    return [{
+      ...template,
+      id: item.externalTourId,
+      title: localized(item.name, item.name),
+    }]
+  })
+  if (liveTours.length === 0) return fallbackTours
+
+  const liveCategories = new Set(liveTours.map((tour) => tour.category))
+  return [
+    ...liveTours,
+    ...fallbackTours.filter((tour) => !liveCategories.has(tour.category)),
+  ]
+}
 
 const copy = {
   tr: {
@@ -186,11 +184,11 @@ const copy = {
       experience: 'Deneyim', date: 'Tarih', guest: 'Misafir', guests: (count: number) => `${count} kişi`,
       search: 'Uygun turları bul', availability: 'Bu hafta sonu için', lastTickets: 'son 18 bilet',
     },
-    categories: { all: 'Tümü', sunset: 'Gün Batımı', dinner: 'Yemekli', day: 'Gündüz', private: 'Özel Yat' },
+    categories: { all: 'Tümü', bosphorus: 'Boğaz Turu', 'turkish-night': 'Türk Gecesi', sunset: 'Sunset', daytime: 'DayTime' },
     marquee: ['Ücretsiz iptal', 'Anında onay', 'Yerel rota', 'En iyi fiyat', '7/24 destek'],
     tours: {
       eyebrow: 'Rotanı seç', lead: 'Boğaz’da senin', accent: 'anın',
-      description: 'İster gün batımında iki saat, ister yalnızca sana ait bir rota. İstanbul’a bakmanın en güzel halini seç.',
+      description: 'Boğaz Turu, Türk Gecesi, Sunset veya DayTime. İstanbul’a bakmanın en güzel halini seç.',
       spots: (count: number) => `Bu tarih için ${count} yer kaldı`, perPerson: 'Kişi başı', select: 'Seç',
       favouriteAdd: 'favorilere ekle', favouriteRemove: 'favorilerden çıkar', showLess: 'Daha az göster',
       showAll: (count: number) => `Tüm ${count} turu gör`, watermark: 'BOSPHORUS',
@@ -218,7 +216,7 @@ const copy = {
     footer: {
       tagline: 'İstanbul’un en güzel haline,\ndenizden tanış.',
       columns: [
-        ['Keşfet', 'Tüm turlar', 'Gün batımı', 'Yemekli turlar', 'Özel yat'],
+        ['Keşfet', 'Tüm turlar', 'Boğaz Turu', 'Türk Gecesi', 'DayTime'],
         ['Pereme', 'Hakkımızda', 'Hikâyeler', 'Sıkça sorulanlar', 'İletişim'],
         ['Yardım', 'İptal & iade', 'Gizlilik', 'Mesafeli satış', 'KVKK'],
       ],
@@ -253,11 +251,11 @@ const copy = {
       experience: 'Experience', date: 'Date', guest: 'Guests', guests: (count: number) => `${count} ${count === 1 ? 'guest' : 'guests'}`,
       search: 'Find available tours', availability: 'For this weekend', lastTickets: 'only 18 tickets left',
     },
-    categories: { all: 'All', sunset: 'Sunset', dinner: 'Dinner', day: 'Daytime', private: 'Private Yacht' },
+    categories: { all: 'All', bosphorus: 'Bosphorus Cruise', 'turkish-night': 'Turkish Night', sunset: 'Sunset', daytime: 'Daytime' },
     marquee: ['Free cancellation', 'Instant confirmation', 'Local routes', 'Best price', '24/7 support'],
     tours: {
       eyebrow: 'Choose your route', lead: 'Find your moment', accent: 'on the Bosphorus',
-      description: 'Two hours at sunset or a route entirely your own. Choose your favourite way to see Istanbul.',
+      description: 'Bosphorus Cruise, Turkish Night, Sunset or Daytime. Choose your favourite way to see Istanbul.',
       spots: (count: number) => `${count} spots left for this date`, perPerson: 'Per person', select: 'Select',
       favouriteAdd: 'add to favourites', favouriteRemove: 'remove from favourites', showLess: 'Show less',
       showAll: (count: number) => `See all ${count} tours`, watermark: 'BOSPHORUS',
@@ -285,7 +283,7 @@ const copy = {
     footer: {
       tagline: 'Meet Istanbul at its best,\nfrom the water.',
       columns: [
-        ['Explore', 'All tours', 'Sunset', 'Dinner cruises', 'Private yacht'],
+        ['Explore', 'All tours', 'Bosphorus Cruise', 'Turkish Night', 'Daytime'],
         ['Pereme', 'About us', 'Stories', 'Frequently asked', 'Contact'],
         ['Support', 'Cancellation & refunds', 'Privacy', 'Distance sales', 'Data protection'],
       ],
@@ -326,9 +324,10 @@ function App() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenu, setMobileMenu] = useState(false)
   const [filter, setFilter] = useState<CategoryFilter>('all')
+  const [tours, setTours] = useState<Tour[]>(fallbackTours)
   const [date, setDate] = useState(tomorrow())
   const [guests, setGuests] = useState(2)
-  const [experience, setExperience] = useState<Category>('sunset')
+  const [experience, setExperience] = useState<Category>('bosphorus')
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null)
   const [bookingOpen, setBookingOpen] = useState(false)
   const [bookingSuccess, setBookingSuccess] = useState(false)
@@ -338,13 +337,21 @@ function App() {
   const c = copy[language]
 
   useEffect(() => {
+    const controller = new AbortController()
+    apiRequest<CatalogTour[]>('/api/v1/tours', { signal: controller.signal })
+      .then((catalog) => setTours(mergeCatalogTours(catalog)))
+      .catch(() => undefined)
+    return () => controller.abort()
+  }, [])
+
+  useEffect(() => {
     document.documentElement.lang = language
     document.title = language === 'tr' ? 'PeremeTours — Boğaz’ın Ritmini Yakala' : 'PeremeTours — Find Your Bosphorus Moment'
     document.querySelector('meta[name="description"]')?.setAttribute(
       'content',
       language === 'tr'
-        ? 'PeremeTours ile İstanbul Boğazı’nı gün batımı, yemekli ve özel yat turlarıyla keşfedin.'
-        : 'Discover the Istanbul Bosphorus with PeremeTours sunset, dinner and private yacht experiences.',
+        ? 'PeremeTours ile Boğaz Turu, Türk Gecesi Dinner Cruise, Sunset ve DayTime deneyimlerini keşfedin.'
+        : 'Discover Bosphorus Cruise, Turkish Night Dinner Cruise, Sunset and Daytime experiences with PeremeTours.',
     )
     window.localStorage.setItem('pereme-language', language)
   }, [language])
@@ -380,7 +387,7 @@ function App() {
     }
   }, [bookingOpen, mobileMenu])
 
-  const filteredTours = useMemo(() => filter === 'all' ? tours : tours.filter((tour) => tour.category === filter), [filter])
+  const filteredTours = useMemo(() => filter === 'all' ? tours : tours.filter((tour) => tour.category === filter), [filter, tours])
   const displayedTours = showAll ? filteredTours : filteredTours.slice(0, 3)
   const formatPrice = (price: number) => new Intl.NumberFormat(language === 'tr' ? 'tr-TR' : 'en-US').format(price)
 

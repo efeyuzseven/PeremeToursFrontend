@@ -32,7 +32,8 @@ aws cloudfront create-invalidation `
   --distribution-id $DistributionId `
   --paths '/*' `
   --query 'Invalidation.Id' `
-  --output text
+  --output text `
+  --no-cli-pager
 if ($LASTEXITCODE -ne 0) { throw 'CloudFront invalidation failed.' }
 
 Write-Host 'Deployment complete: https://d2bmjk2h6qp4lz.cloudfront.net'

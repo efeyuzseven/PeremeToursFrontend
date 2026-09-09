@@ -174,7 +174,7 @@ const copy = {
     hero: {
       eyebrow: 'İstanbul, suyun öteki tarafından', lead: 'Şehri izleme.', accent: 'Onunla ak.',
       description: 'Boğaz’ın ritmini, gün batımının rengini ve İstanbul’un hiç acele etmeyen halini keşfet.',
-      discover: 'Turları keşfet', watch: 'Deneyimi izle', scroll: 'Keşfet', cardLabel: 'İstanbul Boğazı’nda',
+      watch: 'Deneyimi izle', scroll: 'Keşfet', cardLabel: 'İstanbul Boğazı’nda',
       cardCount: '4 deneyim', cardLead: 'Her saate', cardAccent: 'başka bir İstanbul.',
       cardTypes: ['Boğaz Turu', 'Türk Gecesi', 'Sunset', 'DayTime'], cardNote: 'Rotanı seç, İstanbul’u denizden keşfet.',
     },
@@ -241,7 +241,7 @@ const copy = {
     hero: {
       eyebrow: 'Istanbul, from the other side of the water', lead: 'Don’t just watch.', accent: 'Flow with it.',
       description: 'Meet the rhythm of the Bosphorus, the colour of sunset and the unhurried side of Istanbul.',
-      discover: 'Explore tours', watch: 'Watch the experience', scroll: 'Explore', cardLabel: 'On the Bosphorus',
+      watch: 'Watch the experience', scroll: 'Explore', cardLabel: 'On the Bosphorus',
       cardCount: '4 experiences', cardLead: 'A different Istanbul', cardAccent: 'for every moment.',
       cardTypes: ['Bosphorus', 'Turkish Night', 'Sunset', 'DayTime'], cardNote: 'Choose your route and discover Istanbul from the water.',
     },
@@ -454,7 +454,6 @@ function App() {
             <h1 id="hero-title">{c.hero.lead}<br /><em>{c.hero.accent}</em></h1>
             <p>{c.hero.description}</p>
             <div className="hero__buttons">
-              <button className="button button--coral" type="button" onClick={() => openBooking()}>{c.hero.discover} <ArrowRight size={19} /></button>
               <a className="play-link" href="#deneyim"><span><Play size={15} fill="currentColor" /></span> {c.hero.watch}</a>
             </div>
           </div>

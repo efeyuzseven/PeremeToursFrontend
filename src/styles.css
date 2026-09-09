@@ -1,18 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500;1,600&display=swap');
 
 :root {
-  color: #1f478c;
+  color: #071b35;
   background: #fff;
   font-family: 'DM Sans', sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --navy: #1f478c;
+  --navy: #071b35;
   --blue: #1f478c;
   --sea: #6a9dd2;
   --coral: #6a9dd2;
   --cream: #fff;
-  --ink: #1f478c;
-  --line: rgba(31,71,140,0.13);
+  --ink: #071b35;
+  --line: rgba(7,27,53,0.13);
 }
 
 * {
@@ -397,8 +397,8 @@ img {
 
 .hero__shade {
   background:
-    linear-gradient(90deg, rgba(31,71,140,.93) 0%, rgba(31,71,140,.69) 34%, rgba(31,71,140,.19) 70%, rgba(31,71,140,.15) 100%),
-    linear-gradient(0deg, rgba(31,71,140,.62) 0%, transparent 42%, rgba(31,71,140,.3) 100%);
+    linear-gradient(90deg, rgba(7,27,53,.93) 0%, rgba(7,27,53,.69) 34%, rgba(7,27,53,.19) 70%, rgba(7,27,53,.15) 100%),
+    linear-gradient(0deg, rgba(7,27,53,.62) 0%, transparent 42%, rgba(7,27,53,.3) 100%);
 }
 
 .hero__orb {
@@ -486,8 +486,8 @@ img {
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.24);
   border-radius: 8px;
-  background: linear-gradient(145deg, rgba(31,71,140,.72), rgba(31,71,140,.5));
-  box-shadow: 0 20px 50px rgba(31,71,140,.18);
+  background: linear-gradient(145deg, rgba(7,27,53,.72), rgba(31,71,140,.5));
+  box-shadow: 0 20px 50px rgba(7,27,53,.18);
   backdrop-filter: blur(14px);
   animation: revealUp 900ms 400ms ease both;
 }
@@ -697,7 +697,7 @@ h2 em {
 }
 
 .button--coral:hover {
-  background: #1f478c;
+  background: var(--navy);
   box-shadow: 0 16px 32px rgba(106,157,210,.32);
 }
 
@@ -1275,7 +1275,7 @@ h2 em {
 }
 
 .experience__wash {
-  background: linear-gradient(90deg, rgba(31,71,140,.98) 0%, rgba(31,71,140,.93) 47%, rgba(31,71,140,.32) 100%);
+  background: linear-gradient(90deg, rgba(7,27,53,.98) 0%, rgba(7,27,53,.93) 47%, rgba(31,71,140,.32) 100%);
 }
 
 .experience__inner {
@@ -1616,7 +1616,7 @@ h2 em {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(rgba(31,71,140,.48), rgba(31,71,140,.72)),
+    linear-gradient(rgba(7,27,53,.48), rgba(7,27,53,.72)),
     url('/assets/hero-bosphorus.webp') center 54%/cover;
   transition: transform 2s ease;
 }
@@ -1670,7 +1670,7 @@ h2 em {
 
 footer {
   color: rgba(255,255,255,.72);
-  background: #1f478c;
+  background: var(--navy);
 }
 
 .footer__top {
@@ -1774,7 +1774,7 @@ footer {
   inset: 0;
   visibility: hidden;
   opacity: 0;
-  background: rgba(31,71,140,.67);
+  background: rgba(7,27,53,.67);
   backdrop-filter: blur(7px);
   transition: opacity 300ms ease, visibility 300ms;
 }
@@ -2041,7 +2041,7 @@ footer {
   .hero__image { background-position: 64% center; }
   .hero__image { animation: none; transform: none; }
   .hero__shade {
-    background: linear-gradient(90deg, rgba(31,71,140,.87), rgba(31,71,140,.2)), linear-gradient(0deg, rgba(31,71,140,.8), transparent 58%, rgba(31,71,140,.45));
+    background: linear-gradient(90deg, rgba(7,27,53,.87), rgba(7,27,53,.2)), linear-gradient(0deg, rgba(7,27,53,.8), transparent 58%, rgba(7,27,53,.45));
   }
   .hero__route-map { display: none; }
   .hero__content { padding-top: 165px; }
@@ -2077,7 +2077,7 @@ footer {
   .experience,
   .experience__inner { min-height: 760px; }
   .experience__image { background-position: 62% center; }
-  .experience__wash { background: linear-gradient(90deg, rgba(31,71,140,.98), rgba(31,71,140,.82)); }
+  .experience__wash { background: linear-gradient(90deg, rgba(7,27,53,.98), rgba(7,27,53,.82)); }
   .experience__inner { display: block; padding-top: 80px; }
   .experience__number,
   .experience__stamp { display: none; }

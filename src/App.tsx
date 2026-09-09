@@ -1,5 +1,4 @@
 import {
-  Anchor,
   ArrowDown,
   ArrowRight,
   Camera,
@@ -13,7 +12,6 @@ import {
   MapPin,
   Menu,
   Minus,
-  Navigation,
   Play,
   Plus,
   Quote,
@@ -173,12 +171,12 @@ const copy = {
       decrease: 'Misafir azalt', increase: 'Misafir artır', scrollTours: 'Turlara kaydır', tourCategories: 'Tur kategorileri',
       previousReview: 'Önceki yorum', nextReview: 'Sonraki yorum', newsletter: 'Bültene kaydol', email: 'E-posta adresi',
     },
-    ticket: 'Biletini al',
     hero: {
       eyebrow: 'İstanbul, suyun öteki tarafından', lead: 'Şehri izleme.', accent: 'Onunla ak.',
       description: 'Boğaz’ın ritmini, gün batımının rengini ve İstanbul’un hiç acele etmeyen halini keşfet.',
-      discover: 'Turları keşfet', watch: 'Deneyimi izle', scroll: 'Keşfet', routeLabel: 'Bu akşamki rota',
-      routeStops: ['Karaköy', 'Ortaköy', 'Beylerbeyi'], routeMeta: '18:30 · 2 saat', routeLive: 'Canlı',
+      discover: 'Turları keşfet', watch: 'Deneyimi izle', scroll: 'Keşfet', cardLabel: 'İstanbul Boğazı’nda',
+      cardCount: '4 deneyim', cardLead: 'Her saate', cardAccent: 'başka bir İstanbul.',
+      cardTypes: ['Boğaz Turu', 'Türk Gecesi', 'Sunset', 'DayTime'], cardNote: 'Rotanı seç, İstanbul’u denizden keşfet.',
     },
     booking: {
       experience: 'Deneyim', date: 'Tarih', guest: 'Misafir', guests: (count: number) => `${count} kişi`,
@@ -240,12 +238,12 @@ const copy = {
       decrease: 'Remove guest', increase: 'Add guest', scrollTours: 'Scroll to tours', tourCategories: 'Tour categories',
       previousReview: 'Previous review', nextReview: 'Next review', newsletter: 'Join the newsletter', email: 'Email address',
     },
-    ticket: 'Book now',
     hero: {
       eyebrow: 'Istanbul, from the other side of the water', lead: 'Don’t just watch.', accent: 'Flow with it.',
       description: 'Meet the rhythm of the Bosphorus, the colour of sunset and the unhurried side of Istanbul.',
-      discover: 'Explore tours', watch: 'Watch the experience', scroll: 'Explore', routeLabel: 'Tonight’s route',
-      routeStops: ['Karaköy', 'Ortaköy', 'Beylerbeyi'], routeMeta: '18:30 · 2 hours', routeLive: 'Live',
+      discover: 'Explore tours', watch: 'Watch the experience', scroll: 'Explore', cardLabel: 'On the Bosphorus',
+      cardCount: '4 experiences', cardLead: 'A different Istanbul', cardAccent: 'for every moment.',
+      cardTypes: ['Bosphorus', 'Turkish Night', 'Sunset', 'DayTime'], cardNote: 'Choose your route and discover Istanbul from the water.',
     },
     booking: {
       experience: 'Experience', date: 'Date', guest: 'Guests', guests: (count: number) => `${count} ${count === 1 ? 'guest' : 'guests'}`,
@@ -430,7 +428,6 @@ function App() {
                 ))}
               </div>
             </div>
-            <button className="nav-cta" type="button" onClick={() => openBooking()}>{c.ticket} <ArrowRight size={16} /></button>
             <button className="menu-button" type="button" aria-label={c.a11y.openMenu} aria-expanded={mobileMenu} onClick={() => setMobileMenu(true)}><Menu /></button>
           </div>
         </div>
@@ -443,7 +440,6 @@ function App() {
         <div className="mobile-languages" aria-label={c.a11y.language}>
           {(['tr', 'en'] as Language[]).map((item) => <button key={item} className={language === item ? 'active' : ''} type="button" onClick={() => changeLanguage(item)}>{item.toUpperCase()} <span>{copy[item].languageName}</span></button>)}
         </div>
-        <button className="button button--coral" onClick={() => { setMobileMenu(false); openBooking() }}>{c.ticket} <Ticket size={18} /></button>
       </div>
 
       <section className="hero" aria-labelledby="hero-title">
@@ -462,10 +458,11 @@ function App() {
               <a className="play-link" href="#deneyim"><span><Play size={15} fill="currentColor" /></span> {c.hero.watch}</a>
             </div>
           </div>
-          <div className="hero__route-card">
-            <div className="route-card__top"><span><Navigation size={14} /> {c.hero.routeLabel}</span><i>{c.hero.routeLive}</i></div>
-            <div className="route-card__stops">{c.hero.routeStops.map((stop, index) => <span key={stop}><b>{index + 1}</b>{stop}</span>)}</div>
-            <div className="route-card__bottom"><Anchor size={16} /> {c.hero.routeMeta}</div>
+          <div className="hero__experience-card">
+            <div className="experience-card__top"><span><Waves size={15} /> {c.hero.cardLabel}</span><i>{c.hero.cardCount}</i></div>
+            <p className="experience-card__lead">{c.hero.cardLead}<br /><em>{c.hero.cardAccent}</em></p>
+            <div className="experience-card__types">{c.hero.cardTypes.map((type, index) => <span key={type}><b>0{index + 1}</b>{type}</span>)}</div>
+            <div className="experience-card__note"><Sparkles size={14} /> {c.hero.cardNote}</div>
           </div>
           <div className="hero__side-note" aria-hidden="true"><span>41° 02′ N</span><div /><span>29° 00′ E</span></div>
           <a className="scroll-cue" href="#turlar" aria-label={c.a11y.scrollTours}><span>{c.hero.scroll}</span><ArrowDown size={18} /></a>

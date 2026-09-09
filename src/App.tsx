@@ -137,8 +137,13 @@ const fallbackTours: Tour[] = [
   },
 ]
 
-const categoryKeys: CategoryFilter[] = ['all', 'bosphorus', 'turkish-night', 'sunset', 'daytime']
-const experienceKeys: Category[] = ['bosphorus', 'turkish-night', 'sunset', 'daytime']
+const experienceKeys: Category[] = ['turkish-night', 'sunset', 'daytime', 'bosphorus']
+const categoryKeys: CategoryFilter[] = ['all', ...experienceKeys]
+const categoryPriority = new Map(experienceKeys.map((category, index) => [category, index]))
+
+const orderTours = (items: Tour[]) => [...items].sort(
+  (left, right) => (categoryPriority.get(left.category) ?? 99) - (categoryPriority.get(right.category) ?? 99),
+)
 
 const isCategory = (value: string): value is Category => experienceKeys.includes(value as Category)
 
@@ -153,13 +158,13 @@ const mergeCatalogTours = (catalog: CatalogTour[]): Tour[] => {
       title: localized(item.name, item.name),
     }]
   })
-  if (liveTours.length === 0) return fallbackTours
+  if (liveTours.length === 0) return orderTours(fallbackTours)
 
   const liveCategories = new Set(liveTours.map((tour) => tour.category))
-  return [
+  return orderTours([
     ...liveTours,
     ...fallbackTours.filter((tour) => !liveCategories.has(tour.category)),
-  ]
+  ])
 }
 
 const copy = {
@@ -176,7 +181,7 @@ const copy = {
       description: 'Boğaz’ın ritmini, gün batımının rengini ve İstanbul’un hiç acele etmeyen halini keşfet.',
       watch: 'Deneyimi izle', scroll: 'Keşfet', cardLabel: 'İstanbul Boğazı’nda',
       cardCount: '4 deneyim', cardLead: 'Her saate', cardAccent: 'başka bir İstanbul.',
-      cardTypes: ['Boğaz Turu', 'Türk Gecesi', 'Sunset', 'DayTime'], cardNote: 'Rotanı seç, İstanbul’u denizden keşfet.',
+      cardTypes: ['Türk Gecesi', 'Sunset', 'DayTime', 'Boğaz Turu'], cardNote: 'Rotanı seç, İstanbul’u denizden keşfet.',
     },
     booking: {
       experience: 'Deneyim', date: 'Tarih', guest: 'Misafir', guests: (count: number) => `${count} kişi`,
@@ -243,7 +248,7 @@ const copy = {
       description: 'Meet the rhythm of the Bosphorus, the colour of sunset and the unhurried side of Istanbul.',
       watch: 'Watch the experience', scroll: 'Explore', cardLabel: 'On the Bosphorus',
       cardCount: '4 experiences', cardLead: 'A different Istanbul', cardAccent: 'for every moment.',
-      cardTypes: ['Bosphorus', 'Turkish Night', 'Sunset', 'DayTime'], cardNote: 'Choose your route and discover Istanbul from the water.',
+      cardTypes: ['Turkish Night', 'Sunset', 'DayTime', 'Bosphorus'], cardNote: 'Choose your route and discover Istanbul from the water.',
     },
     booking: {
       experience: 'Experience', date: 'Date', guest: 'Guests', guests: (count: number) => `${count} ${count === 1 ? 'guest' : 'guests'}`,
@@ -322,10 +327,10 @@ function App() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenu, setMobileMenu] = useState(false)
   const [filter, setFilter] = useState<CategoryFilter>('all')
-  const [tours, setTours] = useState<Tour[]>(fallbackTours)
+  const [tours, setTours] = useState<Tour[]>(() => orderTours(fallbackTours))
   const [date, setDate] = useState(tomorrow())
   const [guests, setGuests] = useState(2)
-  const [experience, setExperience] = useState<Category>('bosphorus')
+  const [experience, setExperience] = useState<Category>('turkish-night')
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null)
   const [bookingOpen, setBookingOpen] = useState(false)
   const [bookingSuccess, setBookingSuccess] = useState(false)

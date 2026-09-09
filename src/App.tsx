@@ -22,11 +22,14 @@ import {
   Sparkles,
   Star,
   Ticket,
+  UserRound,
   Users,
   Waves,
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { Link } from 'react-router-dom'
+import { useAuth } from './auth/AuthContext'
 
 type Language = 'tr' | 'en'
 type Category = 'sunset' | 'dinner' | 'day' | 'private'
@@ -317,6 +320,7 @@ function Logo({ light = false, language = 'tr' }: { light?: boolean; language?: 
 }
 
 function App() {
+  const { user } = useAuth()
   const [language, setLanguage] = useState<Language>(() => window.localStorage.getItem('pereme-language') === 'en' ? 'en' : 'tr')
   const [languageMenu, setLanguageMenu] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -404,6 +408,9 @@ function App() {
           <Logo light={!scrolled} language={language} />
           <nav className="desktop-nav" aria-label={c.a11y.mainNav}>{c.nav.map(([label, href]) => <a key={href} href={href}>{label}</a>)}</nav>
           <div className="header__actions">
+            <Link className="account-link" to={user?.role === 'Admin' ? '/admin/tickets' : '/login'}>
+              <UserRound size={16} /> <span>{user?.role === 'Admin' ? (language === 'tr' ? 'Panel' : 'Admin') : (language === 'tr' ? 'Hesabım' : 'My account')}</span>
+            </Link>
             <div className="language-picker" ref={languagePickerRef}>
               <button className="language" type="button" aria-label={c.a11y.language} aria-haspopup="menu" aria-expanded={languageMenu} onClick={() => setLanguageMenu((open) => !open)}>
                 <Globe2 size={17} /> {language.toUpperCase()} <ChevronDown size={14} />
@@ -425,7 +432,7 @@ function App() {
       <div className={`mobile-menu ${mobileMenu ? 'mobile-menu--open' : ''}`} aria-hidden={!mobileMenu}>
         <button className="mobile-menu__close" onClick={() => setMobileMenu(false)} aria-label={c.a11y.closeMenu}><X /></button>
         <Logo light language={language} />
-        <nav>{c.nav.map(([label, href]) => <a key={href} href={href} onClick={() => setMobileMenu(false)}>{label} <ArrowRight /></a>)}</nav>
+        <nav>{c.nav.map(([label, href]) => <a key={href} href={href} onClick={() => setMobileMenu(false)}>{label} <ArrowRight /></a>)}<Link to={user?.role === 'Admin' ? '/admin/tickets' : '/login'} onClick={() => setMobileMenu(false)}>{user?.role === 'Admin' ? (language === 'tr' ? 'Yönetim paneli' : 'Admin panel') : (language === 'tr' ? 'Hesabım' : 'My account')} <UserRound /></Link></nav>
         <div className="mobile-languages" aria-label={c.a11y.language}>
           {(['tr', 'en'] as Language[]).map((item) => <button key={item} className={language === item ? 'active' : ''} type="button" onClick={() => changeLanguage(item)}>{item.toUpperCase()} <span>{copy[item].languageName}</span></button>)}
         </div>

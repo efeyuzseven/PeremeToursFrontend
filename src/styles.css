@@ -165,6 +165,26 @@ img {
   background: transparent;
 }
 
+.account-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 35px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.account-link:hover {
+  background: rgba(255, 255, 255, .13);
+}
+
+.site-header--scrolled .account-link:hover {
+  background: rgba(7, 27, 53, .07);
+}
+
 .language {
   display: flex;
   align-items: center;
@@ -2030,7 +2050,8 @@ footer {
   .header__inner { height: 72px; }
   .logo img { height: 52px; }
   .language-picker,
-  .nav-cta { display: none; }
+  .nav-cta,
+  .account-link { display: none; }
   .hero { min-height: 710px; height: 88svh; margin-bottom: 180px; align-items: flex-start; }
   .hero__image { background-position: 64% center; }
   .hero__image { animation: none; transform: none; }

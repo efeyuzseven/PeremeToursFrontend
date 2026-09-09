@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import App from './App'
 import AdminLayout from './admin/AdminLayout'
+import SiteContentPage from './admin/SiteContentPage'
 import TicketsPage from './admin/TicketsPage'
 import TourContentsPage from './admin/TourContentsPage'
 import UsersPage from './admin/UsersPage'
@@ -23,6 +24,7 @@ createRoot(document.getElementById('root')!).render(
               <Route index element={<Navigate to="tickets" replace />} />
               <Route path="tickets" element={<TicketsPage />} />
               <Route path="tour-contents" element={<TourContentsPage />} />
+              <Route path="site-content" element={<SiteContentPage />} />
               <Route path="users" element={<UsersPage />} />
             </Route>
           </Route>

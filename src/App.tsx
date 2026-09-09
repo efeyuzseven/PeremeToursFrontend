@@ -28,6 +28,7 @@ import {
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
+import type { HomepageContentDocument } from './content/homepage'
 import { apiBaseUrl, apiRequest } from './lib/api'
 
 type Language = 'tr' | 'en'
@@ -191,7 +192,7 @@ const mergeCatalogTours = (catalog: CatalogTour[]): Tour[] => {
 const copy = {
   tr: {
     languageName: 'Türkçe',
-    nav: [['Turlar', '#turlar'], ['Deneyimler', '#deneyim'], ['Neden Pereme?', '#neden-biz'], ['Hikâyeler', '#hikayeler']],
+    nav: [['Turlar', '#turlar'], ['Hizmetlerimiz', '#hizmetler'], ['Neden Pereme?', '#neden-biz'], ['Hikâyeler', '#hikayeler']],
     a11y: {
       mainNav: 'Ana menü', language: 'Dil seçimi', openMenu: 'Menüyü aç', closeMenu: 'Menüyü kapat', closeBooking: 'Rezervasyonu kapat',
       decrease: 'Misafir azalt', increase: 'Misafir artır', scrollTours: 'Turlara kaydır', tourCategories: 'Tur kategorileri',
@@ -200,7 +201,7 @@ const copy = {
     hero: {
       eyebrow: 'İstanbul, suyun öteki tarafından', lead: 'Şehri izleme.', accent: 'Onunla ak.',
       description: 'Boğaz’ın ritmini, gün batımının rengini ve İstanbul’un hiç acele etmeyen halini keşfet.',
-      watch: 'Deneyimi izle', scroll: 'Keşfet', cardLabel: 'İstanbul Boğazı’nda',
+      watch: 'Hizmetlerimizi incele', scroll: 'Keşfet', cardLabel: 'İstanbul Boğazı’nda',
       cardCount: '4 deneyim', cardLead: 'Her saate', cardAccent: 'başka bir İstanbul.',
       cardTypes: ['Türk Gecesi', 'Sunset', 'DayTime', 'Boğaz Turu'], cardNote: 'Rotanı seç, İstanbul’u denizden keşfet.',
     },
@@ -213,7 +214,7 @@ const copy = {
     tours: {
       eyebrow: 'Rotanı seç', lead: 'Boğaz’da senin', accent: 'anın',
       description: 'Boğaz Turu, Türk Gecesi, Sunset veya DayTime. İstanbul’a bakmanın en güzel halini seç.',
-      spots: (count: number) => `Bu tarih için ${count} yer kaldı`, perPerson: 'Kişi başı', select: 'Seç',
+      spots: (count: number) => `Bu tarih için ${count} yer kaldı`, perPerson: 'Kişi başı', select: 'Rezervasyon Yap',
       favouriteAdd: 'favorilere ekle', favouriteRemove: 'favorilerden çıkar', showLess: 'Daha az göster',
       showAll: (count: number) => `Tüm ${count} turu gör`, watermark: 'BOSPHORUS',
     },
@@ -221,6 +222,16 @@ const copy = {
       eyebrow: 'Bir turdan fazlası', lead: 'Şehir denizde', accent: 'başka konuşur.',
       description: 'Kalabalığı kıyıda bırak. İstanbul’un sesini martılardan, ışığını suyun üstünden, hikâyesini yerel anlatıcılardan dinle.',
       features: [['Özenli rotalar', 'Turistik kalabalıktan uzak'], ['Gerçek İstanbul', 'Yerel hikâyeler ve tatlar'], ['Küçük gruplar', 'Daha kişisel bir deneyim']],
+    },
+    services: {
+      eyebrow: 'Hizmetlerimiz', lead: 'İstanbul’u kendi', accent: 'ritminde yaşa.',
+      description: 'Geceden gün batımına, gündüz rotalarından klasik Boğaz turlarına uzanan deneyimini seç.',
+      items: [
+        ['turkish-night', 'Türk Gecesi', 'Akşam yemeği, canlı gösteriler ve Boğaz’ın gece ışıkları.', 'İlgili turları gör', 'Rezervasyon yap'],
+        ['sunset', 'Sunset', 'İstanbul siluetini altın saatin renkleriyle denizden izle.', 'İlgili turları gör', 'Rezervasyon yap'],
+        ['daytime', 'DayTime', 'Gün ışığında iki yaka, yalılar ve şehrin kıyı hikâyeleri.', 'İlgili turları gör', 'Rezervasyon yap'],
+        ['bosphorus', 'Boğaz Turu', 'İstanbul’un simge yapılarını denizden keşfeden klasik rota.', 'İlgili turları gör', 'Rezervasyon yap'],
+      ] as [Category, string, string, string, string][],
     },
     why: {
       eyebrow: 'İçin rahat olsun', lead: 'Biletini al.', accent: 'Gerisini akışa bırak.', reviews: '840+ mutlu misafir',
@@ -232,6 +243,8 @@ const copy = {
       ],
     },
     story: {
+      eyebrow: 'Instagram’dan Pereme', lead: 'Boğaz’daki anlara', accent: 'yakından bak.',
+      description: 'PeremeTours Instagram hesabındaki güncel videoları ve misafir anlarını keşfet.',
       note: 'İstanbul’a bir de\nburadan bak.',
       quote: '“Gün batımı çok güzeldi ama asıl fark, ekibin küçük detayları düşünmesiydi. Kendimizi turist gibi değil, İstanbul’un misafiri gibi hissettik.”',
       meta: 'Ankara · Gün Batımı Turu',
@@ -258,7 +271,7 @@ const copy = {
   },
   en: {
     languageName: 'English',
-    nav: [['Tours', '#turlar'], ['Experiences', '#deneyim'], ['Why Pereme?', '#neden-biz'], ['Stories', '#hikayeler']],
+    nav: [['Tours', '#turlar'], ['Our Services', '#hizmetler'], ['Why Pereme?', '#neden-biz'], ['Stories', '#hikayeler']],
     a11y: {
       mainNav: 'Main navigation', language: 'Choose language', openMenu: 'Open menu', closeMenu: 'Close menu', closeBooking: 'Close booking',
       decrease: 'Remove guest', increase: 'Add guest', scrollTours: 'Scroll to tours', tourCategories: 'Tour categories',
@@ -267,7 +280,7 @@ const copy = {
     hero: {
       eyebrow: 'Istanbul, from the other side of the water', lead: 'Don’t just watch.', accent: 'Flow with it.',
       description: 'Meet the rhythm of the Bosphorus, the colour of sunset and the unhurried side of Istanbul.',
-      watch: 'Watch the experience', scroll: 'Explore', cardLabel: 'On the Bosphorus',
+      watch: 'Explore our services', scroll: 'Explore', cardLabel: 'On the Bosphorus',
       cardCount: '4 experiences', cardLead: 'A different Istanbul', cardAccent: 'for every moment.',
       cardTypes: ['Turkish Night', 'Sunset', 'DayTime', 'Bosphorus'], cardNote: 'Choose your route and discover Istanbul from the water.',
     },
@@ -280,7 +293,7 @@ const copy = {
     tours: {
       eyebrow: 'Choose your route', lead: 'Find your moment', accent: 'on the Bosphorus',
       description: 'Bosphorus Cruise, Turkish Night, Sunset or Daytime. Choose your favourite way to see Istanbul.',
-      spots: (count: number) => `${count} spots left for this date`, perPerson: 'Per person', select: 'Select',
+      spots: (count: number) => `${count} spots left for this date`, perPerson: 'Per person', select: 'Book now',
       favouriteAdd: 'add to favourites', favouriteRemove: 'remove from favourites', showLess: 'Show less',
       showAll: (count: number) => `See all ${count} tours`, watermark: 'BOSPHORUS',
     },
@@ -288,6 +301,16 @@ const copy = {
       eyebrow: 'More than a tour', lead: 'The city speaks', accent: 'differently at sea.',
       description: 'Leave the crowds ashore. Hear Istanbul through the gulls, see its light on the water and discover its stories with local hosts.',
       features: [['Thoughtful routes', 'Away from the tourist crowds'], ['The real Istanbul', 'Local stories and flavours'], ['Small groups', 'A more personal experience']],
+    },
+    services: {
+      eyebrow: 'Our services', lead: 'Experience Istanbul', accent: 'at your own pace.',
+      description: 'Choose your experience from dinner shows and sunsets to daytime routes and classic Bosphorus cruises.',
+      items: [
+        ['turkish-night', 'Turkish Night', 'Dinner, live performances and the night lights of the Bosphorus.', 'View related tours', 'Book now'],
+        ['sunset', 'Sunset', 'Watch Istanbul’s skyline from the water during golden hour.', 'View related tours', 'Book now'],
+        ['daytime', 'DayTime', 'Two shores, waterfront mansions and local stories in daylight.', 'View related tours', 'Book now'],
+        ['bosphorus', 'Bosphorus Cruise', 'A classic route past Istanbul’s landmarks and waterfront history.', 'View related tours', 'Book now'],
+      ] as [Category, string, string, string, string][],
     },
     why: {
       eyebrow: 'You’re in good hands', lead: 'Book your ticket.', accent: 'Leave the rest to the flow.', reviews: '840+ happy guests',
@@ -299,6 +322,8 @@ const copy = {
       ],
     },
     story: {
+      eyebrow: 'Pereme on Instagram', lead: 'See moments from', accent: 'the Bosphorus.',
+      description: 'Discover recent videos and guest moments from the PeremeTours Instagram account.',
       note: 'See Istanbul from\na different side.',
       quote: '“The sunset was beautiful, but the real difference was the team’s attention to every small detail. We felt like guests of Istanbul, not tourists.”',
       meta: 'Ankara · Sunset Cruise',
@@ -333,6 +358,16 @@ const tomorrow = () => {
 
 const today = new Date().toISOString().split('T')[0]
 
+const instagramEmbedUrl = (url: string) => {
+  try {
+    const parsed = new URL(url)
+    const pathname = parsed.pathname.replace(/\/+$/, '')
+    return `${parsed.origin}${pathname}/embed/`
+  } catch {
+    return ''
+  }
+}
+
 function Logo({ light = false, language = 'tr' }: { light?: boolean; language?: Language }) {
   return (
     <a href="#top" className={`logo ${light ? 'logo--light' : ''}`} aria-label={language === 'tr' ? 'Dentur Pereme ana sayfa' : 'Dentur Pereme home'}>
@@ -349,6 +384,7 @@ function App() {
   const [mobileMenu, setMobileMenu] = useState(false)
   const [filter, setFilter] = useState<CategoryFilter>('all')
   const [tours, setTours] = useState<Tour[]>(() => orderTours(fallbackTours))
+  const [homepageContent, setHomepageContent] = useState<HomepageContentDocument | null>(null)
   const [date, setDate] = useState(tomorrow())
   const [guests, setGuests] = useState(2)
   const [experience, setExperience] = useState<Category>('turkish-night')
@@ -359,11 +395,20 @@ function App() {
   const [favorites, setFavorites] = useState<number[]>([])
   const languagePickerRef = useRef<HTMLDivElement>(null)
   const c = copy[language]
+  const page = homepageContent?.[language]
 
   useEffect(() => {
     const controller = new AbortController()
     apiRequest<CatalogTour[]>('/api/v1/tours', { signal: controller.signal })
       .then((catalog) => setTours(mergeCatalogTours(catalog)))
+      .catch(() => undefined)
+    return () => controller.abort()
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    apiRequest<HomepageContentDocument>('/api/v1/site-content/homepage', { signal: controller.signal })
+      .then(setHomepageContent)
       .catch(() => undefined)
     return () => controller.abort()
   }, [])
@@ -432,6 +477,18 @@ function App() {
     document.getElementById('turlar')?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const showCategoryTours = (category: Category) => {
+    setFilter(category)
+    setShowAll(true)
+    requestAnimationFrame(() => document.getElementById('turlar')?.scrollIntoView({ behavior: 'smooth' }))
+  }
+
+  const serviceItems = page?.services.items
+    ?? c.services.items.map(([categoryKey, title, description, browseLabel, bookingLabel]) => ({ categoryKey, title, description, browseLabel, bookingLabel }))
+  const benefits = page?.why.benefits
+    ?? c.why.benefits.map(([title, description]) => ({ title, description }))
+  const instagramUrls = homepageContent?.instagramUrls ?? []
+
   return (
     <main id="top">
       <header className={`site-header ${scrolled ? 'site-header--scrolled' : ''}`}>
@@ -477,10 +534,10 @@ function App() {
         <div className="shell hero__content">
           <div className="hero__copy">
             <div className="eyebrow eyebrow--light"><span className="eyebrow__pulse" /> {c.hero.eyebrow}</div>
-            <h1 id="hero-title">{c.hero.lead}<br /><em>{c.hero.accent}</em></h1>
-            <p>{c.hero.description}</p>
+            <h1 id="hero-title">{page?.hero.lead ?? c.hero.lead}<br /><em>{page?.hero.accent ?? c.hero.accent}</em></h1>
+            <p>{page?.hero.description ?? c.hero.description}</p>
             <div className="hero__buttons">
-              <a className="play-link" href="#deneyim"><span><Play size={15} fill="currentColor" /></span> {c.hero.watch}</a>
+              <a className="play-link" href="#hizmetler"><span><Play size={15} fill="currentColor" /></span> {c.hero.watch}</a>
             </div>
           </div>
           <div className="hero__experience-card">
@@ -516,7 +573,7 @@ function App() {
       <section className="tours-section" id="turlar">
         <span className="section-watermark" aria-hidden="true">{c.tours.watermark}</span>
         <div className="shell">
-          <div className="section-heading"><div><div className="eyebrow"><Waves size={18} /> {c.tours.eyebrow}</div><h2>{c.tours.lead} <em>{c.tours.accent}</em></h2></div><p>{c.tours.description}</p></div>
+          <div className="section-heading"><div><div className="eyebrow"><Waves size={18} /> {page?.tours.eyebrow ?? c.tours.eyebrow}</div><h2>{page?.tours.lead ?? c.tours.lead} <em>{page?.tours.accent ?? c.tours.accent}</em></h2></div><p>{page?.tours.description ?? c.tours.description}</p></div>
           <div className="filters" role="group" aria-label={c.a11y.tourCategories}>{categoryKeys.map((category) => <button key={category} className={filter === category ? 'active' : ''} type="button" onClick={() => { setFilter(category); setShowAll(false) }}>{c.categories[category]}</button>)}</div>
           <div className="tour-grid">
             {displayedTours.map((tour, index) => (
@@ -529,7 +586,6 @@ function App() {
                 <div className="tour-card__body">
                   <span className="tour-card__category">{c.categories[tour.category]}</span><h3>{tour.title[language]}</h3><p>{tour.description[language]}</p>
                   <div className="tour-card__meta"><span><Clock3 size={16} /> {tour.duration[language]}</span><span><MapPin size={16} /> {tour.location[language]}</span></div>
-                  {tour.remaining && <div className="tour-card__spots"><span /> {c.tours.spots(tour.remaining)}</div>}
                   <div className="tour-card__footer"><div className="price"><small>{c.tours.perPerson}</small><span>{formatPrice(tour.price)} ₺</span>{tour.oldPrice && <del>{formatPrice(tour.oldPrice)} ₺</del>}</div><button type="button" onClick={() => openBooking(tour)} aria-label={`${tour.title[language]} ${c.tours.select}`}>{c.tours.select} <ArrowRight size={18} /></button></div>
                 </div>
               </article>
@@ -539,33 +595,38 @@ function App() {
         </div>
       </section>
 
-      <section className="experience" id="deneyim">
-        <div className="experience__image" /><div className="experience__wash" /><div className="experience__glow" aria-hidden="true" />
-        <div className="shell experience__inner">
-          <div className="experience__number">01</div>
-          <div className="experience__copy">
-            <div className="eyebrow eyebrow--light"><Sparkles size={17} /> {c.experience.eyebrow}</div><h2>{c.experience.lead}<br /><em>{c.experience.accent}</em></h2><p>{c.experience.description}</p>
-            <div className="experience__features">{c.experience.features.map(([title, text], index) => <div key={title}><span>0{index + 1}</span><p><strong>{title}</strong>{text}</p></div>)}</div>
+      <section className="services" id="hizmetler">
+        <div className="shell">
+          <div className="section-heading section-heading--light"><div><div className="eyebrow eyebrow--light"><Sparkles size={17} /> {page?.services.eyebrow ?? c.services.eyebrow}</div><h2>{page?.services.lead ?? c.services.lead}<br /><em>{page?.services.accent ?? c.services.accent}</em></h2></div><p>{page?.services.description ?? c.services.description}</p></div>
+          <div className="service-grid">
+            {serviceItems.map((item, index) => {
+              const relatedTour = tours.find((tour) => tour.category === item.categoryKey)
+              return <article className="service-card" key={item.categoryKey}>
+                <div className="service-card__image"><img src={relatedTour?.image ?? fallbackTours.find((tour) => tour.category === item.categoryKey)?.image} alt="" /><span>0{index + 1}</span></div>
+                <div className="service-card__body"><small>{c.categories[item.categoryKey]}</small><h3>{item.title}</h3><p>{item.description}</p><div><button type="button" onClick={() => showCategoryTours(item.categoryKey)}>{item.browseLabel} <ArrowRight /></button><button type="button" disabled={!relatedTour} onClick={() => openBooking(relatedTour)}>{item.bookingLabel} <Ticket /></button></div></div>
+              </article>
+            })}
           </div>
-          <div className="experience__stamp" aria-hidden="true"><span>PEREME • ISTANBUL • 2026 •</span><Waves /></div>
         </div>
       </section>
 
       <section className="why" id="neden-biz">
         <div className="shell">
-          <div className="why__header"><div><div className="eyebrow"><ShieldCheck size={18} /> {c.why.eyebrow}</div><h2>{c.why.lead}<br /><em>{c.why.accent}</em></h2></div><div className="why__score"><strong>4.9</strong><span><span className="stars">★★★★★</span> {c.why.reviews}</span></div></div>
-          <div className="benefit-grid">{c.why.benefits.map(([title, text], index) => { const Icon = [ShieldCheck, CalendarDays, Users, Compass][index]; return <article key={title}><span>0{index + 1}</span><Icon /><h3>{title}</h3><p>{text}</p></article> })}</div>
+          <div className="why__header"><div><div className="eyebrow"><ShieldCheck size={18} /> {page?.why.eyebrow ?? c.why.eyebrow}</div><h2>{page?.why.lead ?? c.why.lead}<br /><em>{page?.why.accent ?? c.why.accent}</em></h2></div><div className="why__score"><strong>4.9</strong><span><span className="stars">★★★★★</span> {page?.why.reviews ?? c.why.reviews}</span></div></div>
+          <div className="benefit-grid">{benefits.map(({ title, description }, index) => { const Icon = [ShieldCheck, CalendarDays, Users, Compass][index]; return <article key={`${title}-${index}`}><span>0{index + 1}</span><Icon /><h3>{title}</h3><p>{description}</p></article> })}</div>
         </div>
       </section>
 
       <section className="stories" id="hikayeler">
-        <div className="shell stories__inner">
-          <div className="story-collage" aria-hidden="true"><img className="story-collage__main" src="/assets/tour-sunset.webp" alt="" /><img className="story-collage__small" src="/assets/tour-private.webp" alt="" /><div className="story-collage__note"><span>“</span>{c.story.note.split('\n').map((line) => <span className="story-note__line" key={line}>{line}</span>)}</div></div>
-          <div className="testimonial"><Quote size={40} /><blockquote>{c.story.quote}</blockquote><div className="testimonial__person"><div>EM</div><span><strong>Elif &amp; Mert</strong>{c.story.meta}</span></div><div className="testimonial__nav"><button type="button" aria-label={c.a11y.previousReview}><ArrowRight /></button><span>01 <i /> 03</span><button type="button" aria-label={c.a11y.nextReview}><ArrowRight /></button></div></div>
+        <div className="shell"><div className="stories__heading"><div className="eyebrow"><Camera size={17} /> {page?.stories.eyebrow ?? c.story.eyebrow}</div><h2>{page?.stories.lead ?? c.story.lead} <em>{page?.stories.accent ?? c.story.accent}</em></h2><p>{page?.stories.description ?? c.story.description}</p></div>
+          {instagramUrls.length > 0 ? <div className="instagram-grid">{instagramUrls.map((url) => { const embedUrl = instagramEmbedUrl(url); return embedUrl && <iframe key={url} src={embedUrl} title="PeremeTours Instagram" loading="lazy" allowFullScreen /> })}</div> : <div className="stories__inner stories__inner--fallback">
+            <div className="story-collage" aria-hidden="true"><img className="story-collage__main" src="/assets/tour-sunset.webp" alt="" /><img className="story-collage__small" src="/assets/tour-private.webp" alt="" /><div className="story-collage__note"><span>“</span>{c.story.note.split('\n').map((line) => <span className="story-note__line" key={line}>{line}</span>)}</div></div>
+            <div className="testimonial"><Quote size={40} /><blockquote>{page?.stories.quote ?? c.story.quote}</blockquote><div className="testimonial__person"><div>EM</div><span><strong>Elif &amp; Mert</strong>{page?.stories.meta ?? c.story.meta}</span></div></div>
+          </div>}
         </div>
       </section>
 
-      <section className="final-cta"><div className="final-cta__image" /><div className="final-cta__rings" aria-hidden="true"><span /><span /><span /></div><div className="shell final-cta__content"><p>{c.final.pre}</p><h2>{c.final.title}</h2><button className="button button--coral" type="button" onClick={() => openBooking()}>{c.final.action} <ArrowRight size={19} /></button></div></section>
+      <section className="final-cta"><div className="final-cta__image" /><div className="final-cta__rings" aria-hidden="true"><span /><span /><span /></div><div className="shell final-cta__content"><p>{page?.final.pre ?? c.final.pre}</p><h2>{page?.final.title ?? c.final.title}</h2><button className="button button--coral" type="button" onClick={() => openBooking()}>{page?.final.action ?? c.final.action} <ArrowRight size={19} /></button></div></section>
 
       <footer>
         <div className="shell footer__top">

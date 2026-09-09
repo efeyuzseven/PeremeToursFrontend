@@ -17,9 +17,9 @@ npm run lint
 npm run build
 ```
 
-Tur içerikleri ve fiyatlar demo verisidir. Gerçek envanter, kullanıcı hesabı ve ödeme sistemi sonraki fazda API üzerinden bağlanacaktır.
+Tur listesi ve yönetici tarafından değiştirilebilen tur içerikleri backend API üzerinden gelir. Fiyat, tarih ve kontenjan gibi satış verilerinin kaynağı EasyTicket'tır; ödeme işlemi sonraki fazda bağlanacaktır.
 
-Arayüz Türkçe ve İngilizce çalışır. Dil seçimi tarayıcıda saklanır; yeni diller `src/App.tsx` içindeki yerelleştirme sözlüğüne eklenebilir.
+Arayüz Türkçe ve İngilizce çalışır. Dil seçimi tarayıcıda saklanır. Yönetici panelindeki `Site İçerikleri` ekranından ana sayfanın iki dildeki metinleri, Hizmetlerimiz kartları ve Instagram video bağlantıları düzenlenebilir.
 
 ## AWS test yayını
 

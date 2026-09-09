@@ -180,7 +180,7 @@ const copy = {
     },
     booking: {
       experience: 'Deneyim', date: 'Tarih', guest: 'Misafir', guests: (count: number) => `${count} kişi`,
-      search: 'Uygun turları bul', availability: 'Bu hafta sonu için', lastTickets: 'son 18 bilet',
+      search: 'Uygun turları bul',
     },
     categories: { all: 'Tümü', bosphorus: 'Boğaz Turu', 'turkish-night': 'Türk Gecesi', sunset: 'Sunset', daytime: 'DayTime' },
     marquee: ['Ücretsiz iptal', 'Anında onay', 'Yerel rota', 'En iyi fiyat', '7/24 destek'],
@@ -247,7 +247,7 @@ const copy = {
     },
     booking: {
       experience: 'Experience', date: 'Date', guest: 'Guests', guests: (count: number) => `${count} ${count === 1 ? 'guest' : 'guests'}`,
-      search: 'Find available tours', availability: 'For this weekend', lastTickets: 'only 18 tickets left',
+      search: 'Find available tours',
     },
     categories: { all: 'All', bosphorus: 'Bosphorus Cruise', 'turkish-night': 'Turkish Night', sunset: 'Sunset', daytime: 'Daytime' },
     marquee: ['Free cancellation', 'Instant confirmation', 'Local routes', 'Best price', '24/7 support'],
@@ -480,7 +480,6 @@ function App() {
             </div>
             <button className="search-button" type="button" onClick={findTours}><Search size={20} /> <span>{c.booking.search}</span></button>
           </div>
-          <div className="availability"><span /> {c.booking.availability} <strong>{c.booking.lastTickets}</strong></div>
         </div>
       </section>
 

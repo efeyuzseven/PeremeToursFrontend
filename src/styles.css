@@ -885,18 +885,6 @@ h2 em {
   background: var(--sea);
 }
 
-.availability {
-  position: absolute;
-  right: 28px;
-  bottom: -30px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: rgba(255,255,255,.74);
-  font-size: 11px;
-}
-
-.availability span,
 .tour-card__spots span {
   width: 6px;
   height: 6px;
@@ -2060,7 +2048,6 @@ footer {
   .booking-field--guests .booking-field__icon { display: none; }
   .stepper { display: none; }
   .search-button { min-width: 0; margin-top: 3px; }
-  .availability { right: 0; bottom: -27px; }
   .marquee { margin-top: 0; }
   .tours-section { padding: 90px 0; }
   .section-watermark { top: 58px; font-size: 85px; }

@@ -5,6 +5,8 @@ import {
   CalendarDays,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   Compass,
   Globe2,
@@ -350,13 +352,25 @@ const copy = {
   },
 }
 
+const toIsoDate = (value: Date) => {
+  const year = value.getFullYear()
+  const month = String(value.getMonth() + 1).padStart(2, '0')
+  const day = String(value.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const parseIsoDate = (value: string) => {
+  const [year, month, day] = value.split('-').map(Number)
+  return new Date(year, month - 1, day)
+}
+
 const tomorrow = () => {
   const date = new Date()
   date.setDate(date.getDate() + 1)
-  return date.toISOString().split('T')[0]
+  return toIsoDate(date)
 }
 
-const today = new Date().toISOString().split('T')[0]
+const today = toIsoDate(new Date())
 
 const instagramEmbedUrl = (url: string) => {
   try {
@@ -386,14 +400,22 @@ function App() {
   const [tours, setTours] = useState<Tour[]>(() => orderTours(fallbackTours))
   const [homepageContent, setHomepageContent] = useState<HomepageContentDocument | null>(null)
   const [date, setDate] = useState(tomorrow())
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const value = parseIsoDate(tomorrow())
+    return new Date(value.getFullYear(), value.getMonth(), 1)
+  })
+  const [calendarOpen, setCalendarOpen] = useState(false)
   const [guests, setGuests] = useState(2)
   const [experience, setExperience] = useState<Category>('turkish-night')
+  const [experienceMenuOpen, setExperienceMenuOpen] = useState(false)
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null)
   const [bookingOpen, setBookingOpen] = useState(false)
   const [bookingSuccess, setBookingSuccess] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const [favorites, setFavorites] = useState<number[]>([])
   const languagePickerRef = useRef<HTMLDivElement>(null)
+  const experiencePickerRef = useRef<HTMLDivElement>(null)
+  const calendarPickerRef = useRef<HTMLDivElement>(null)
   const c = copy[language]
   const page = homepageContent?.[language]
 
@@ -435,6 +457,8 @@ function App() {
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
       if (!languagePickerRef.current?.contains(event.target as Node)) setLanguageMenu(false)
+      if (!experiencePickerRef.current?.contains(event.target as Node)) setExperienceMenuOpen(false)
+      if (!calendarPickerRef.current?.contains(event.target as Node)) setCalendarOpen(false)
     }
     document.addEventListener('mousedown', onPointerDown)
     return () => document.removeEventListener('mousedown', onPointerDown)
@@ -446,6 +470,8 @@ function App() {
         setBookingOpen(false)
         setMobileMenu(false)
         setLanguageMenu(false)
+        setExperienceMenuOpen(false)
+        setCalendarOpen(false)
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -459,6 +485,27 @@ function App() {
   const filteredTours = useMemo(() => filter === 'all' ? tours : tours.filter((tour) => tour.category === filter), [filter, tours])
   const displayedTours = showAll ? filteredTours : filteredTours.slice(0, 3)
   const formatPrice = (price: number) => new Intl.NumberFormat(language === 'tr' ? 'tr-TR' : 'en-US').format(price)
+  const selectedDate = parseIsoDate(date)
+  const locale = language === 'tr' ? 'tr-TR' : 'en-US'
+  const formattedDate = new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', year: 'numeric' }).format(selectedDate)
+  const monthLabel = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(calendarMonth)
+  const weekDays = language === 'tr' ? ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pa'] : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+  const firstDayOffset = (new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1).getDay() + 6) % 7
+  const daysInMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0).getDate()
+  const calendarDays = [...Array<null>(firstDayOffset).fill(null), ...Array.from({ length: daysInMonth }, (_, index) => index + 1)]
+  const currentMonth = parseIsoDate(today)
+  const previousMonthDisabled = calendarMonth.getFullYear() === currentMonth.getFullYear() && calendarMonth.getMonth() === currentMonth.getMonth()
+
+  const moveCalendarMonth = (direction: -1 | 1) => {
+    setCalendarMonth((value) => new Date(value.getFullYear(), value.getMonth() + direction, 1))
+  }
+
+  const chooseDate = (day: number) => {
+    const nextDate = toIsoDate(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day))
+    if (nextDate < today) return
+    setDate(nextDate)
+    setCalendarOpen(false)
+  }
 
   const changeLanguage = (nextLanguage: Language) => {
     setLanguage(nextLanguage)
@@ -552,11 +599,24 @@ function App() {
 
         <div className="shell booking-bar-wrap">
           <div className="booking-bar">
-            <label className="booking-field">
+            <div className={`booking-field booking-field--picker ${experienceMenuOpen ? 'booking-field--open' : ''}`} ref={experiencePickerRef}>
               <span className="booking-field__icon"><Compass size={21} /></span>
-              <span><small>{c.booking.experience}</small><select value={experience} onChange={(event) => setExperience(event.target.value as Category)}>{experienceKeys.map((category) => <option key={category} value={category}>{c.categories[category]}</option>)}</select></span>
-            </label>
-            <label className="booking-field"><span className="booking-field__icon"><CalendarDays size={21} /></span><span><small>{c.booking.date}</small><input type="date" min={today} value={date} onChange={(event) => setDate(event.target.value)} /></span></label>
+              <button className="booking-picker-trigger" type="button" aria-haspopup="listbox" aria-expanded={experienceMenuOpen} onClick={() => { setExperienceMenuOpen((open) => !open); setCalendarOpen(false) }}><span><small>{c.booking.experience}</small><strong>{c.categories[experience]}</strong></span><ChevronDown /></button>
+              <div className={`booking-popover experience-picker ${experienceMenuOpen ? 'booking-popover--open' : ''}`} role="listbox" aria-label={c.booking.experience}>
+                <div className="booking-popover__label">{language === 'tr' ? 'Deneyimini seç' : 'Choose your experience'}</div>
+                {experienceKeys.map((category, index) => <button key={category} type="button" role="option" aria-selected={experience === category} className={experience === category ? 'active' : ''} onClick={() => { setExperience(category); setExperienceMenuOpen(false) }}><span>0{index + 1}</span><strong>{c.categories[category]}</strong>{experience === category && <Check />}</button>)}
+              </div>
+            </div>
+            <div className={`booking-field booking-field--picker ${calendarOpen ? 'booking-field--open' : ''}`} ref={calendarPickerRef}>
+              <span className="booking-field__icon"><CalendarDays size={21} /></span>
+              <button className="booking-picker-trigger" type="button" aria-haspopup="dialog" aria-expanded={calendarOpen} onClick={() => { setCalendarMonth(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)); setCalendarOpen((open) => !open); setExperienceMenuOpen(false) }}><span><small>{c.booking.date}</small><strong>{formattedDate}</strong></span><ChevronDown /></button>
+              <div className={`booking-popover calendar-picker ${calendarOpen ? 'booking-popover--open' : ''}`} role="dialog" aria-label={language === 'tr' ? 'Tarih seçimi' : 'Choose a date'}>
+                <div className="calendar-picker__header"><div><small>{language === 'tr' ? 'Tur tarihi' : 'Tour date'}</small><strong>{monthLabel}</strong></div><span><button type="button" disabled={previousMonthDisabled} aria-label={language === 'tr' ? 'Önceki ay' : 'Previous month'} onClick={() => moveCalendarMonth(-1)}><ChevronLeft /></button><button type="button" aria-label={language === 'tr' ? 'Sonraki ay' : 'Next month'} onClick={() => moveCalendarMonth(1)}><ChevronRight /></button></span></div>
+                <div className="calendar-picker__weekdays">{weekDays.map((day) => <span key={day}>{day}</span>)}</div>
+                <div className="calendar-picker__days">{calendarDays.map((day, index) => day === null ? <span key={`blank-${index}`} /> : (() => { const value = toIsoDate(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day)); const isPast = value < today; return <button key={value} type="button" disabled={isPast} className={`${value === date ? 'selected' : ''} ${value === today ? 'today' : ''}`} aria-label={new Intl.DateTimeFormat(locale, { dateStyle: 'full' }).format(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day))} onClick={() => chooseDate(day)}>{day}</button> })())}</div>
+                <div className="calendar-picker__footer"><span>{language === 'tr' ? 'Seçilen tarih' : 'Selected date'} <strong>{formattedDate}</strong></span><button type="button" onClick={() => { const value = parseIsoDate(today); setCalendarMonth(new Date(value.getFullYear(), value.getMonth(), 1)); setDate(today); setCalendarOpen(false) }}>{language === 'tr' ? 'Bugün' : 'Today'}</button></div>
+              </div>
+            </div>
             <div className="booking-field booking-field--guests">
               <span className="booking-field__icon"><Users size={21} /></span><span><small>{c.booking.guest}</small><strong>{c.booking.guests(guests)}</strong></span>
               <div className="stepper" aria-label={c.drawer.guestCount}><button type="button" onClick={() => setGuests(Math.max(1, guests - 1))} aria-label={c.a11y.decrease}><Minus size={15} /></button><button type="button" onClick={() => setGuests(Math.min(12, guests + 1))} aria-label={c.a11y.increase}><Plus size={15} /></button></div>

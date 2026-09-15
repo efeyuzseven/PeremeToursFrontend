@@ -891,17 +891,17 @@ h2 em {
   position: absolute;
   z-index: 120;
   left: 8px;
-  bottom: calc(100% + 20px);
+  top: calc(100% + 12px);
   visibility: hidden;
   border: 1px solid rgba(31,71,140,.12);
-  border-radius: 14px;
+  border-radius: 11px;
   color: var(--navy);
   background: #fff;
-  box-shadow: 0 24px 65px rgba(7,27,53,.2);
+  box-shadow: 0 18px 45px rgba(7,27,53,.18);
   opacity: 0;
   pointer-events: none;
-  transform: translateY(8px) scale(.98);
-  transform-origin: bottom left;
+  transform: translateY(-7px) scale(.98);
+  transform-origin: top left;
   transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
 }
 
@@ -909,11 +909,11 @@ h2 em {
   content: '';
   position: absolute;
   left: 24px;
-  bottom: -6px;
+  top: -6px;
   width: 11px;
   height: 11px;
-  border-right: 1px solid rgba(31,71,140,.12);
-  border-bottom: 1px solid rgba(31,71,140,.12);
+  border-top: 1px solid rgba(31,71,140,.12);
+  border-left: 1px solid rgba(31,71,140,.12);
   background: #fff;
   transform: rotate(45deg);
 }
@@ -926,29 +926,29 @@ h2 em {
 }
 
 .booking-popover__label {
-  padding: 15px 17px 10px;
+  padding: 10px 12px 7px;
   color: #6a9dd2;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 800;
   letter-spacing: .12em;
   text-transform: uppercase;
 }
 
 .experience-picker {
-  width: 285px;
-  padding: 5px;
+  width: 235px;
+  padding: 4px;
 }
 
 .experience-picker > button {
   width: 100%;
-  min-height: 50px;
-  padding: 0 12px;
+  min-height: 41px;
+  padding: 0 9px;
   border: 0;
-  border-radius: 9px;
+  border-radius: 7px;
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) 19px;
+  grid-template-columns: 25px minmax(0, 1fr) 16px;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   color: var(--navy);
   background: transparent;
   text-align: left;
@@ -958,73 +958,73 @@ h2 em {
 .experience-picker > button > span {
   display: grid;
   place-items: center;
-  width: 27px;
-  height: 27px;
+  width: 23px;
+  height: 23px;
   border-radius: 50%;
   color: #6a9dd2;
   background: rgba(106,157,210,.12);
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 800;
 }
 
-.experience-picker > button strong { font-size: 12px; }
-.experience-picker > button svg { width: 16px; color: var(--sea); }
+.experience-picker > button strong { font-size: 11px; }
+.experience-picker > button svg { width: 14px; color: var(--sea); }
 .experience-picker > button:hover { background: rgba(106,157,210,.12); }
 .experience-picker > button.active { color: #fff; background: var(--navy); }
 .experience-picker > button.active > span { color: #fff; background: rgba(106,157,210,.24); }
 
 .calendar-picker {
   left: 4px;
-  width: 340px;
-  padding: 18px;
+  width: 288px;
+  padding: 14px;
 }
 
 .calendar-picker__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 15px;
+  gap: 12px;
+  padding-bottom: 11px;
   border-bottom: 1px solid rgba(106,157,210,.14);
 }
 
 .calendar-picker__header > div { display: grid; gap: 4px; }
 .calendar-picker__header small { color: #6a9dd2; font-size: 8px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
-.calendar-picker__header strong { font: 700 15px/1.2 'Manrope', sans-serif; text-transform: capitalize; }
+.calendar-picker__header strong { font: 700 13px/1.2 'Manrope', sans-serif; text-transform: capitalize; }
 .calendar-picker__header > span { display: flex; gap: 5px; }
 .calendar-picker__header button {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 29px;
+  height: 29px;
   padding: 0;
   border: 1px solid rgba(106,157,210,.18);
-  border-radius: 9px;
+  border-radius: 7px;
   color: var(--navy);
   background: #fff;
 }
 .calendar-picker__header button:hover { color: #fff; background: var(--navy); }
 .calendar-picker__header button:disabled { color: rgba(106,157,210,.32); background: rgba(106,157,210,.06); pointer-events: none; }
-.calendar-picker__header svg { width: 16px; }
+.calendar-picker__header svg { width: 14px; }
 
 .calendar-picker__weekdays,
 .calendar-picker__days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 2px;
 }
 
-.calendar-picker__weekdays { padding: 15px 0 7px; }
-.calendar-picker__weekdays span { color: #6a9dd2; text-align: center; font-size: 9px; font-weight: 800; }
+.calendar-picker__weekdays { padding: 11px 0 5px; }
+.calendar-picker__weekdays span { color: #6a9dd2; text-align: center; font-size: 8px; font-weight: 800; }
 .calendar-picker__days > span,
 .calendar-picker__days > button { aspect-ratio: 1; }
 .calendar-picker__days > button {
   padding: 0;
   border: 0;
-  border-radius: 9px;
+  border-radius: 7px;
   color: var(--navy);
   background: transparent;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   transition: color 150ms ease, background 150ms ease, transform 150ms ease;
 }
@@ -1037,15 +1037,15 @@ h2 em {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding-top: 14px;
-  margin-top: 12px;
+  gap: 10px;
+  padding-top: 10px;
+  margin-top: 9px;
   border-top: 1px solid rgba(106,157,210,.14);
 }
 
-.calendar-picker__footer > span { display: grid; gap: 3px; color: #6a9dd2; font-size: 8px; }
-.calendar-picker__footer > span strong { color: var(--navy); font-size: 10px; }
-.calendar-picker__footer > button { padding: 8px 11px; border: 0; border-radius: 8px; color: #fff; background: var(--sea); font-size: 9px; font-weight: 800; }
+.calendar-picker__footer > span { display: grid; gap: 2px; color: #6a9dd2; font-size: 7px; }
+.calendar-picker__footer > span strong { color: var(--navy); font-size: 9px; }
+.calendar-picker__footer > button { padding: 7px 9px; border: 0; border-radius: 7px; color: #fff; background: var(--sea); font-size: 8px; font-weight: 800; }
 .calendar-picker__footer > button:hover { background: var(--navy); }
 
 .booking-field--guests {
@@ -2453,8 +2453,8 @@ footer {
   .booking-field--guests { border-right: 0; }
   .booking-field--guests .booking-field__icon { display: none; }
   .stepper { display: none; }
-  .experience-picker { left: 0; width: min(300px, calc(100vw - 64px)); }
-  .calendar-picker { left: -8px; width: min(340px, calc(100vw - 64px)); padding: 15px; }
+  .experience-picker { left: 0; width: min(235px, calc(100vw - 64px)); }
+  .calendar-picker { left: -8px; width: min(288px, calc(100vw - 64px)); padding: 13px; }
   .search-button { min-width: 0; margin-top: 3px; }
   .marquee { margin-top: 0; }
   .tours-section { padding: 90px 0; }

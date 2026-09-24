@@ -293,6 +293,8 @@ img {
   visibility: hidden;
   opacity: 0;
   transform: translateY(-18px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   transition: opacity 240ms ease, transform 240ms ease, visibility 240ms;
 }
 
@@ -2442,7 +2444,8 @@ footer {
   .hero h1 { font-size: clamp(51px, 15vw, 67px); }
   .hero__copy > p { margin: 22px 0 28px; font-size: 15px; line-height: 1.6; }
   .hero__buttons { gap: 20px; }
-  .play-link { font-size: 0; }
+  .play-link { font-size: 12px; }
+  .play-link span { width: 40px; height: 40px; }
   .scroll-cue { display: none; }
   .booking-bar-wrap { bottom: -170px; }
   .booking-bar { min-height: 250px; padding: 10px 14px 14px; grid-template-columns: 1fr 1fr; }
@@ -2519,6 +2522,81 @@ footer {
   .booking-drawer__top h2,
   .booking-success h2 { font-size: 42px; }
   .drawer-fields { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .shell { width: min(100% - 28px, 1180px); }
+  .mobile-menu {
+    min-height: 100dvh;
+    padding: max(24px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left));
+  }
+  .mobile-menu__close { top: max(20px, env(safe-area-inset-top)); right: max(19px, env(safe-area-inset-right)); }
+  .mobile-menu nav { margin: 70px 0 30px; }
+  .mobile-menu nav a { min-height: 64px; padding: 15px 0; align-items: center; font-size: clamp(23px, 8vw, 31px); }
+  .mobile-languages { margin-bottom: 8px; }
+  .hero__content { padding-top: 150px; }
+  .hero h1 { font-size: clamp(47px, 15.5vw, 58px); }
+  .hero__copy > p { font-size: 14px; }
+  .hero__buttons { gap: 12px; }
+  .play-link { gap: 10px; font-size: 11px; }
+  .booking-bar { padding-inline: 11px; }
+  .booking-field { padding-inline: 8px; gap: 9px; }
+  .booking-field small { font-size: 9px; }
+  .booking-field strong { font-size: 13px; }
+  .booking-field--date .booking-field__icon { display: none; }
+  .booking-field--date { padding-left: 10px; }
+  .booking-picker-trigger { gap: 6px; }
+  .booking-picker-trigger > svg { width: 15px; }
+  .search-button { height: 51px; }
+  .filters { scroll-snap-type: x proximity; }
+  .filters button { min-height: 42px; scroll-snap-align: start; }
+  .tours-section { padding: 76px 0; }
+  .section-watermark { font-size: 70px; }
+  .section-heading h2,
+  .why h2 { font-size: 43px; }
+  .tour-card__media { height: 220px; }
+  .tour-card__body { padding: 21px 18px 18px; }
+  .tour-card__footer { gap: 8px; }
+  .tour-card__footer button { min-height: 44px; }
+  .services { padding: 76px 0; }
+  .service-card__image { min-height: 210px; }
+  .service-card__body > div { align-items: stretch; flex-direction: column; }
+  .service-card button { width: 100%; min-height: 44px; }
+  .why { padding: 76px 0; }
+  .why__header { gap: 28px; }
+  .benefit-grid article { min-height: 195px; padding: 29px 23px 27px; }
+  .stories { padding: 76px 0; }
+  .stories__heading h2 { font-size: 42px; }
+  .instagram-grid iframe { min-height: 500px; }
+  .story-collage { min-height: 350px; }
+  .story-collage__main { height: 305px; }
+  .story-collage__small { height: 160px; border-width: 7px; }
+  .testimonial blockquote { font-size: 25px; }
+  .final-cta { min-height: 390px; }
+  .final-cta p { font-size: 18px; }
+  .final-cta h2 { font-size: 44px; }
+  .footer__top { padding: 52px 0 42px; gap: 45px; }
+  .footer__links { gap: 30px 18px; }
+  .footer__bottom { align-items: flex-start; flex-direction: column; }
+  .booking-drawer {
+    height: 100dvh;
+    padding: 38px 18px calc(28px + env(safe-area-inset-bottom));
+    overscroll-behavior: contain;
+  }
+  .booking-drawer__close { top: 14px; right: 14px; width: 38px; height: 38px; }
+  .booking-drawer__top h2,
+  .booking-success h2 { margin-bottom: 26px; font-size: 39px; }
+  .drawer-fields { margin-top: 23px; }
+  .booking-submit { min-height: 54px; }
+}
+
+@media (max-width: 350px) {
+  .hero h1 { font-size: 47px; }
+  .hero__copy > p { font-size: 13px; }
+  .booking-mini-card { grid-template-columns: 94px minmax(0, 1fr); gap: 12px; }
+  .booking-mini-card img { width: 94px; height: 78px; }
+  .booking-mini-card strong { font-size: 12px; }
+  .footer__links { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

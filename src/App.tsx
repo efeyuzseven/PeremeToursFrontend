@@ -607,7 +607,7 @@ function App() {
                 {experienceKeys.map((category, index) => <button key={category} type="button" role="option" aria-selected={experience === category} className={experience === category ? 'active' : ''} onClick={() => { setExperience(category); setExperienceMenuOpen(false) }}><span>0{index + 1}</span><strong>{c.categories[category]}</strong>{experience === category && <Check />}</button>)}
               </div>
             </div>
-            <div className={`booking-field booking-field--picker ${calendarOpen ? 'booking-field--open' : ''}`} ref={calendarPickerRef}>
+            <div className={`booking-field booking-field--picker booking-field--date ${calendarOpen ? 'booking-field--open' : ''}`} ref={calendarPickerRef}>
               <span className="booking-field__icon"><CalendarDays size={21} /></span>
               <button className="booking-picker-trigger" type="button" aria-haspopup="dialog" aria-expanded={calendarOpen} onClick={() => { setCalendarMonth(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)); setCalendarOpen((open) => !open); setExperienceMenuOpen(false) }}><span><small>{c.booking.date}</small><strong>{formattedDate}</strong></span><ChevronDown /></button>
               <div className={`booking-popover calendar-picker ${calendarOpen ? 'booking-popover--open' : ''}`} role="dialog" aria-label={language === 'tr' ? 'Tarih seçimi' : 'Choose a date'}>

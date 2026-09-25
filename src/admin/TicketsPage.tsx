@@ -7,10 +7,11 @@ import type { AdminLanguage } from './AdminLayout'
 
 type TicketStatus = 'Pending' | 'Confirmed' | 'Cancelled' | 'Used'
 type TicketChannel = 'Web' | 'Admin'
+type TicketPaymentStatus = 'NotRequired' | 'Pending' | 'Processing' | 'Paid' | 'Failed' | 'Refunded'
 type TourTicket = {
   id: string; ticketCode: string; tourName: string; tourDate: string; departureTime: string
   customerName: string; customerEmail: string; guestCount: number; amount: number; currency: string
-  status: TicketStatus; channel: TicketChannel; createdAtUtc: string; updatedAtUtc: string
+  status: TicketStatus; channel: TicketChannel; paymentStatus?: TicketPaymentStatus; createdAtUtc: string; updatedAtUtc: string
 }
 type CatalogTour = {
   externalTourId: number
@@ -19,13 +20,18 @@ type CatalogTour = {
 }
 
 const pageCopy = {
-  tr: { eyebrow: 'SATIŞ & REZERVASYON', title: 'Tur Biletleri', subtitle: 'Tüm tur satışlarını, yolcu bilgilerini ve bilet durumlarını yönetin.', create: 'Yeni bilet', total: 'Toplam bilet', revenue: 'Onaylı ciro', pending: 'Bekleyen', guests: 'Toplam misafir', search: 'Bilet, tur veya müşteri ara...', all: 'Tüm durumlar', code: 'Bilet', customer: 'Müşteri', tour: 'Tur & tarih', count: 'Kişi', amount: 'Tutar', channel: 'Kanal', status: 'Durum', empty: 'Aramanızla eşleşen bilet bulunamadı.', modalTitle: 'Yeni tur bileti', modalText: 'Manuel satış veya rezervasyon ekleyin.', tourName: 'Tur adı', date: 'Tur tarihi', time: 'Kalkış saati', name: 'Müşteri adı', email: 'Müşteri e-postası', guestCount: 'Misafir sayısı', save: 'Bileti oluştur', cancel: 'Vazgeç', web: 'Web sitesi', admin: 'Yönetici', error: 'Biletler yüklenemedi.' },
-  en: { eyebrow: 'SALES & BOOKINGS', title: 'Tour Tickets', subtitle: 'Manage tour sales, passenger details and every ticket status.', create: 'New ticket', total: 'Total tickets', revenue: 'Confirmed revenue', pending: 'Pending', guests: 'Total guests', search: 'Search ticket, tour or customer...', all: 'All statuses', code: 'Ticket', customer: 'Customer', tour: 'Tour & date', count: 'Guests', amount: 'Amount', channel: 'Channel', status: 'Status', empty: 'No tickets matched your search.', modalTitle: 'New tour ticket', modalText: 'Add a manual sale or reservation.', tourName: 'Tour name', date: 'Tour date', time: 'Departure time', name: 'Customer name', email: 'Customer email', guestCount: 'Guest count', save: 'Create ticket', cancel: 'Cancel', web: 'Website', admin: 'Admin', error: 'Tickets could not be loaded.' },
+  tr: { eyebrow: 'SATIŞ & REZERVASYON', title: 'Tur Biletleri', subtitle: 'Tüm tur satışlarını, yolcu bilgilerini ve bilet durumlarını yönetin.', create: 'Yeni bilet', total: 'Toplam bilet', revenue: 'Onaylı ciro', pending: 'Bekleyen', guests: 'Toplam misafir', search: 'Bilet, tur veya müşteri ara...', all: 'Tüm durumlar', code: 'Bilet', customer: 'Müşteri', tour: 'Tur & tarih', count: 'Kişi', amount: 'Tutar', channel: 'Kanal', payment: 'Ödeme', status: 'Durum', empty: 'Aramanızla eşleşen bilet bulunamadı.', modalTitle: 'Yeni tur bileti', modalText: 'Manuel satış veya rezervasyon ekleyin.', tourName: 'Tur adı', date: 'Tur tarihi', time: 'Kalkış saati', name: 'Müşteri adı', email: 'Müşteri e-postası', guestCount: 'Misafir sayısı', save: 'Bileti oluştur', cancel: 'Vazgeç', web: 'Web sitesi', admin: 'Yönetici', error: 'Biletler yüklenemedi.' },
+  en: { eyebrow: 'SALES & BOOKINGS', title: 'Tour Tickets', subtitle: 'Manage tour sales, passenger details and every ticket status.', create: 'New ticket', total: 'Total tickets', revenue: 'Confirmed revenue', pending: 'Pending', guests: 'Total guests', search: 'Search ticket, tour or customer...', all: 'All statuses', code: 'Ticket', customer: 'Customer', tour: 'Tour & date', count: 'Guests', amount: 'Amount', channel: 'Channel', payment: 'Payment', status: 'Status', empty: 'No tickets matched your search.', modalTitle: 'New tour ticket', modalText: 'Add a manual sale or reservation.', tourName: 'Tour name', date: 'Tour date', time: 'Departure time', name: 'Customer name', email: 'Customer email', guestCount: 'Guest count', save: 'Create ticket', cancel: 'Cancel', web: 'Website', admin: 'Admin', error: 'Tickets could not be loaded.' },
 }
 
 const statusCopy: Record<AdminLanguage, Record<TicketStatus, string>> = {
   tr: { Pending: 'Bekliyor', Confirmed: 'Onaylandı', Cancelled: 'İptal', Used: 'Kullanıldı' },
   en: { Pending: 'Pending', Confirmed: 'Confirmed', Cancelled: 'Cancelled', Used: 'Used' },
+}
+
+const paymentStatusCopy: Record<AdminLanguage, Record<TicketPaymentStatus, string>> = {
+  tr: { NotRequired: 'Manuel', Pending: 'Bekliyor', Processing: 'İşleniyor', Paid: 'Ödendi', Failed: 'Başarısız', Refunded: 'İade edildi' },
+  en: { NotRequired: 'Manual', Pending: 'Pending', Processing: 'Processing', Paid: 'Paid', Failed: 'Failed', Refunded: 'Refunded' },
 }
 
 export default function TicketsPage() {
@@ -72,7 +78,9 @@ export default function TicketsPage() {
     })
   }, [filter, language, query, tickets])
 
-  const confirmedRevenue = tickets.filter((ticket) => ticket.status === 'Confirmed' || ticket.status === 'Used').reduce((sum, ticket) => sum + ticket.amount, 0)
+  const confirmedRevenue = tickets
+    .filter((ticket) => (ticket.status === 'Confirmed' || ticket.status === 'Used') && (!ticket.paymentStatus || ticket.paymentStatus === 'Paid' || ticket.paymentStatus === 'NotRequired'))
+    .reduce((sum, ticket) => sum + ticket.amount, 0)
   const formatMoney = (amount: number) => new Intl.NumberFormat(language === 'tr' ? 'tr-TR' : 'en-US', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(amount)
   const formatDate = (date: string) => new Intl.DateTimeFormat(language === 'tr' ? 'tr-TR' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${date}T12:00:00`))
 
@@ -116,9 +124,9 @@ export default function TicketsPage() {
     {error && <div className="admin-alert">{error}</div>}
     <section className="admin-table-card">
       <div className="admin-table-tools"><label><Search /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={c.search} /></label><select value={filter} onChange={(event) => setFilter(event.target.value as 'All' | TicketStatus)}><option value="All">{c.all}</option>{(['Pending', 'Confirmed', 'Cancelled', 'Used'] as TicketStatus[]).map((status) => <option key={status} value={status}>{statusCopy[language][status]}</option>)}</select></div>
-      <div className="admin-table-scroll"><table><thead><tr><th>{c.code}</th><th>{c.customer}</th><th>{c.tour}</th><th>{c.count}</th><th>{c.amount}</th><th>{c.channel}</th><th>{c.status}</th></tr></thead><tbody>
-        {loading && Array.from({ length: 4 }).map((_, index) => <tr className="table-skeleton" key={index}><td colSpan={7}><span /></td></tr>)}
-        {!loading && visibleTickets.map((ticket) => <tr key={ticket.id}><td><strong className="ticket-code">{ticket.ticketCode}</strong></td><td><div className="table-person"><span>{ticket.customerName.slice(0, 1)}</span><div><strong>{ticket.customerName}</strong><small>{ticket.customerEmail}</small></div></div></td><td><div className="table-tour"><strong>{ticket.tourName}</strong><small><CalendarDays /> {formatDate(ticket.tourDate)} · {ticket.departureTime.slice(0, 5)}</small></div></td><td>{ticket.guestCount}</td><td><strong>{formatMoney(ticket.amount)}</strong></td><td><span className="channel-pill">{ticket.channel === 'Web' ? c.web : c.admin}</span></td><td><select className={`status-select status-${ticket.status.toLowerCase()}`} value={ticket.status} onChange={(event) => void changeStatus(ticket, event.target.value as TicketStatus)}>{(['Pending', 'Confirmed', 'Cancelled', 'Used'] as TicketStatus[]).map((status) => <option key={status} value={status}>{statusCopy[language][status]}</option>)}</select></td></tr>)}
+      <div className="admin-table-scroll"><table><thead><tr><th>{c.code}</th><th>{c.customer}</th><th>{c.tour}</th><th>{c.count}</th><th>{c.amount}</th><th>{c.channel}</th><th>{c.payment}</th><th>{c.status}</th></tr></thead><tbody>
+        {loading && Array.from({ length: 4 }).map((_, index) => <tr className="table-skeleton" key={index}><td colSpan={8}><span /></td></tr>)}
+        {!loading && visibleTickets.map((ticket) => { const paymentStatus = ticket.paymentStatus ?? 'NotRequired'; return <tr key={ticket.id}><td><strong className="ticket-code">{ticket.ticketCode}</strong></td><td><div className="table-person"><span>{ticket.customerName.slice(0, 1)}</span><div><strong>{ticket.customerName}</strong><small>{ticket.customerEmail}</small></div></div></td><td><div className="table-tour"><strong>{ticket.tourName}</strong><small><CalendarDays /> {formatDate(ticket.tourDate)} · {ticket.departureTime.slice(0, 5)}</small></div></td><td>{ticket.guestCount}</td><td><strong>{formatMoney(ticket.amount)}</strong></td><td><span className="channel-pill">{ticket.channel === 'Web' ? c.web : c.admin}</span></td><td><span className={`payment-pill payment-${paymentStatus.toLowerCase()}`}>{paymentStatusCopy[language][paymentStatus]}</span></td><td><select className={`status-select status-${ticket.status.toLowerCase()}`} value={ticket.status} onChange={(event) => void changeStatus(ticket, event.target.value as TicketStatus)}>{(['Pending', 'Confirmed', 'Cancelled', 'Used'] as TicketStatus[]).map((status) => <option key={status} value={status}>{statusCopy[language][status]}</option>)}</select></td></tr> })}
       </tbody></table></div>
       {!loading && visibleTickets.length === 0 && <div className="admin-empty"><TicketCheck /><p>{c.empty}</p></div>}
     </section>

@@ -14,12 +14,12 @@ const copy = {
   tr: {
     home: 'Ana sayfa', tours: 'Turlar', services: 'Hizmetlerimiz', faq: 'Sıkça Sorulanlar', contact: 'İletişim',
     account: 'Hesabım', admin: 'Yönetim paneli', menu: 'Menüyü aç', close: 'Menüyü kapat',
-    tagline: 'İstanbul’un en güzel haline, denizden tanış.', explore: 'Keşfet', support: 'Destek',
+    tagline: 'İstanbul’un en güzel haline, denizden tanış.', explore: 'Keşfet', support: 'Destek', kvkk: 'KVKK Aydınlatma Metni',
   },
   en: {
     home: 'Home', tours: 'Tours', services: 'Our Services', faq: 'FAQ', contact: 'Contact',
     account: 'My account', admin: 'Admin panel', menu: 'Open menu', close: 'Close menu',
-    tagline: 'Meet Istanbul at its best, from the water.', explore: 'Explore', support: 'Support',
+    tagline: 'Meet Istanbul at its best, from the water.', explore: 'Explore', support: 'Support', kvkk: 'KVKK Notice',
   },
 }
 
@@ -63,7 +63,7 @@ export default function PublicPageLayout({ children }: PublicPageLayoutProps) {
       <div className="shell info-footer__grid">
         <div><img src="/assets/pereme-logo.svg" alt="Dentur Pereme" /><p>{c.tagline}</p><a href="mailto:merhaba@peremetours.com">merhaba@peremetours.com</a></div>
         <div><strong>{c.explore}</strong><Link to="/#turlar">{c.tours}</Link><Link to="/#hizmetler">{c.services}</Link></div>
-        <div><strong>{c.support}</strong><Link to="/sikca-sorulan-sorular">{c.faq}</Link><Link to="/iletisim">{c.contact}</Link></div>
+        <div><strong>{c.support}</strong><Link to="/sikca-sorulan-sorular">{c.faq}</Link><Link to="/iletisim">{c.contact}</Link><Link to="/kvkk-aydinlatma-metni">{c.kvkk}</Link></div>
       </div>
       <div className="shell info-footer__bottom">© 2026 PeremeTours</div>
     </footer>

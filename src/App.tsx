@@ -257,7 +257,7 @@ const copy = {
       columns: [
         ['Keşfet', 'Tüm turlar', 'Boğaz Turu', 'Türk Gecesi', 'DayTime'],
         ['Pereme', 'Hakkımızda', 'Hikâyeler', 'Sıkça sorulanlar', 'İletişim'],
-        ['Yardım', 'İptal & iade', 'Gizlilik', 'Mesafeli satış', 'KVKK'],
+        ['Yardım', 'KVKK Aydınlatma Metni'],
       ],
       newsletterTitle: 'İstanbul’dan haberin olsun.', newsletterText: 'Yeni rotalar ve sürpriz fiyatlar, ayda en fazla iki kez.',
       emailPlaceholder: 'E-posta adresin', copyright: '© 2026 PeremeTours. Demo tasarım.', agency: 'TÜRSAB bilgisi eklenecek',
@@ -336,7 +336,7 @@ const copy = {
       columns: [
         ['Explore', 'All tours', 'Bosphorus Cruise', 'Turkish Night', 'Daytime'],
         ['Pereme', 'About us', 'Stories', 'Frequently asked', 'Contact'],
-        ['Support', 'Cancellation & refunds', 'Privacy', 'Distance sales', 'Data protection'],
+        ['Support', 'KVKK Notice'],
       ],
       newsletterTitle: 'Stay close to Istanbul.', newsletterText: 'New routes and surprise fares, no more than twice a month.',
       emailPlaceholder: 'Your email address', copyright: '© 2026 PeremeTours. Design demo.', agency: 'TÜRSAB details to be added',
@@ -696,7 +696,7 @@ function App() {
               ? '/#turlar'
               : columnIndex === 1
                 ? ['/#neden-biz', '/#hikayeler', '/sikca-sorulan-sorular', '/iletisim'][index]
-                : '/#top'
+                : '/kvkk-aydinlatma-metni'
             return <Link key={link} to={to}>{link}</Link>
           })}</div>)}</div>
           <div className="newsletter"><strong>{c.footer.newsletterTitle}</strong><p>{c.footer.newsletterText}</p><form onSubmit={(event) => event.preventDefault()}><input type="email" placeholder={c.footer.emailPlaceholder} aria-label={c.a11y.email} required /><button type="submit" aria-label={c.a11y.newsletter}><ArrowRight /></button></form></div>

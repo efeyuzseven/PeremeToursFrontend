@@ -13,6 +13,7 @@ import ProtectedAdminRoute from './auth/ProtectedAdminRoute'
 import LoginPage from './pages/LoginPage'
 import ContactPage from './pages/ContactPage'
 import FaqPage from './pages/FaqPage'
+import KvkkPage from './pages/KvkkPage'
 import './styles.css'
 
 createRoot(document.getElementById('root')!).render(
@@ -26,6 +27,8 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/sikca-sorulan-sorular" element={<FaqPage />} />
           <Route path="/faq" element={<FaqPage />} />
+          <Route path="/kvkk-aydinlatma-metni" element={<KvkkPage />} />
+          <Route path="/kvkk" element={<KvkkPage />} />
           <Route element={<ProtectedAdminRoute />}>
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="tickets" replace />} />

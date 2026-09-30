@@ -691,7 +691,14 @@ function App() {
       <footer>
         <div className="shell footer__top">
           <div className="footer__brand"><Logo light language={language} /><p>{c.footer.tagline.split('\n').map((line) => <span key={line}>{line}<br /></span>)}</p><a href="mailto:merhaba@peremetours.com">merhaba@peremetours.com</a></div>
-          <div className="footer__links">{c.footer.columns.map(([title, ...links], columnIndex) => <div key={title}><strong>{title}</strong>{links.map((link, index) => <a key={link} href={columnIndex === 0 ? '#turlar' : index === 1 ? '#hikayeler' : '#top'}>{link}</a>)}</div>)}</div>
+          <div className="footer__links">{c.footer.columns.map(([title, ...links], columnIndex) => <div key={title}><strong>{title}</strong>{links.map((link, index) => {
+            const to = columnIndex === 0
+              ? '/#turlar'
+              : columnIndex === 1
+                ? ['/#neden-biz', '/#hikayeler', '/sikca-sorulan-sorular', '/iletisim'][index]
+                : '/#top'
+            return <Link key={link} to={to}>{link}</Link>
+          })}</div>)}</div>
           <div className="newsletter"><strong>{c.footer.newsletterTitle}</strong><p>{c.footer.newsletterText}</p><form onSubmit={(event) => event.preventDefault()}><input type="email" placeholder={c.footer.emailPlaceholder} aria-label={c.a11y.email} required /><button type="submit" aria-label={c.a11y.newsletter}><ArrowRight /></button></form></div>
         </div>
         <div className="shell footer__bottom"><span>{c.footer.copyright}</span><span>{c.footer.agency}</span><a href="#top"><Camera size={17} /> Instagram</a></div>

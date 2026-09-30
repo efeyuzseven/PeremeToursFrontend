@@ -21,6 +21,8 @@ Tur listesi ve yönetici tarafından değiştirilebilen tur içerikleri backend 
 
 Arayüz Türkçe ve İngilizce çalışır. Dil seçimi tarayıcıda saklanır. Yönetici panelindeki `Site İçerikleri` ekranından ana sayfanın iki dildeki metinleri, Hizmetlerimiz kartları ve Instagram video bağlantıları düzenlenebilir.
 
+`/iletisim` ve `/sikca-sorulan-sorular` herkese açık ve mobil uyumlu yardım sayfalarıdır. SSS içerikleri yönetici panelindeki `Sıkça Sorulanlar` ekranından iki dilde eklenebilir, düzenlenebilir, sıralanabilir ve yayından kaldırılabilir.
+
 ## AWS test yayını
 
 Test ortamı: <https://d2bmjk2h6qp4lz.cloudfront.net>

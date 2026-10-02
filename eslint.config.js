@@ -22,4 +22,5 @@ export default tseslint.config(
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
+  { files: ['playwright.config.ts', 'tests/**/*.ts'], languageOptions: { globals: globals.node } },
 )

@@ -1,4 +1,6 @@
 node_modules
+test-results/
+playwright-report/
 dist
 .artifacts
 .DS_Store

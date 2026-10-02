@@ -32,6 +32,8 @@ import { Link } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import type { HomepageContentDocument } from './content/homepage'
 import { apiBaseUrl, apiRequest } from './lib/api'
+import { formatMoney, getStartingPrice, loadTourBookingOptions, type PortAvailability } from './lib/tours'
+import { BookingDrawer } from './components/BookingDrawer'
 
 type Language = 'tr' | 'en'
 type Category = 'bosphorus' | 'turkish-night' | 'sunset' | 'daytime'
@@ -64,8 +66,7 @@ type Tour = {
   location: LocalizedText
   rating: number
   reviews: number
-  price: number
-  oldPrice?: number
+  live?: boolean
   image: string
   imagePosition?: string
   remaining?: number
@@ -88,7 +89,6 @@ const fallbackTours: Tour[] = [
     location: localized('İstanbul Boğazı', 'Istanbul Bosphorus'),
     rating: 4.9,
     reviews: 328,
-    price: 590,
     image: '/assets/hero-bosphorus.webp',
     imagePosition: '38% center',
     remaining: 9,
@@ -106,8 +106,6 @@ const fallbackTours: Tour[] = [
     location: localized('Kabataş kalkışlı', 'Departs from Kabataş'),
     rating: 4.8,
     reviews: 214,
-    price: 1690,
-    oldPrice: 1950,
     image: '/assets/tour-dinner.webp',
     remaining: 4,
   },
@@ -124,8 +122,6 @@ const fallbackTours: Tour[] = [
     location: localized('Kabataş kalkışlı', 'Departs from Kabataş'),
     rating: 4.9,
     reviews: 286,
-    price: 790,
-    oldPrice: 940,
     image: '/assets/tour-sunset.webp',
     remaining: 6,
   },
@@ -142,7 +138,6 @@ const fallbackTours: Tour[] = [
     location: localized('Kabataş kalkışlı', 'Departs from Kabataş'),
     rating: 4.7,
     reviews: 142,
-    price: 590,
     image: '/assets/hero-bosphorus.webp',
     imagePosition: '38% center',
     remaining: 9,
@@ -175,6 +170,7 @@ const mergeCatalogTours = (catalog: CatalogTour[]): Tour[] => {
     return [{
       ...template,
       id: item.externalTourId,
+      live: true,
       title: localized(item.titleTr || item.name, item.titleEn || item.name),
       description: localized(
         item.descriptionTr || template.description.tr,
@@ -398,6 +394,8 @@ function App() {
   const [mobileMenu, setMobileMenu] = useState(false)
   const [filter, setFilter] = useState<CategoryFilter>('all')
   const [tours, setTours] = useState<Tour[]>(() => orderTours(fallbackTours))
+  const [tourBookingOptions, setTourBookingOptions] = useState<Record<number, PortAvailability[] | null>>({})
+  const [catalogFailed, setCatalogFailed] = useState(false)
   const [homepageContent, setHomepageContent] = useState<HomepageContentDocument | null>(null)
   const [date, setDate] = useState(tomorrow())
   const [calendarMonth, setCalendarMonth] = useState(() => {
@@ -410,7 +408,6 @@ function App() {
   const [experienceMenuOpen, setExperienceMenuOpen] = useState(false)
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null)
   const [bookingOpen, setBookingOpen] = useState(false)
-  const [bookingSuccess, setBookingSuccess] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const [favorites, setFavorites] = useState<number[]>([])
   const languagePickerRef = useRef<HTMLDivElement>(null)
@@ -422,8 +419,17 @@ function App() {
   useEffect(() => {
     const controller = new AbortController()
     apiRequest<CatalogTour[]>('/api/v1/tours', { signal: controller.signal })
-      .then((catalog) => setTours(mergeCatalogTours(catalog)))
-      .catch(() => undefined)
+      .then((catalog) => {
+        if (controller.signal.aborted) return
+        const liveTours = mergeCatalogTours(catalog)
+        setTours(liveTours)
+        liveTours.forEach((tour) => {
+          loadTourBookingOptions(tour.id, controller.signal)
+            .then((options) => { if (!controller.signal.aborted) setTourBookingOptions((current) => ({ ...current, [tour.id]: options })) })
+            .catch(() => { if (!controller.signal.aborted) setTourBookingOptions((current) => ({ ...current, [tour.id]: null })) })
+        })
+      })
+      .catch(() => { if (!controller.signal.aborted) setCatalogFailed(true) })
     return () => controller.abort()
   }, [])
 
@@ -484,7 +490,6 @@ function App() {
 
   const filteredTours = useMemo(() => filter === 'all' ? tours : tours.filter((tour) => tour.category === filter), [filter, tours])
   const displayedTours = showAll ? filteredTours : filteredTours.slice(0, 3)
-  const formatPrice = (price: number) => new Intl.NumberFormat(language === 'tr' ? 'tr-TR' : 'en-US').format(price)
   const selectedDate = parseIsoDate(date)
   const locale = language === 'tr' ? 'tr-TR' : 'en-US'
   const formattedDate = new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', year: 'numeric' }).format(selectedDate)
@@ -513,8 +518,9 @@ function App() {
   }
 
   const openBooking = (tour?: Tour) => {
-    setSelectedTour(tour ?? tours.find((item) => item.category === experience) ?? tours[0])
-    setBookingSuccess(false)
+    const target = tour ?? tours.find((item) => item.category === experience && item.live) ?? tours.find((item) => item.live)
+    if (!target?.live) return
+    setSelectedTour(target)
     setBookingOpen(true)
   }
 
@@ -636,7 +642,14 @@ function App() {
           <div className="section-heading"><div><div className="eyebrow"><Waves size={18} /> {page?.tours.eyebrow ?? c.tours.eyebrow}</div><h2>{page?.tours.lead ?? c.tours.lead} <em>{page?.tours.accent ?? c.tours.accent}</em></h2></div><p>{page?.tours.description ?? c.tours.description}</p></div>
           <div className="filters" role="group" aria-label={c.a11y.tourCategories}>{categoryKeys.map((category) => <button key={category} className={filter === category ? 'active' : ''} type="button" onClick={() => { setFilter(category); setShowAll(false) }}>{c.categories[category]}</button>)}</div>
           <div className="tour-grid">
-            {displayedTours.map((tour, index) => (
+            {displayedTours.map((tour, index) => {
+              const options = tourBookingOptions[tour.id]
+              const startingPrice = options ? getStartingPrice(options, date) : null
+              const priceLabel = startingPrice !== null ? formatMoney(startingPrice, language)
+                : catalogFailed || options === null ? (language === 'tr' ? 'Fiyat alınamadı' : 'Price unavailable')
+                : options ? (language === 'tr' ? 'Bu tarihte sefer yok' : 'No departures on this date')
+                : (language === 'tr' ? 'Fiyat yükleniyor…' : 'Loading price…')
+              return (
               <article className="tour-card" key={tour.id} style={{ '--card-delay': `${index * 80}ms` } as CSSProperties}>
                 <div className="tour-card__media">
                   <img src={tour.image} alt="" style={{ objectPosition: tour.imagePosition }} /><div className="tour-card__media-shade" /><span className="tour-card__badge">{tour.badge[language]}</span>
@@ -646,10 +659,11 @@ function App() {
                 <div className="tour-card__body">
                   <span className="tour-card__category">{c.categories[tour.category]}</span><h3>{tour.title[language]}</h3><p>{tour.description[language]}</p>
                   <div className="tour-card__meta"><span><Clock3 size={16} /> {tour.duration[language]}</span><span><MapPin size={16} /> {tour.location[language]}</span></div>
-                  <div className="tour-card__footer"><div className="price"><small>{c.tours.perPerson}</small><span>{formatPrice(tour.price)} ₺</span>{tour.oldPrice && <del>{formatPrice(tour.oldPrice)} ₺</del>}</div><button type="button" onClick={() => openBooking(tour)} aria-label={`${tour.title[language]} ${c.tours.select}`}>{c.tours.select} <ArrowRight size={18} /></button></div>
+                  <div className="tour-card__footer"><div className={`price ${startingPrice === null ? 'price--status' : ''}`}><small>{language === 'tr' ? 'Başlayan fiyatlarla · kişi başı' : 'From · per person'}</small><span>{priceLabel}</span>{startingPrice !== null && <small>{formattedDate}</small>}</div><button type="button" disabled={!tour.live} onClick={() => openBooking(tour)} aria-label={`${tour.title[language]} ${c.tours.select}`}>{c.tours.select} <ArrowRight size={18} /></button></div>
                 </div>
               </article>
-            ))}
+              )
+            })}
           </div>
           {filteredTours.length > 3 && <button className="show-more" type="button" onClick={() => setShowAll(!showAll)}>{showAll ? c.tours.showLess : c.tours.showAll(filteredTours.length)} <ArrowDown size={17} /></button>}
         </div>
@@ -663,7 +677,7 @@ function App() {
               const relatedTour = tours.find((tour) => tour.category === item.categoryKey)
               return <article className="service-card" key={item.categoryKey}>
                 <div className="service-card__image"><img src={relatedTour?.image ?? fallbackTours.find((tour) => tour.category === item.categoryKey)?.image} alt="" /><span>0{index + 1}</span></div>
-                <div className="service-card__body"><small>{c.categories[item.categoryKey]}</small><h3>{item.title}</h3><p>{item.description}</p><div><button type="button" onClick={() => showCategoryTours(item.categoryKey)}>{item.browseLabel} <ArrowRight /></button><button type="button" disabled={!relatedTour} onClick={() => openBooking(relatedTour)}>{item.bookingLabel} <Ticket /></button></div></div>
+                <div className="service-card__body"><small>{c.categories[item.categoryKey]}</small><h3>{item.title}</h3><p>{item.description}</p><div><button type="button" onClick={() => showCategoryTours(item.categoryKey)}>{item.browseLabel} <ArrowRight /></button><button type="button" disabled={!relatedTour?.live} onClick={() => openBooking(relatedTour)}>{item.bookingLabel} <Ticket /></button></div></div>
               </article>
             })}
           </div>
@@ -704,23 +718,7 @@ function App() {
         <div className="shell footer__bottom"><span>{c.footer.copyright}</span><span>{c.footer.agency}</span><a href="#top"><Camera size={17} /> Instagram</a></div>
       </footer>
 
-      <div className={`booking-overlay ${bookingOpen ? 'booking-overlay--open' : ''}`} onMouseDown={(event) => { if (event.target === event.currentTarget) setBookingOpen(false) }}>
-        <aside className="booking-drawer" role="dialog" aria-modal="true" aria-labelledby="booking-title">
-          <button className="booking-drawer__close" type="button" onClick={() => setBookingOpen(false)} aria-label={c.a11y.closeBooking}><X /></button>
-          {bookingSuccess ? (
-            <div className="booking-success"><div><Check size={34} /></div><span>{c.drawer.successLabel}</span><h2>{c.drawer.successTitle}</h2><p>{c.drawer.successText}</p><button className="button button--navy" type="button" onClick={() => setBookingOpen(false)}>{c.drawer.back}</button></div>
-          ) : selectedTour && (
-            <>
-              <div className="booking-drawer__top"><span className="eyebrow"><Ticket size={17} /> {c.drawer.summary}</span><h2 id="booking-title">{c.drawer.lead}<br /><em>{c.drawer.accent}</em></h2></div>
-              <div className="booking-mini-card"><img src={selectedTour.image} alt="" /><div><span>{c.categories[selectedTour.category]}</span><strong>{selectedTour.title[language]}</strong><small><Clock3 size={14} /> {selectedTour.duration[language]}</small></div></div>
-              <div className="drawer-fields"><label><span>{c.booking.date}</span><input type="date" min={today} value={date} onChange={(event) => setDate(event.target.value)} /></label><div className="drawer-guests"><span>{c.drawer.guestCount}</span><div><button type="button" aria-label={c.a11y.decrease} onClick={() => setGuests(Math.max(1, guests - 1))}><Minus /></button><strong>{guests}</strong><button type="button" aria-label={c.a11y.increase} onClick={() => setGuests(Math.min(12, guests + 1))}><Plus /></button></div></div></div>
-              <div className="booking-assurances"><span><Check /> {c.drawer.instant}</span><span><Check /> {c.drawer.cancellation}</span></div>
-              <div className="booking-total"><span>{c.drawer.total}<small>{c.drawer.forGuests(guests)}</small></span><strong>{formatPrice(selectedTour.price * guests)} ₺</strong></div>
-              <button className="button button--coral booking-submit" type="button" onClick={() => setBookingSuccess(true)}>{c.drawer.continue} <ArrowRight /></button><small className="demo-note">{c.drawer.demo}</small>
-            </>
-          )}
-        </aside>
-      </div>
+      {bookingOpen && selectedTour && <BookingDrawer key={selectedTour.id} tour={selectedTour} language={language} initialDate={date} initialGuests={guests} onClose={() => setBookingOpen(false)} />}
     </main>
   )
 }

@@ -400,7 +400,7 @@ function App() {
     return new Date(value.getFullYear(), value.getMonth(), 1)
   })
   const [calendarOpen, setCalendarOpen] = useState(false)
-  const [guests, setGuests] = useState(2)
+  const [guests, setGuests] = useState(1)
   const [experience, setExperience] = useState<Category>('turkish-night')
   const [experienceMenuOpen, setExperienceMenuOpen] = useState(false)
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null)

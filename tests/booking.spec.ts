@@ -29,12 +29,57 @@ async function mockApi(page: Page, failAvailability = false) {
   })
 }
 
-async function openBooking(page: Page) {
+async function openBooking(page: Page, guests = 1) {
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await expect(page.locator('.tour-card')).toHaveCount(1)
+  await expect(page.locator('.booking-field--guests strong')).toHaveText('1 kişi')
   await page.locator('.tour-card__footer button').first().click()
   await expect(page.getByRole('dialog').locator('.reservation-ticket-types').getByText('Alkolsüz', { exact: true })).toBeVisible()
+  for (let i = 1; i < guests; i++) await page.getByRole('dialog').getByRole('button', { name: 'Alkolsüz: Bilet artır' }).click()
 }
+
+test('booking starts with one ticket and one passenger from every booking entry point', async ({ page }) => {
+  await mockApi(page)
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await expect(page.locator('.tour-card')).toHaveCount(1)
+  await expect(page.locator('.booking-field--guests strong')).toHaveText('1 kişi')
+  for (const action of [
+    page.locator('.tour-card__footer button').first(),
+    page.locator('.service-card').first().getByRole('button', { name: 'Rezervasyon yap', exact: true }),
+    page.locator('.final-cta button'),
+  ]) {
+    await action.click()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog.locator('.reservation-ticket-type output').first()).toHaveText('1')
+    await expect(dialog.locator('.reservation-ticket-type output').last()).toHaveText('0')
+    await expect(dialog.locator('.reservation-passenger')).toHaveCount(1)
+    await expect(dialog.locator('.booking-total')).toContainText('1.150')
+    await expect(dialog.locator('.reservation-passenger-list--scrollable')).toHaveCount(0)
+    await dialog.getByRole('button', { name: 'Alkolsüz: Bilet artır' }).click()
+    await expect(dialog.locator('.reservation-passenger')).toHaveCount(2)
+    await page.keyboard.press('Escape')
+    await expect(dialog).toHaveCount(0)
+  }
+})
+
+test('an explicitly chosen guest count is preserved when booking opens', async ({ page, isMobile }) => {
+  await mockApi(page)
+  const originalViewport = page.viewportSize()!
+  // The hero stepper is desktop-only; also check that resizing preserves its selection.
+  if (isMobile) await page.setViewportSize({ width: 1024, height: originalViewport.height })
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await expect(page.locator('.tour-card')).toHaveCount(1)
+  await expect(page.locator('.booking-field--guests strong')).toHaveText('1 kişi')
+  for (let i = 1; i < 3; i++) await page.getByRole('button', { name: 'Misafir artır', exact: true }).click()
+  await expect(page.locator('.booking-field--guests strong')).toHaveText('3 kişi')
+  if (isMobile) await page.setViewportSize(originalViewport)
+  await page.locator('.tour-card__footer button').first().click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.locator('.reservation-ticket-type output').first()).toHaveText('3')
+  await expect(dialog.locator('.reservation-ticket-type output').last()).toHaveText('0')
+  await expect(dialog.locator('.reservation-passenger')).toHaveCount(3)
+  await expect(dialog.locator('.booking-total')).toContainText('3.450')
+})
 
 async function fillContact(page: Page) {
   const dialog = page.getByRole('dialog')
@@ -81,7 +126,7 @@ test('multiple passengers scroll independently in both the form and the payment 
     guestCount: 2, amount: 2300, currency: 'TRY', checkedAtUtc: new Date().toISOString(),
     tickets: [{ externalPriceId: 145, ticketType: 'Alkolsüz', quantity: 2, unitAmount: 1150, amount: 2300 }],
   } }))
-  await openBooking(page)
+  await openBooking(page, 2)
   const dialog = page.getByRole('dialog')
   await expectIndependentPassengerScroll(page, dialog.locator('.reservation-passengers .reservation-passenger-list'))
   await fillContact(page)
@@ -101,7 +146,6 @@ test('a single passenger has no nested scroll area in either booking step', asyn
   } }))
   await openBooking(page)
   const dialog = page.getByRole('dialog')
-  await dialog.getByRole('button', { name: 'Alkolsüz: Bilet azalt' }).click()
   await expect(dialog.locator('.reservation-passenger')).toHaveCount(1)
   await expect(dialog.locator('.reservation-passenger-list')).toHaveCSS('max-height', 'none')
   await expect(dialog.locator('.reservation-passenger-list--scrollable')).toHaveCount(0)
@@ -123,7 +167,7 @@ test('mixed ticket types, valid date/time, contact details and a server-checked 
       { externalPriceId: 146, ticketType: 'Alkollü', quantity: 1, unitAmount: 1750, amount: 1750 },
     ] } })
   })
-  await openBooking(page)
+  await openBooking(page, 2)
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('button', { name: 'Kalkış saati', exact: false }).click()
   const trigger = await dialog.locator('.reservation-fields .reservation-select').last().boundingBox()
@@ -187,7 +231,7 @@ test('ticket quantities respect the 12-person limit and a minimum of one selecti
   await mockApi(page)
   await openBooking(page)
   const dialog = page.getByRole('dialog')
-  for (let i = 0; i < 10; i++) await dialog.getByRole('button', { name: 'Alkolsüz: Bilet artır' }).click()
+  for (let i = 0; i < 11; i++) await dialog.getByRole('button', { name: 'Alkolsüz: Bilet artır' }).click()
   await expect(dialog.getByRole('button', { name: 'Alkollü: Bilet artır' })).toBeDisabled()
   for (let i = 0; i < 12; i++) await dialog.getByRole('button', { name: 'Alkolsüz: Bilet azalt' }).click()
   await expect(dialog.getByRole('button', { name: 'Bilgileri Kontrol et ve Ödemeye geç' })).toBeDisabled()
@@ -215,7 +259,7 @@ test('changed prices are disclosed and the server total is used in the preview',
     guestCount: 2, amount: 2400, currency: 'TRY', checkedAtUtc: new Date().toISOString(),
     tickets: [{ externalPriceId: 145, ticketType: 'Alkolsüz', quantity: 2, unitAmount: 1200, amount: 2400 }],
   } }))
-  await openBooking(page)
+  await openBooking(page, 2)
   await fillContact(page)
   await page.getByRole('button', { name: 'Bilgileri Kontrol et ve Ödemeye geç' }).click()
   await expect(page.getByText('API fiyatı güncellendi.', { exact: false })).toBeVisible()
@@ -238,7 +282,7 @@ test('an invalidated departure produces an error rather than a booking confirmat
 
 test('passenger details follow ticket counts without reusing removed personal details', async ({ page }) => {
   await mockApi(page)
-  await openBooking(page)
+  await openBooking(page, 2)
   const dialog = page.getByRole('dialog')
   const passengers = dialog.locator('.reservation-passenger')
   await expect(passengers).toHaveCount(2)
@@ -278,7 +322,7 @@ test('foreign passengers use passports, future birth dates are invalid, and paym
 
 test('missing passenger gender blocks the quote request', async ({ page }) => {
   await mockApi(page)
-  await openBooking(page)
+  await openBooking(page, 2)
   await fillContact(page)
   // Removing and re-adding the second ticket resets that passenger, including gender.
   const dialog = page.getByRole('dialog')

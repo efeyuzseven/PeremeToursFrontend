@@ -36,6 +36,9 @@ async function openReview(page: Page) {
   await page.locator('.tour-card__footer button').click()
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByRole('button', { name: 'Alkollü: Bilet artır' })).toBeVisible()
+  await expect(dialog.locator('.reservation-passenger')).toHaveCount(1)
+  // Select the mixed-ticket scenario explicitly; the booking itself defaults to one guest.
+  await dialog.getByRole('button', { name: 'Alkolsüz: Bilet artır' }).click()
   await dialog.getByRole('button', { name: 'Alkollü: Bilet artır' }).click()
   await dialog.getByLabel('Ad soyad', { exact: true }).fill('Test Misafir')
   await dialog.getByLabel('E-posta', { exact: true }).fill('test@example.com')

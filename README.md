@@ -24,6 +24,8 @@ Ad soyad, e-posta ve telefon girildikten sonra `POST /api/v1/tours/quote` günce
 
 Playwright testleri yerel Microsoft Edge üzerinde masaüstü ve mobil boyutlarda çalışır; gerçek API/ödeme yerine test verileri kullanılır.
 
+`npm run test:live`, AWS test sitesinde masaüstü ve mobil rezervasyon önizlemesini kontrol eder. Yalnızca canlı fiyat sorgusu yapar; kayıt oluşturmaz veya banka işlemi başlatmaz. Ekran görüntüleri git'e eklenmeyen `test-results` klasörüne kaydedilir.
+
 Arayüz Türkçe ve İngilizce çalışır. Dil seçimi tarayıcıda saklanır. Yönetici panelindeki `Site İçerikleri` ekranından ana sayfanın iki dildeki metinleri, Hizmetlerimiz kartları ve Instagram video bağlantıları düzenlenebilir.
 
 `/iletisim` ve `/sikca-sorulan-sorular` herkese açık ve mobil uyumlu yardım sayfalarıdır. SSS içerikleri yönetici panelindeki `Sıkça Sorulanlar` ekranından iki dilde eklenebilir, düzenlenebilir, sıralanabilir ve yayından kaldırılabilir.

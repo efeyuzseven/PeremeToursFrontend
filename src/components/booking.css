@@ -93,3 +93,17 @@
   .reservation-passenger__fields, .reservation-payment__fields { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { .reservation-spinner { animation: none; } }
+.reservation-bank { margin-top: 26px; }
+.reservation-bank h3 { display: flex; gap: 9px; align-items: center; color: var(--navy, #071b35); }
+.reservation-bank p, .reservation-payment-result p { color: #1f478c; font-size: 13px; line-height: 1.7; }
+.reservation-bank iframe { display: block; width: 100%; height: min(560px, 72dvh); border: 1px solid #6a9dd2; border-radius: 16px; background: #fff; margin: 16px 0; }
+.reservation-payment-result { display: grid; justify-items: center; text-align: center; gap: 14px; margin-top: 28px; padding: 26px 18px; border: 1px solid #6a9dd2; border-radius: 18px; background: #fff; }
+.reservation-payment-result h3, .reservation-payment-result p { margin: 0; }
+.reservation-payment-result > svg { color: #1f478c; }
+.reservation-order-code strong { display: block; color: #071b35; overflow-wrap: anywhere; }
+.reservation-issued-tickets { width: 100%; display: grid; gap: 10px; }
+.reservation-issued-tickets > div { display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid #6a9dd2; padding-top: 10px; font-size: 13px; overflow-wrap: anywhere; }
+.reservation-payment-form { margin: 24px 0; }
+.reservation-payment-form fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.reservation-payment-form .reservation-consent { margin-top: 18px; }
+.booking-drawer__close:disabled, .reservation-back:disabled { opacity: .5; cursor: not-allowed; }

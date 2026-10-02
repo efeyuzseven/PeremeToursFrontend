@@ -8,6 +8,8 @@ import { formatMoney, isTryPrice, isUpcomingDeparture, loadTourBookingOptions, t
 import { BookingSelect } from './BookingSelect'
 import { PassengerForm } from './PassengerForm'
 import { BookingPaymentFields } from './BookingPaymentFields'
+import { BookingPayment } from './BookingPayment'
+import { getPaymentRecovery, type PaymentAvailability } from '../lib/payments'
 import { emptyPassenger, isCompletePassenger, istanbulToday, maskIdentity, passengerTexts, type PassengerDetails } from '../lib/passengers'
 import './booking.css'
 
@@ -25,7 +27,7 @@ const texts = {
     changed: 'API fiyatı güncellendi. Yeni toplam tutarı aşağıda görebilirsin.', back: 'Turlara dön',
     invalid: 'Lütfen bir sefer ve en az bir bilet seç.', quoteError: 'Seçim veya fiyat doğrulanamadı. Lütfen bilgileri kontrol edip tekrar dene.',
     invalidContact: 'Ad soyad ve telefon bilgilerini kontrol et. Telefon numarası en az 7 rakam içermeli.',
-    privacy: 'İletişim ve yolcu bilgilerin bu aşamada yalnızca bu ekranda tutulur; sunucuya gönderilmez veya kaydedilmez.',
+    privacy: 'İletişim ve yolcu bilgilerin, ödemeyi onayladığında rezervasyon ve biletleme için sunucuya iletilir.',
   },
   en: {
     eyebrow: 'BOOKING DETAILS', lead: 'Let’s plan', accent: 'your journey.', close: 'Close booking',
@@ -40,7 +42,7 @@ const texts = {
     changed: 'The API price has changed. Your updated total is shown below.', back: 'Back to tours',
     invalid: 'Please select a departure and at least one ticket.', quoteError: 'Your selection or price could not be verified. Please check your details and try again.',
     invalidContact: 'Please check your full name and phone number. The phone number must contain at least 7 digits.',
-    privacy: 'At this stage, contact and passenger details stay on this screen only and are not sent or saved to the server.',
+    privacy: 'When you confirm payment, contact and passenger details are sent to the server for booking and ticket issuance.',
   },
 }
 
@@ -48,7 +50,7 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
   tour: { id: number; title: Record<'tr' | 'en', string>; image: string; duration: Record<'tr' | 'en', string> }
   language: 'tr' | 'en'; initialDate: string; initialGuests: number; onClose: () => void
 }) {
-  const { user } = useAuth()
+  const { user, session } = useAuth()
   const c = texts[language]
   const pc = passengerTexts[language]
   const today = istanbulToday()
@@ -68,6 +70,10 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
   const [quoteError, setQuoteError] = useState('')
   const [quote, setQuote] = useState<TourQuote | null>(null)
   const [priceChanged, setPriceChanged] = useState(false)
+  const [paymentEnabled, setPaymentEnabled] = useState(false)
+  const [paymentLocked, setPaymentLocked] = useState(false)
+  const [paymentBusy, setPaymentBusy] = useState(false)
+  const [recovering] = useState(() => !!getPaymentRecovery())
   const drawer = useRef<HTMLElement>(null)
   const quoteController = useRef<AbortController | null>(null)
   const bookingRoot = useRef<HTMLDivElement>(null)
@@ -83,6 +89,23 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
       .catch(() => { if (!controller.signal.aborted) setError(true) })
     return () => controller.abort()
   }, [tour.id, reload])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    apiRequest<PaymentAvailability>('/api/v1/payments/availability', { signal: controller.signal, cache: 'no-store' })
+      .then((result) => { if (!controller.signal.aborted) setPaymentEnabled(result.enabled === true) })
+      .catch(() => { if (!controller.signal.aborted) setPaymentEnabled(false) })
+    return () => controller.abort()
+  }, [reload])
+
+  useEffect(() => {
+    if (!paymentBusy) return
+    const blockClose = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation() }
+    }
+    document.addEventListener('keydown', blockClose, true)
+    return () => document.removeEventListener('keydown', blockClose, true)
+  }, [paymentBusy])
 
   useEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null
@@ -122,7 +145,7 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
   const total = prices.reduce((sum, item) => sum + item.amount * (counts[item.externalPriceId] ?? 0), 0)
   const passengerSlots = prices.flatMap((price) => Array.from({ length: counts[price.externalPriceId] ?? 0 }, (_, index) => {
     const key = `${price.externalPriceId}:${index}`
-    return { key, ticketType: (language === 'en' ? price.passengerTypeEn || price.passengerType : price.passengerType), details: passengerData[key] ?? emptyPassenger() }
+    return { key, externalPriceId: price.externalPriceId, ticketType: (language === 'en' ? price.passengerTypeEn || price.passengerType : price.passengerType), details: passengerData[key] ?? emptyPassenger() }
   }))
   const bookingNote = language === 'en' ? port?.availability.bookingNoteEn || port?.availability.bookingNote : port?.availability.bookingNote
   const ready = !!port && !!departure && prices.length > 0
@@ -172,15 +195,16 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
   }
 
   return createPortal(<div className="booking-overlay booking-overlay--open" onMouseDown={(event) => {
-    if (event.target === event.currentTarget && !checking) onClose()
+    if (event.target === event.currentTarget && !checking && !paymentBusy) onClose()
   }}>
     <aside className="booking-drawer reservation-drawer" ref={drawer} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="booking-title">
-      <button className="booking-drawer__close" type="button" onClick={onClose} aria-label={c.close}><X /></button>
+      <button className="booking-drawer__close" type="button" onClick={onClose} disabled={paymentBusy || checking} aria-label={c.close}><X /></button>
       <div className="booking-drawer__top"><span className="eyebrow"><Ticket size={17} /> {quote ? c.review : c.eyebrow}</span>
         <h2 id="booking-title">{c.lead}<br /><em>{c.accent}</em></h2></div>
       <div className="booking-mini-card"><img src={tour.image} alt="" /><div><strong>{tour.title[language]}</strong><small><Clock3 size={14} /> {tour.duration[language]}</small></div></div>
 
-      {error ? <div className="reservation-status" role="alert"><p>{c.error}</p><button type="button" onClick={retry}><RefreshCw size={16} /> {c.retry}</button></div>
+      {recovering ? <BookingPayment language={language} enabled={false} onLockChange={setPaymentLocked} onBusyChange={setPaymentBusy} onFinish={onClose} />
+        : error ? <div className="reservation-status" role="alert"><p>{c.error}</p><button type="button" onClick={retry}><RefreshCw size={16} /> {c.retry}</button></div>
         : !options ? <div className="reservation-status" role="status"><LoaderCircle className="reservation-spinner" /> {c.loading}</div>
         : !ready ? <div className="reservation-status"><p>{c.empty}</p>{options.length > 1 && <BookingSelect label={c.port} value={String(port?.port.externalPortId ?? '')} options={options.map((item) => ({ value: String(item.port.externalPortId), label: item.port.name }))} onChange={(value) => { setPortId(Number(value)); setQuantities(null) }} />}<button type="button" onClick={retry}><RefreshCw size={16} /> {c.retry}</button></div>
         : quote ? <div className="reservation-review" ref={bookingRoot} tabIndex={-1}>
@@ -197,9 +221,12 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
           </div>)}</section>
           {priceChanged && <p className="reservation-notice" role="status">{c.changed}</p>}
           <div className="booking-total"><span>{c.total}<small>{quote.guestCount} {c.guests}</small></span><strong>{formatMoney(quote.amount, language, quote.currency)}</strong></div>
-          <p className="reservation-notice">{c.notice}</p>
-          <button className="button button--navy booking-submit" type="button" onClick={() => { setQuote(null); setQuoteError('') }}><ArrowLeft size={17} /> {c.edit}</button>
-          <button className="reservation-back" type="button" onClick={onClose}>{c.back} <ArrowRight size={16} /></button>
+          {!paymentEnabled && <p className="reservation-notice">{c.notice}</p>}
+          <BookingPayment language={language} token={session?.accessToken} enabled={paymentEnabled} onLockChange={setPaymentLocked} onBusyChange={setPaymentBusy} onFinish={onClose}
+            booking={{ quote, externalTourId: tour.id, externalDeparturePortId: port.port.externalPortId, externalDepartureId: departure.externalId,
+              passengers: passengerSlots.map((slot) => ({ ...slot.details, externalPriceId: slot.externalPriceId })), contact, privacyNoticeAccepted: consent }} />
+          <button className="button button--navy booking-submit" type="button" disabled={paymentLocked} onClick={() => { setQuote(null); setQuoteError('') }}><ArrowLeft size={17} /> {c.edit}</button>
+          <button className="reservation-back" type="button" disabled={paymentBusy} onClick={onClose}>{c.back} <ArrowRight size={16} /></button>
         </div> : <form className="reservation-form" onSubmit={submit}>
           <fieldset disabled={checking}>
             <div className="reservation-fields">
@@ -228,7 +255,7 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
               {passengerSlots.map((slot, index) => <PassengerForm key={slot.key} index={index} ticketType={slot.ticketType} passenger={slot.details} language={language} today={today}
                 onChange={(value) => { setPassengerData((current) => ({ ...current, [slot.key]: value })); clearQuoteError() }} />)}
             </section>
-            <BookingPaymentFields language={language} />
+            <BookingPaymentFields language={language} unavailable={!paymentEnabled} />
             <div className="reservation-contact">
               <label className="reservation-consent"><input type="checkbox" required checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span><Link to="/kvkk-aydinlatma-metni" target="_blank" rel="noopener noreferrer">{c.consent}</Link></span></label>
               <small className="reservation-helper">{c.privacy}</small>
@@ -237,7 +264,9 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
           {quoteError && <div className="reservation-error" role="alert">{quoteError}<button className="reservation-back" type="button" onClick={retry}><RefreshCw size={16} /> {c.retry}</button></div>}
           <div className="booking-total" aria-live="polite"><span>{c.total}<small>{guestCount} {c.guests} · {c.live}</small></span><strong>{formatMoney(total, language)}</strong></div>
           <button className="button button--coral booking-submit" type="submit" disabled={checking || guestCount < 1}>{checking ? <><LoaderCircle className="reservation-spinner" size={18} /> {c.checking}</> : <>{c.continue} <ArrowRight size={18} /></>}</button>
-          <p className="reservation-payment-note">{c.notice}</p>
+          <p className="reservation-payment-note">{paymentEnabled
+            ? (language === 'tr' ? 'Bu adımda tahsilat yapılmaz. Sonraki ekranda tutarı onaylayıp 3D Secure ile ödeme yapabilirsin.' : 'No charge is made at this step. Confirm the amount and pay with 3D Secure on the next screen.')
+            : c.notice}</p>
         </form>}
     </aside>
   </div>, document.body)

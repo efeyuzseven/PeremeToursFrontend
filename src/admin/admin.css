@@ -128,3 +128,8 @@
   .faq-editor__settings { align-items: stretch; flex-direction: column; gap: 8px; }
   .faq-editor__settings > label:first-child { width: 100%; }
 }
+.admin-payment-state { display: grid; gap: 7px; max-width: 240px; }
+.admin-payment-state small { font-size: 11px; line-height: 1.5; color: #1f478c; }
+.admin-payment-state .admin-payment-warning { font-weight: 700; }
+.payment-reviewrequired { color: #fff; background: #1f478c; }
+.admin-voucher { display: block; margin-top: 6px; max-width: 190px; overflow-wrap: anywhere; font-size: 10px; color: #1f478c; }

@@ -7,11 +7,13 @@ import type { AdminLanguage } from './AdminLayout'
 
 type TicketStatus = 'Pending' | 'Confirmed' | 'Cancelled' | 'Used'
 type TicketChannel = 'Web' | 'Admin'
-type TicketPaymentStatus = 'NotRequired' | 'Pending' | 'Processing' | 'Paid' | 'Failed' | 'Refunded'
+type TicketPaymentStatus = 'NotRequired' | 'Pending' | 'Processing' | 'Paid' | 'Failed' | 'Refunded' | 'ReviewRequired'
+type TicketingStatus = 'NotRequired' | 'Pending' | 'Processing' | 'Issued' | 'ReviewRequired'
 type TourTicket = {
   id: string; ticketCode: string; tourName: string; tourDate: string; departureTime: string
   customerName: string; customerEmail: string; guestCount: number; amount: number; currency: string
   status: TicketStatus; channel: TicketChannel; paymentStatus?: TicketPaymentStatus; createdAtUtc: string; updatedAtUtc: string
+  ticketingStatus?: TicketingStatus; externalVoucherGuid?: string; ticketingFailureCode?: string; paymentFailureCode?: string
 }
 type CatalogTour = {
   externalTourId: number
@@ -30,8 +32,13 @@ const statusCopy: Record<AdminLanguage, Record<TicketStatus, string>> = {
 }
 
 const paymentStatusCopy: Record<AdminLanguage, Record<TicketPaymentStatus, string>> = {
-  tr: { NotRequired: 'Manuel', Pending: 'Bekliyor', Processing: 'İşleniyor', Paid: 'Ödendi', Failed: 'Başarısız', Refunded: 'İade edildi' },
-  en: { NotRequired: 'Manual', Pending: 'Pending', Processing: 'Processing', Paid: 'Paid', Failed: 'Failed', Refunded: 'Refunded' },
+  tr: { NotRequired: 'Manuel', Pending: 'Bekliyor', Processing: 'İşleniyor', Paid: 'Ödendi', Failed: 'Başarısız', Refunded: 'İade edildi', ReviewRequired: 'Banka kontrolü gerekli' },
+  en: { NotRequired: 'Manual', Pending: 'Pending', Processing: 'Processing', Paid: 'Paid', Failed: 'Failed', Refunded: 'Refunded', ReviewRequired: 'Bank review required' },
+}
+
+const ticketingCopy: Record<AdminLanguage, Record<TicketingStatus, string>> = {
+  tr: { NotRequired: 'Manuel kayıt', Pending: 'Bilet kesimi bekliyor', Processing: 'Bilet kesiliyor', Issued: 'EasyTicket bileti hazır', ReviewRequired: 'EasyTicket kontrolü gerekli' },
+  en: { NotRequired: 'Manual entry', Pending: 'Awaiting ticket issuance', Processing: 'Issuing tickets', Issued: 'EasyTicket issued', ReviewRequired: 'EasyTicket review required' },
 }
 
 export default function TicketsPage() {
@@ -53,11 +60,13 @@ export default function TicketsPage() {
 
   useEffect(() => {
     let active = true
-    apiRequest<TourTicket[]>('/api/v1/admin/tickets', { token: session!.accessToken })
-      .then((result) => { if (active) setTickets(result) })
+    const load = () => apiRequest<TourTicket[]>('/api/v1/admin/tickets', { token: session!.accessToken, cache: 'no-store' })
+      .then((result) => { if (active) { setTickets(result); setError('') } })
       .catch((caught) => { if (active) setError(caught instanceof ApiError ? caught.message : c.error) })
       .finally(() => { if (active) setLoading(false) })
-    return () => { active = false }
+    void load()
+    const timer = window.setInterval(() => void load(), 15_000)
+    return () => { active = false; window.clearInterval(timer) }
   }, [c.error, session])
 
   useEffect(() => {
@@ -126,7 +135,27 @@ export default function TicketsPage() {
       <div className="admin-table-tools"><label><Search /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={c.search} /></label><select value={filter} onChange={(event) => setFilter(event.target.value as 'All' | TicketStatus)}><option value="All">{c.all}</option>{(['Pending', 'Confirmed', 'Cancelled', 'Used'] as TicketStatus[]).map((status) => <option key={status} value={status}>{statusCopy[language][status]}</option>)}</select></div>
       <div className="admin-table-scroll"><table><thead><tr><th>{c.code}</th><th>{c.customer}</th><th>{c.tour}</th><th>{c.count}</th><th>{c.amount}</th><th>{c.channel}</th><th>{c.payment}</th><th>{c.status}</th></tr></thead><tbody>
         {loading && Array.from({ length: 4 }).map((_, index) => <tr className="table-skeleton" key={index}><td colSpan={8}><span /></td></tr>)}
-        {!loading && visibleTickets.map((ticket) => { const paymentStatus = ticket.paymentStatus ?? 'NotRequired'; return <tr key={ticket.id}><td><strong className="ticket-code">{ticket.ticketCode}</strong></td><td><div className="table-person"><span>{ticket.customerName.slice(0, 1)}</span><div><strong>{ticket.customerName}</strong><small>{ticket.customerEmail}</small></div></div></td><td><div className="table-tour"><strong>{ticket.tourName}</strong><small><CalendarDays /> {formatDate(ticket.tourDate)} · {ticket.departureTime.slice(0, 5)}</small></div></td><td>{ticket.guestCount}</td><td><strong>{formatMoney(ticket.amount)}</strong></td><td><span className="channel-pill">{ticket.channel === 'Web' ? c.web : c.admin}</span></td><td><span className={`payment-pill payment-${paymentStatus.toLowerCase()}`}>{paymentStatusCopy[language][paymentStatus]}</span></td><td><select className={`status-select status-${ticket.status.toLowerCase()}`} value={ticket.status} onChange={(event) => void changeStatus(ticket, event.target.value as TicketStatus)}>{(['Pending', 'Confirmed', 'Cancelled', 'Used'] as TicketStatus[]).map((status) => <option key={status} value={status}>{statusCopy[language][status]}</option>)}</select></td></tr> })}
+        {!loading && visibleTickets.map((ticket) => {
+          const paymentStatus = ticket.paymentStatus ?? 'NotRequired'
+          const automatic = paymentStatus !== 'NotRequired'
+          return <tr key={ticket.id}>
+            <td><strong className="ticket-code">{ticket.ticketCode}</strong>{ticket.externalVoucherGuid && <small className="admin-voucher">{ticket.externalVoucherGuid}</small>}</td>
+            <td><div className="table-person"><span>{ticket.customerName.slice(0, 1)}</span><div><strong>{ticket.customerName}</strong><small>{ticket.customerEmail}</small></div></div></td>
+            <td><div className="table-tour"><strong>{ticket.tourName}</strong><small><CalendarDays /> {formatDate(ticket.tourDate)} · {ticket.departureTime.slice(0, 5)}</small></div></td>
+            <td>{ticket.guestCount}</td><td><strong>{formatMoney(ticket.amount)}</strong></td><td><span className="channel-pill">{ticket.channel === 'Web' ? c.web : c.admin}</span></td>
+            <td><div className="admin-payment-state"><span className={`payment-pill payment-${paymentStatus.toLowerCase()}`}>{paymentStatusCopy[language][paymentStatus]}</span>
+              {automatic && ticket.ticketingStatus && <small>{ticketingCopy[language][ticket.ticketingStatus]}</small>}
+              {(ticket.paymentFailureCode || ticket.ticketingFailureCode) && <small>{ticket.paymentFailureCode || ticket.ticketingFailureCode}</small>}
+              {(paymentStatus === 'ReviewRequired' || ticket.ticketingStatus === 'ReviewRequired') && <small className="admin-payment-warning">{language === 'tr' ? 'Yeni tahsilat yapmayın. Banka / EasyTicket kaydını sipariş koduyla kontrol edin.' : 'Do not charge again. Reconcile the bank / EasyTicket record using the order code.'}</small>}
+            </div></td>
+            <td><select className={`status-select status-${ticket.status.toLowerCase()}`} value={ticket.status}
+              disabled={automatic && !(paymentStatus === 'Paid' && ticket.ticketingStatus === 'Issued')}
+              onChange={(event) => void changeStatus(ticket, event.target.value as TicketStatus)}>
+              {(automatic ? [ticket.status, ...(ticket.status === 'Confirmed' ? ['Used' as const] : [])] : ['Pending', 'Confirmed', 'Cancelled', 'Used'] as TicketStatus[])
+                .map((status) => <option key={status} value={status}>{statusCopy[language][status]}</option>)}
+            </select></td>
+          </tr>
+        })}
       </tbody></table></div>
       {!loading && visibleTickets.length === 0 && <div className="admin-empty"><TicketCheck /><p>{c.empty}</p></div>}
     </section>

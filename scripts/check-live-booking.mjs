@@ -44,9 +44,18 @@ try {
     await expect(dialog.locator('.reservation-review__passengers')).not.toContainText('12345678901')
     const expectedTotal = new Intl.NumberFormat('tr-TR', { style: 'currency', currency: quote.currency, maximumFractionDigits: 2 }).format(quote.amount)
     await expect(dialog.locator('.booking-total strong')).toHaveText(expectedTotal)
+    const paymentAvailability = await page.request.get('https://api-peremetours-test.d1-tech.com/api/v1/payments/availability')
+    expect(paymentAvailability.status()).toBe(200)
+    const paymentSettings = await paymentAvailability.json()
+    // Inspect active fields only. NEVER submit payment/card data from this read-only live check.
+    if (paymentSettings.enabled) {
+      await expect(dialog.getByLabel('Kart Numarası', { exact: true })).toBeEnabled()
+      await expect(dialog.getByRole('button', { name: /^Güvenli ödeme yap/ })).toBeVisible()
+      await expect(dialog).not.toContainText('Ödeme henüz etkin değil')
+    }
     const overflow = await dialog.evaluate((element) => element.scrollWidth > element.clientWidth)
     await page.screenshot({ path: `test-results/live-booking-${viewport.width}.png` })
-    console.log(JSON.stringify({ viewport, cardActions, guestCount: quote.guestCount, amount: quote.amount, overflow, errors }))
+    console.log(JSON.stringify({ viewport, cardActions, guestCount: quote.guestCount, amount: quote.amount, paymentEnabled: paymentSettings.enabled, overflow, errors }))
     expect(overflow).toBe(false)
     expect(errors).toEqual([])
     await context.close()

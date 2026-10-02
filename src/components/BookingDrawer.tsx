@@ -140,7 +140,7 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
       setPriceChanged(Math.abs(result.amount - total) > 0.005)
       setQuote(result)
       drawer.current?.scrollTo({ top: 0, behavior: 'smooth' })
-      requestAnimationFrame(() => bookingRoot.current?.focus())
+      requestAnimationFrame(() => bookingRoot.current?.focus({ preventScroll: true }))
     } catch (failure) {
       if (!controller.signal.aborted) setQuoteError(language === 'tr' && failure instanceof ApiError && failure.status === 400 ? failure.message : c.quoteError)
     } finally {

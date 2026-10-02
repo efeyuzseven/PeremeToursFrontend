@@ -69,6 +69,7 @@ test('mixed ticket types, valid date/time, contact details and a server-checked 
   await page.screenshot({ path: testInfo.outputPath('booking-details.png') })
   await dialog.getByRole('button', { name: 'Bilgileri kontrol et' }).click()
   await expect(dialog.getByText('Fiyat yeniden kontrol edildi')).toBeVisible()
+  await expect(dialog.getByRole('heading', { level: 2 })).toBeInViewport({ ratio: 1 })
   await expect(dialog.getByText('Test Misafir')).toBeVisible()
   await expect(dialog.locator('.booking-total')).toContainText('4.050')
   await expect(dialog.getByText('21:30', { exact: true })).toBeVisible()

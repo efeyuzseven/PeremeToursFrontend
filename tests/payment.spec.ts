@@ -71,6 +71,92 @@ async function fillCard(page: Page, number = '4111111111111111') {
 const paidStatus = (ticketingStatus = 'Issued') => ({ ticketCode: order, amount: 4050, currency: 'TRY', paymentStatus: 'Paid', ticketingStatus,
   tickets: ticketingStatus === 'Issued' ? [{ pnr: 'MOCK-PNR-1', ticketGuid: 'mock-ticket-1' }, { pnr: 'MOCK-PNR-2', ticketGuid: 'mock-ticket-2' }, { pnr: 'MOCK-PNR-3', ticketGuid: 'mock-ticket-3' }] : [] })
 
+test('expiry lists stay open when scrollbar interaction blurs the focused option', async ({ page }) => {
+  await mockCatalog(page)
+  await openReview(page)
+  const dialog = page.getByRole('dialog')
+  for (const field of [
+    { label: 'Son Kullanma Ayı', selection: '12' },
+    { label: 'Son Kullanma Yılı', selection: String(new Date().getFullYear() + 20) },
+  ]) {
+    const trigger = dialog.getByRole('button', { name: new RegExp(`^${field.label}`) })
+    await trigger.click()
+    const list = dialog.getByRole('listbox')
+    await expect(list.getByRole('option').first()).toBeFocused()
+    // Native scrollbar/background clicks can move focus to the document with relatedTarget=null.
+    await list.getByRole('option').first().evaluate((element) => (element as HTMLElement).blur())
+    await expect(list).toBeVisible()
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    await list.scrollIntoViewIfNeeded()
+    await list.hover()
+    await page.mouse.wheel(0, 900)
+    await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBeGreaterThan(0)
+    await list.getByRole('option', { name: field.selection, exact: true }).click()
+    await expect(trigger).toContainText(field.selection)
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  }
+  await expect(dialog.locator('iframe')).toHaveCount(0)
+})
+
+test('expiry list scrollbars support native dragging and keep selection available', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Native desktop scrollbar dragging; mobile scrolling is covered by the other expiry test.')
+  await mockCatalog(page)
+  await openReview(page)
+  // Force a classic scrollbar so the test exercises the gutter rather than an overlay/option.
+  await page.addStyleTag({ content: '.reservation-select__options { scrollbar-width: auto; scrollbar-gutter: stable; } .reservation-select__options::-webkit-scrollbar { width: 16px; }' })
+  const dialog = page.getByRole('dialog')
+  for (const label of ['Son Kullanma Ayı', 'Son Kullanma Yılı']) {
+    const trigger = dialog.getByRole('button', { name: new RegExp(`^${label}`) })
+    await trigger.click()
+    const list = dialog.getByRole('listbox')
+    await list.scrollIntoViewIfNeeded()
+    const bar = await list.evaluate((element) => {
+      const bounds = element.getBoundingClientRect()
+      const gutter = (element as HTMLElement).offsetWidth - element.clientWidth - element.clientLeft * 2
+      return { x: bounds.right - element.clientLeft - gutter / 2, top: bounds.top + 20, bottom: bounds.bottom - 15, gutter }
+    })
+    expect(bar.gutter).toBeGreaterThan(2)
+    await page.mouse.move(bar.x, bar.top)
+    await page.mouse.down()
+    await page.mouse.move(bar.x, bar.bottom, { steps: 10 })
+    await page.mouse.up()
+    await expect(list).toBeVisible()
+    await expect(list).toBeFocused()
+    await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBeGreaterThan(0)
+    const option = list.getByRole('option').last()
+    const selection = await option.textContent()
+    await option.click()
+    await expect(trigger).toContainText(selection!)
+  }
+})
+
+test('expiry lists still close on outside clicks, Tab and Escape, and allow keyboard selection', async ({ page }) => {
+  await mockCatalog(page)
+  await openReview(page)
+  const dialog = page.getByRole('dialog')
+  const trigger = dialog.getByRole('button', { name: /^Son Kullanma Ayı/ })
+  await trigger.click()
+  await page.keyboard.press('End')
+  await page.keyboard.press('Enter')
+  await expect(trigger).toContainText('12')
+  await expect(dialog.getByRole('listbox')).toHaveCount(0)
+  await trigger.click()
+  await dialog.getByRole('listbox').focus()
+  await page.keyboard.press('ArrowUp')
+  await expect(dialog.getByRole('option', { name: '12', exact: true })).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeVisible()
+  await expect(trigger).toBeFocused()
+  await expect(dialog.getByRole('listbox')).toHaveCount(0)
+  await trigger.click()
+  await page.keyboard.press('Tab')
+  await expect(dialog.getByRole('listbox')).toHaveCount(0)
+  await trigger.click()
+  // Clicking non-focusable content must dismiss too, independently of the blur handler.
+  await dialog.getByRole('heading', { name: 'Ödeme Bilgileri', exact: true }).click()
+  await expect(dialog.getByRole('listbox')).toHaveCount(0)
+})
+
 test('payment fields appear only after the current booking details have been checked', async ({ page }) => {
   await mockCatalog(page)
   let releaseQuote!: () => void

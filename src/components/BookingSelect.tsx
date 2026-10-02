@@ -27,7 +27,11 @@ export function BookingSelect({ label, value, options, onChange, disabled = fals
   const close = () => { setOpen(false); trigger.current?.focus() }
 
   return <div className={`reservation-select ${open ? 'reservation-select--open' : ''}`} ref={container}
-    onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }}
+    onBlur={(event) => {
+      // Native scrollbar clicks can blur an option with no new focus target.
+      // Outside pointer presses are handled above; close here only for focus moving elsewhere (e.g. Tab).
+      if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) setOpen(false)
+    }}
     onKeyDown={(event) => {
       if (event.key === 'Escape' && open) { event.stopPropagation(); close() }
       if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return
@@ -36,6 +40,7 @@ export function BookingSelect({ label, value, options, onChange, disabled = fals
       const buttons = Array.from(container.current?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? [])
       const index = buttons.indexOf(document.activeElement as HTMLButtonElement)
       const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
+        : index < 0 ? (event.key === 'ArrowUp' ? buttons.length - 1 : 0)
         : (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length
       buttons[next]?.focus()
     }}>
@@ -45,7 +50,7 @@ export function BookingSelect({ label, value, options, onChange, disabled = fals
       disabled={disabled || !options.length} onClick={() => setOpen(!open)}>
       <span id={`${id}-value`}>{options.find((option) => option.value === value)?.label ?? placeholder}</span><ChevronDown size={17} />
     </button>
-    {open && <div className="reservation-select__options" role="listbox" id={id} aria-labelledby={`${id}-label`}>
+    {open && <div className="reservation-select__options" role="listbox" id={id} tabIndex={-1} aria-labelledby={`${id}-label`}>
       {options.map((option) => <button key={option.value} type="button" role="option" aria-selected={option.value === value}
         onClick={() => { onChange(option.value); close() }}>{option.label}{option.value === value && <Check size={16} />}</button>)}
     </div>}

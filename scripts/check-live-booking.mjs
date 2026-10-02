@@ -9,7 +9,9 @@ try {
     const context = await browser.newContext({ viewport, timezoneId: 'Europe/Istanbul' })
     const page = await context.newPage()
     const errors = []
+    let paymentStarts = 0
     page.on('pageerror', (error) => errors.push(error.message))
+    page.on('request', (request) => { if (new URL(request.url()).pathname === '/api/v1/payments/tour/initialize') paymentStarts++ })
     await page.goto('https://d2bmjk2h6qp4lz.cloudfront.net', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('.tour-card__footer button').first()).toBeEnabled({ timeout: 30_000 })
     await expect(page.locator('.tour-card .price')).toHaveCount(0)
@@ -53,14 +55,34 @@ try {
     expect(paymentAvailability.status()).toBe(200)
     const paymentSettings = await paymentAvailability.json()
     // Inspect active fields only. NEVER submit payment/card data from this read-only live check.
+    let expirySelections = false
     if (paymentSettings.enabled) {
       await expect(dialog.getByLabel('Kart Numarası', { exact: true })).toBeEnabled()
       await expect(dialog.getByRole('button', { name: /^Güvenli ödeme yap/ })).toBeVisible()
       await expect(dialog).not.toContainText('Ödeme henüz etkin değil')
+      for (const label of ['Son Kullanma Ayı', 'Son Kullanma Yılı']) {
+        const trigger = dialog.getByRole('button', { name: new RegExp(`^${label}`) })
+        await trigger.click()
+        const list = dialog.getByRole('listbox')
+        // Simulate the focus transition caused by a native scrollbar press, then scroll and select.
+        await list.getByRole('option').first().evaluate((element) => element.blur())
+        await expect(list).toBeVisible()
+        await list.scrollIntoViewIfNeeded()
+        await list.hover()
+        await page.mouse.wheel(0, 900)
+        await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBeGreaterThan(0)
+        const option = list.getByRole('option').last()
+        const selection = await option.textContent()
+        await option.click()
+        await expect(trigger).toContainText(selection)
+        await expect(trigger).toHaveAttribute('aria-expanded', 'false')
+      }
+      expirySelections = true
     }
     const overflow = await dialog.evaluate((element) => element.scrollWidth > element.clientWidth)
     await page.screenshot({ path: `test-results/live-booking-${viewport.width}.png` })
-    console.log(JSON.stringify({ viewport, cardActions, guestCount: quote.guestCount, amount: quote.amount, paymentEnabled: paymentSettings.enabled, passengerFormScroll, passengerReviewScroll, overflow, errors }))
+    console.log(JSON.stringify({ viewport, cardActions, guestCount: quote.guestCount, amount: quote.amount, paymentEnabled: paymentSettings.enabled, passengerFormScroll, passengerReviewScroll, expirySelections, paymentStarts, overflow, errors }))
+    expect(paymentStarts).toBe(0)
     expect(overflow).toBe(false)
     expect(errors).toEqual([])
     await context.close()

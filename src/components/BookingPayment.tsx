@@ -149,6 +149,12 @@ export function BookingPayment({ booking, language, token, enabled, onLockChange
   const paid = status?.paymentStatus === 'Paid'
   const issued = paid && status?.ticketingStatus === 'Issued'
   const failed = status?.paymentStatus === 'Failed'
+  const emailHint = status?.emailStatus === 'Sent'
+    ? (language === 'tr' ? 'Ödeme bilgilendirmesi iletişim e-posta adresine gönderildi.' : 'A payment confirmation was sent to your booking contact email.')
+    : status?.emailStatus === 'Queued' || status?.emailStatus === 'Processing'
+      ? (language === 'tr' ? 'Ödeme bilgilendirmesi iletişim e-posta adresin için gönderim sırasına alındı.' : 'A payment confirmation is queued for your booking contact email.')
+      : status?.emailStatus === 'Failed' || status?.emailStatus === 'ReviewRequired'
+        ? (language === 'tr' ? 'Mail gönderimi henüz doğrulanmadı. Sipariş kodunu sakla; destek ekibimiz kontrol edebilir.' : 'Email delivery has not been confirmed. Keep your order code so our team can check it.') : ''
 
   if (payment) return <section className="reservation-bank">
     <h3><LockKeyhole size={19} /> {c.bankTitle}</h3><p>{c.bankHint}</p>
@@ -161,8 +167,9 @@ export function BookingPayment({ booking, language, token, enabled, onLockChange
     <h3>{issued ? c.success : paid ? c.paid : failed ? c.failed : c.uncertain}</h3>
     {!issued && <p>{paid ? c.paidHint : failed ? c.failedHint : c.uncertainHint}</p>}
     {status && <p className="reservation-order-code">{c.code}<strong>{status.ticketCode}</strong></p>}
+    {paid && emailHint && <p>{emailHint}</p>}
     {issued && <div className="reservation-issued-tickets">{status.tickets.map((ticket, index) => <div key={ticket.ticketGuid ?? index}><span>{index + 1}. {c.pnr}</span><strong>{ticket.pnr}</strong></div>)}</div>}
-    {issued && <><p>{language === 'tr' ? 'Sipariş ve PNR kodlarını sakla. Bu ekranda e-posta gönderimi yapılmaz.' : 'Keep your order and PNR codes. This screen does not send an email.'}</p><button type="button" className="button button--navy" onClick={() => {
+    {issued && <><p>{language === 'tr' ? 'Yolculuğun için sipariş ve PNR kodlarını sakla.' : 'Keep your order and PNR codes for your trip.'}</p><button type="button" className="button button--navy" onClick={() => {
       try { sessionStorage.removeItem(recoveryKey) } catch { /* Memory-only fallback. */ }
       onFinish()
     }}>{language === 'tr' ? 'Tamam, turlara dön' : 'Done, back to tours'}</button></>}

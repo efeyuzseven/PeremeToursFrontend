@@ -133,3 +133,49 @@
 .admin-payment-state .admin-payment-warning { font-weight: 700; }
 .payment-reviewrequired { color: #fff; background: #1f478c; }
 .admin-voucher { display: block; margin-top: 6px; max-width: 190px; overflow-wrap: anywhere; font-size: 10px; color: #1f478c; }
+.ticket-error-safety { display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px; margin-bottom: 22px; border: 1px solid rgba(106,157,210,.3); border-radius: 13px; color: #1f478c; background: #fff; }
+.ticket-error-safety svg { flex-shrink: 0; color: #6a9dd2; }
+.ticket-error-safety p { margin: 0; font-size: 12px; line-height: 1.7; }
+.ticket-errors-panel { overflow: hidden; border: 1px solid rgba(106,157,210,.2); border-radius: 16px; background: #fff; }
+.ticket-error-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px; border-bottom: 1px solid rgba(106,157,210,.2); }
+.ticket-error-filters { display: flex; flex-wrap: wrap; gap: 5px; padding: 5px; border-radius: 12px; background: rgba(106,157,210,.1); }
+.ticket-error-filters button { display: flex; align-items: center; gap: 6px; padding: 10px 12px; border: 0; border-radius: 8px; color: #1f478c; background: transparent; font-size: 11px; font-weight: 700; }
+.ticket-error-filters button[aria-pressed=true] { color: #fff; background: #1f478c; }
+.ticket-error-search { display: flex; align-items: center; gap: 10px; width: min(100%, 340px); padding: 5px 6px 5px 12px; border: 1px solid rgba(106,157,210,.3); border-radius: 10px; color: #6a9dd2; }
+.ticket-error-search input { min-width: 0; flex: 1; height: 32px; outline: 0; border: 0; color: var(--navy); background: #fff; font-size: 11px; }
+.ticket-error-search button { padding: 9px 13px; border: 0; border-radius: 7px; color: #fff; background: #1f478c; font-size: 11px; }
+.ticket-error-list { display: grid; gap: 16px; padding: 20px; }
+.ticket-error-card { padding: 20px; border: 1px solid rgba(106,157,210,.25); border-radius: 13px; background: #fff; }
+.ticket-error-card header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.ticket-error-stage { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 8px; color: #1f478c; background: rgba(106,157,210,.12); font-size: 11px; font-weight: 700; }
+.ticket-error-card time { color: #1f478c; font-size: 10px; }
+.ticket-error-card__main { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 17px; }
+.ticket-error-card__main strong { display: block; overflow-wrap: anywhere; color: var(--navy); font-size: 15px; }
+.ticket-error-card__main p { margin: 5px 0 0; color: #1f478c; font-size: 11px; line-height: 1.6; }
+.ticket-error-card__main > span { color: var(--navy); font-size: 15px; font-weight: 700; }
+.ticket-error-codes { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 17px; }
+.ticket-error-codes code { max-width: 100%; padding: 6px 8px; border: 1px solid rgba(106,157,210,.25); border-radius: 6px; overflow-wrap: anywhere; color: #1f478c; font-size: 11px; }
+.ticket-error-codes > span { padding: 7px; color: #1f478c; font-size: 10px; }
+.ticket-error-detail { margin: 13px 0 16px; color: #1f478c; font-size: 12px; line-height: 1.7; }
+.ticket-error-history { margin: 0 0 15px; color: #1f478c; font-size: 10px; line-height: 1.6; opacity: .7; }
+.ticket-error-card footer { display: flex; flex-wrap: wrap; gap: 10px 20px; padding: 13px 0 0; border-top: 1px solid rgba(106,157,210,.2); color: #1f478c; background: #fff; font-size: 10px; line-height: 1.6; }
+.ticket-error-card footer strong { color: var(--navy); }
+.ticket-error-pagination { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px; border-top: 1px solid rgba(106,157,210,.2); color: #1f478c; font-size: 11px; }
+.ticket-error-pagination > div { display: flex; gap: 8px; }
+.ticket-error-pagination button { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid rgba(106,157,210,.25); border-radius: 9px; color: #1f478c; background: #fff; }
+.ticket-error-pagination button:disabled { cursor: default; opacity: .35; }
+.admin-nav { overflow-y: auto; flex-shrink: 1; }
+@media (max-width: 780px) {
+  .admin-language { display: flex; gap: 3px; }
+  .admin-language > svg { display: none; }
+  .admin-topbar__actions { gap: 8px; }
+}
+@media (max-width: 580px) {
+  .ticket-error-toolbar, .ticket-error-list { padding: 12px; }
+  .ticket-error-card { padding: 15px; }
+  .ticket-error-search { width: 100%; }
+  .ticket-error-filters { width: 100%; justify-content: space-between; gap: 2px; }
+  .ticket-error-filters button { padding: 9px 7px; font-size: 10px; }
+  .ticket-error-filters button svg { width: 13px; }
+  .ticket-error-card__main strong { font-size: 13px; }
+}

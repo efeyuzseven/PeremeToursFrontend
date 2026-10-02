@@ -17,6 +17,7 @@ export type PaymentStatus = {
   paymentStatus: 'Pending' | 'Processing' | 'Paid' | 'Failed' | 'ReviewRequired' | 'Refunded'
   ticketingStatus: 'Pending' | 'Processing' | 'Issued' | 'ReviewRequired'
   tickets: { pnr: string | null; ticketGuid: string | null }[]
+  emailStatus?: 'Queued' | 'Processing' | 'Sent' | 'Failed' | 'ReviewRequired' | null
 }
 export type PaymentBooking = {
   quote: TourQuote; externalTourId: number; externalDeparturePortId: number; externalDepartureId: number

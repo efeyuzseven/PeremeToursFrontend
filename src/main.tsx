@@ -6,6 +6,7 @@ import AdminLayout from './admin/AdminLayout'
 import SiteContentPage from './admin/SiteContentPage'
 import FrequentlyAskedQuestionsPage from './admin/FrequentlyAskedQuestionsPage'
 import TicketsPage from './admin/TicketsPage'
+import TicketErrorsPage from './admin/TicketErrorsPage'
 import TourContentsPage from './admin/TourContentsPage'
 import UsersPage from './admin/UsersPage'
 import { AuthProvider } from './auth/AuthContext'
@@ -33,6 +34,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="tickets" replace />} />
               <Route path="tickets" element={<TicketsPage />} />
+              <Route path="ticket-errors" element={<TicketErrorsPage />} />
               <Route path="tour-contents" element={<TourContentsPage />} />
               <Route path="site-content" element={<SiteContentPage />} />
               <Route path="faqs" element={<FrequentlyAskedQuestionsPage />} />

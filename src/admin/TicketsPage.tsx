@@ -14,6 +14,7 @@ type TourTicket = {
   customerName: string; customerEmail: string; guestCount: number; amount: number; currency: string
   status: TicketStatus; channel: TicketChannel; paymentStatus?: TicketPaymentStatus; createdAtUtc: string; updatedAtUtc: string
   ticketingStatus?: TicketingStatus; externalVoucherGuid?: string; ticketingFailureCode?: string; paymentFailureCode?: string
+  emailStatus?: 'Queued' | 'Processing' | 'Sent' | 'Failed' | 'ReviewRequired'; emailSentAtUtc?: string
 }
 type CatalogTour = {
   externalTourId: number
@@ -145,6 +146,7 @@ export default function TicketsPage() {
             <td>{ticket.guestCount}</td><td><strong>{formatMoney(ticket.amount)}</strong></td><td><span className="channel-pill">{ticket.channel === 'Web' ? c.web : c.admin}</span></td>
             <td><div className="admin-payment-state"><span className={`payment-pill payment-${paymentStatus.toLowerCase()}`}>{paymentStatusCopy[language][paymentStatus]}</span>
               {automatic && ticket.ticketingStatus && <small>{ticketingCopy[language][ticket.ticketingStatus]}</small>}
+              {ticket.emailStatus && <small>{language === 'tr' ? 'Mail' : 'Email'}: {({ tr: { Queued: 'Kuyrukta', Processing: 'Gönderiliyor', Sent: 'Gönderildi', Failed: 'Gönderilemedi', ReviewRequired: 'Gönderim kontrol edilmeli' }, en: { Queued: 'Queued', Processing: 'Sending', Sent: 'Sent', Failed: 'Delivery failed', ReviewRequired: 'Delivery review required' } })[language][ticket.emailStatus]}</small>}
               {(ticket.paymentFailureCode || ticket.ticketingFailureCode) && <small>{ticket.paymentFailureCode || ticket.ticketingFailureCode}</small>}
               {(paymentStatus === 'ReviewRequired' || ticket.ticketingStatus === 'ReviewRequired') && <small className="admin-payment-warning">{language === 'tr' ? 'Yeni tahsilat yapmayın. Banka / EasyTicket kaydını sipariş koduyla kontrol edin.' : 'Do not charge again. Reconcile the bank / EasyTicket record using the order code.'}</small>}
             </div></td>

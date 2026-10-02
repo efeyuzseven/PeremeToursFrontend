@@ -64,15 +64,6 @@ export function isUpcomingDeparture(departure: TourDeparture, now = Date.now()) 
     && new Date(`${departure.date}T${departure.time}+03:00`).getTime() > now
 }
 
-export function getStartingPrice(options: PortAvailability[], date: string): number | null {
-  const amounts = options.flatMap(({ availability }) =>
-    availability.departures.some((departure) => departure.date === date && isUpcomingDeparture(departure))
-      ? availability.prices.filter((price) => isTryPrice(price) && price.amount > 0).map((price) => price.amount)
-      : [],
-  )
-  return amounts.length ? Math.min(...amounts) : null
-}
-
 export function formatMoney(amount: number, language: 'tr' | 'en', currency = 'TRY') {
   return new Intl.NumberFormat(language === 'tr' ? 'tr-TR' : 'en-US', {
     style: 'currency', currency, maximumFractionDigits: 2,

@@ -81,23 +81,30 @@ test('mixed ticket types, valid date/time, contact details and a server-checked 
   await expect(page.locator('#root')).not.toHaveAttribute('inert')
 })
 
-test('live starting price follows the search date, with no demo discount', async ({ page }) => {
+test('tour cards show only the booking action and fetch prices after it is clicked', async ({ page }) => {
   await mockApi(page)
+  const availabilityRequests: string[] = []
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname.endsWith('/availability')) availabilityRequests.push(request.url())
+  })
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await expect(page.locator('.tour-card')).toHaveCount(1)
-  await expect(page.locator('.tour-card .price')).toContainText('Bu tarihte sefer yok')
+  await expect(page.locator('.tour-card__footer')).toHaveText('Rezervasyon Yap')
+  await expect(page.locator('.tour-card .price')).toHaveCount(0)
+  await expect(page.locator('.tour-card')).not.toContainText('₺')
   await expect(page.locator('.tour-card del')).toHaveCount(0)
-  // Change the homepage date to the API date without navigating through 73 calendar years.
-  await page.clock.install({ time: new Date('2099-10-02T12:00:00+03:00') })
-  await page.reload()
-  await expect(page.locator('.tour-card .price')).toContainText('1.150')
+  expect(availabilityRequests).toHaveLength(0)
+  await page.locator('.tour-card__footer button').click()
+  await expect(page.getByRole('dialog').locator('.reservation-ticket-types')).toContainText('1.150')
+  expect(availabilityRequests.length).toBeGreaterThan(0)
 })
 
 test('missing API prices never fall back to made-up amounts', async ({ page }) => {
   await mockApi(page, true)
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await expect(page.locator('.tour-card')).toHaveCount(1)
-  await expect(page.locator('.tour-card .price')).toContainText('Fiyat alınamadı')
+  await expect(page.locator('.tour-card .price')).toHaveCount(0)
+  await expect(page.locator('.tour-card__footer')).toHaveText('Rezervasyon Yap')
   await page.locator('.tour-card__footer button').click()
   await expect(page.getByRole('alert')).toContainText('Tur bilgileri şu anda alınamıyor')
   await expect(page.getByRole('button', { name: 'Bilgileri kontrol et' })).toHaveCount(0)

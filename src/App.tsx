@@ -32,7 +32,6 @@ import { Link } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import type { HomepageContentDocument } from './content/homepage'
 import { apiBaseUrl, apiRequest } from './lib/api'
-import { formatMoney, getStartingPrice, loadTourBookingOptions, type PortAvailability } from './lib/tours'
 import { BookingDrawer } from './components/BookingDrawer'
 
 type Language = 'tr' | 'en'
@@ -394,8 +393,6 @@ function App() {
   const [mobileMenu, setMobileMenu] = useState(false)
   const [filter, setFilter] = useState<CategoryFilter>('all')
   const [tours, setTours] = useState<Tour[]>(() => orderTours(fallbackTours))
-  const [tourBookingOptions, setTourBookingOptions] = useState<Record<number, PortAvailability[] | null>>({})
-  const [catalogFailed, setCatalogFailed] = useState(false)
   const [homepageContent, setHomepageContent] = useState<HomepageContentDocument | null>(null)
   const [date, setDate] = useState(tomorrow())
   const [calendarMonth, setCalendarMonth] = useState(() => {
@@ -421,15 +418,9 @@ function App() {
     apiRequest<CatalogTour[]>('/api/v1/tours', { signal: controller.signal })
       .then((catalog) => {
         if (controller.signal.aborted) return
-        const liveTours = mergeCatalogTours(catalog)
-        setTours(liveTours)
-        liveTours.forEach((tour) => {
-          loadTourBookingOptions(tour.id, controller.signal)
-            .then((options) => { if (!controller.signal.aborted) setTourBookingOptions((current) => ({ ...current, [tour.id]: options })) })
-            .catch(() => { if (!controller.signal.aborted) setTourBookingOptions((current) => ({ ...current, [tour.id]: null })) })
-        })
+        setTours(mergeCatalogTours(catalog))
       })
-      .catch(() => { if (!controller.signal.aborted) setCatalogFailed(true) })
+      .catch(() => undefined)
     return () => controller.abort()
   }, [])
 
@@ -642,14 +633,7 @@ function App() {
           <div className="section-heading"><div><div className="eyebrow"><Waves size={18} /> {page?.tours.eyebrow ?? c.tours.eyebrow}</div><h2>{page?.tours.lead ?? c.tours.lead} <em>{page?.tours.accent ?? c.tours.accent}</em></h2></div><p>{page?.tours.description ?? c.tours.description}</p></div>
           <div className="filters" role="group" aria-label={c.a11y.tourCategories}>{categoryKeys.map((category) => <button key={category} className={filter === category ? 'active' : ''} type="button" onClick={() => { setFilter(category); setShowAll(false) }}>{c.categories[category]}</button>)}</div>
           <div className="tour-grid">
-            {displayedTours.map((tour, index) => {
-              const options = tourBookingOptions[tour.id]
-              const startingPrice = options ? getStartingPrice(options, date) : null
-              const priceLabel = startingPrice !== null ? formatMoney(startingPrice, language)
-                : catalogFailed || options === null ? (language === 'tr' ? 'Fiyat alınamadı' : 'Price unavailable')
-                : options ? (language === 'tr' ? 'Bu tarihte sefer yok' : 'No departures on this date')
-                : (language === 'tr' ? 'Fiyat yükleniyor…' : 'Loading price…')
-              return (
+            {displayedTours.map((tour, index) => (
               <article className="tour-card" key={tour.id} style={{ '--card-delay': `${index * 80}ms` } as CSSProperties}>
                 <div className="tour-card__media">
                   <img src={tour.image} alt="" style={{ objectPosition: tour.imagePosition }} /><div className="tour-card__media-shade" /><span className="tour-card__badge">{tour.badge[language]}</span>
@@ -659,11 +643,10 @@ function App() {
                 <div className="tour-card__body">
                   <span className="tour-card__category">{c.categories[tour.category]}</span><h3>{tour.title[language]}</h3><p>{tour.description[language]}</p>
                   <div className="tour-card__meta"><span><Clock3 size={16} /> {tour.duration[language]}</span><span><MapPin size={16} /> {tour.location[language]}</span></div>
-                  <div className="tour-card__footer"><div className={`price ${startingPrice === null ? 'price--status' : ''}`}><small>{language === 'tr' ? 'Başlayan fiyatlarla · kişi başı' : 'From · per person'}</small><span>{priceLabel}</span>{startingPrice !== null && <small>{formattedDate}</small>}</div><button type="button" disabled={!tour.live} onClick={() => openBooking(tour)} aria-label={`${tour.title[language]} ${c.tours.select}`}>{c.tours.select} <ArrowRight size={18} /></button></div>
+                  <div className="tour-card__footer"><button type="button" disabled={!tour.live} onClick={() => openBooking(tour)} aria-label={`${tour.title[language]} ${c.tours.select}`}>{c.tours.select} <ArrowRight size={18} /></button></div>
                 </div>
               </article>
-              )
-            })}
+            ))}
           </div>
           {filteredTours.length > 3 && <button className="show-more" type="button" onClick={() => setShowAll(!showAll)}>{showAll ? c.tours.showLess : c.tours.showAll(filteredTours.length)} <ArrowDown size={17} /></button>}
         </div>

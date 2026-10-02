@@ -18,7 +18,7 @@ npm run build
 npm run test:e2e
 ```
 
-Tur listesi ve yönetici tarafından değiştirilebilen tur içerikleri backend API üzerinden gelir. Kartlar, arama alanındaki tarih için EasyTicket'tan gelen en düşük pozitif TL bilet fiyatını gösterir. API hatasında örnek fiyat kullanılmaz. Rezervasyon ekranı açıldığında kalkış noktası, tarih/saat, bilet tipleri, TR/EN bilet notları ve fiyatlar yeniden alınır. Farklı bilet tiplerinden ayrı ayrı adet seçilebilir (toplam 1–12 misafir).
+Tur listesi ve yönetici tarafından değiştirilebilen tur içerikleri backend API üzerinden gelir. Tur kartlarında fiyat ve tarih gösterilmez; yalnızca rezervasyon butonu bulunur. Rezervasyon ekranı açıldığında kalkış noktası, tarih/saat, bilet tipleri, TR/EN bilet notları ve güncel fiyatlar EasyTicket'tan alınır. API hatasında örnek fiyat kullanılmaz. Farklı bilet tiplerinden ayrı ayrı adet seçilebilir (toplam 1–12 misafir).
 
 Ad soyad, e-posta ve telefon girildikten sonra `POST /api/v1/tours/quote` güncel fiyatı sunucuda tekrar doğrular ve bir önizleme gösterilir. Kişisel bilgiler bu aşamada sunucuya gönderilmez veya kaydedilmez. Ödeme/bilet kesimi kapalıdır; önizleme bir rezervasyon oluşturmaz ve yer ayırmaz. Kontenjan sayıları API tarafından sunulmadığı için arayüzde tahmini kontenjan gösterilmez.
 

@@ -1380,37 +1380,11 @@ h2 em {
   gap: 15px;
 }
 
-.price {
-  display: flex;
-  align-items: baseline;
-  gap: 7px;
-  flex-wrap: wrap;
-}
-
-.price small {
-  flex: 0 0 100%;
-  color: rgba(106,157,210,.64);
-  font-size: 9px;
-  letter-spacing: .09em;
-  text-transform: uppercase;
-}
-
-.price span {
-  font-family: 'Manrope', sans-serif;
-  font-size: 21px;
-  font-weight: 700;
-  letter-spacing: -.04em;
-}
-
-.price del {
-  color: rgba(106,157,210,.64);
-  font-size: 11px;
-}
-
 .tour-card__footer button {
+  width: 100%;
   min-width: 72px;
-  height: 41px;
-  padding: 0 13px;
+  height: 44px;
+  padding: 0 18px;
   border: 0;
   border-radius: 100px;
   display: flex;
@@ -2010,7 +1984,7 @@ h2 em {
   inset: 0;
   background:
     linear-gradient(rgba(7,27,53,.48), rgba(7,27,53,.72)),
-    url('/assets/hero-bosphorus.webp') center 54%/cover;
+    url('/assets/ad2ca4f6-d888-4621-b0c1-b3db5903f0ac.webp') center 54%/cover;
   transition: transform 2s ease;
 }
 

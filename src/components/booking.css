@@ -38,7 +38,14 @@
 .reservation-contact input:not([type='checkbox']) { width: 100%; min-height: 46px; padding: 11px 14px; border: 1px solid var(--line); border-radius: 10px; color: var(--navy); background: #fff; font-size: 14px; }
 .reservation-contact input:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .reservation-passengers, .reservation-payment { margin-top: 28px; }
+.reservation-passenger-list { min-width: 0; padding: 4px 2px; }
+.reservation-passenger-list--scrollable { max-height: min(440px, 60dvh); overflow-y: auto; overscroll-behavior-y: contain; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: var(--sea) #fff; padding-right: 6px; }
+.reservation-passenger-list--scrollable:focus-visible { outline: 2px solid var(--sea); outline-offset: 2px; border-radius: 12px; }
+.reservation-passenger-list--scrollable::-webkit-scrollbar { width: 6px; }
+.reservation-passenger-list--scrollable::-webkit-scrollbar-thumb { border-radius: 8px; background: var(--sea); }
+.reservation-passenger-list--scrollable::-webkit-scrollbar-track { background: #fff; }
 .reservation-form fieldset.reservation-passenger { padding: 17px 15px; margin: 0 0 18px; border: 1px solid rgba(106,157,210,.45); border-radius: 12px; }
+.reservation-form fieldset.reservation-passenger:last-child { margin-bottom: 0; }
 .reservation-passenger legend { max-width: 100%; padding: 0 7px; color: var(--navy); font-size: 13px; font-weight: 700; }
 .reservation-passenger legend span { margin-left: 8px; color: var(--blue); font-size: 11px; font-weight: 500; }
 .reservation-passenger__fields, .reservation-payment__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 15px 12px; }
@@ -51,8 +58,10 @@
 .reservation-payment input:disabled, .reservation-payment .reservation-select__trigger:disabled { color: var(--blue); background: rgba(106,157,210,.08); cursor: not-allowed; opacity: .75; }
 .reservation-payment input::placeholder { color: var(--blue); opacity: .7; }
 .reservation-review__passengers { margin-top: 25px; }
-.reservation-review__passengers h3 { margin: 0 0 15px; font-size: 16px; }
+.reservation-review__passengers h3 { font-size: 16px; }
+.reservation-review__passengers .reservation-passenger-list--scrollable { max-height: min(240px, 42dvh); }
 .reservation-review__passenger { display: grid; gap: 7px; padding: 15px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 12px; overflow-wrap: anywhere; }
+.reservation-review__passenger:last-child { margin-bottom: 0; }
 .reservation-review__passenger small { color: var(--blue); font-size: 11px; }
 .reservation-review__passenger strong { font-size: 13px; }
 .reservation-consent { display: flex; align-items: flex-start; gap: 9px; margin: 18px 0 12px; color: var(--blue); font-size: 12px; line-height: 1.6; }

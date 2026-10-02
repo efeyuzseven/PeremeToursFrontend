@@ -7,7 +7,6 @@ import { ApiError, apiRequest } from '../lib/api'
 import { formatMoney, isTryPrice, isUpcomingDeparture, loadTourBookingOptions, type PortAvailability, type TourQuote } from '../lib/tours'
 import { BookingSelect } from './BookingSelect'
 import { PassengerForm } from './PassengerForm'
-import { BookingPaymentFields } from './BookingPaymentFields'
 import { BookingPayment } from './BookingPayment'
 import { getPaymentRecovery, type PaymentAvailability } from '../lib/payments'
 import { emptyPassenger, isCompletePassenger, istanbulToday, maskIdentity, passengerTexts, type PassengerDetails } from '../lib/passengers'
@@ -21,7 +20,8 @@ const texts = {
     types: 'Bilet tipini seç', typeHint: 'Her bilet tipinden istediğin adedi seçebilirsin.', each: 'kişi başı', guests: 'misafir',
     decrease: 'Bilet azalt', increase: 'Bilet artır', max: 'Bir rezervasyonda en fazla 12 misafir seçilebilir.',
     contact: 'İletişim bilgileri', contactHint: 'Rezervasyonu yapacak kişinin bilgilerini gir.', name: 'Ad soyad', email: 'E-posta', phone: 'Telefon',
-    consent: 'KVKK Aydınlatma Metni’ni okudum.', total: 'Toplam', live: 'Güncel API fiyatı', continue: 'Bilgileri kontrol et', checking: 'Fiyat kontrol ediliyor…',
+    consent: 'KVKK Aydınlatma Metni’ni okudum.', total: 'Toplam', live: 'Güncel API fiyatı', continue: 'Bilgileri Kontrol et ve Ödemeye geç', checking: 'Fiyat kontrol ediliyor…',
+    passengerScroll: 'Diğer yolcuları görmek için bu alanı kaydırabilirsin.',
     notice: 'Şu anda ödeme ve bilet kesimi kapalıdır. Bu adım rezervasyon oluşturmaz ve yer ayırmaz.',
     review: 'Rezervasyon önizlemesi', checked: 'Fiyat yeniden kontrol edildi', edit: 'Bilgileri düzenle',
     changed: 'API fiyatı güncellendi. Yeni toplam tutarı aşağıda görebilirsin.', back: 'Turlara dön',
@@ -36,7 +36,8 @@ const texts = {
     types: 'Choose your tickets', typeHint: 'Choose the quantity for each ticket type.', each: 'per person', guests: 'guests',
     decrease: 'Remove ticket', increase: 'Add ticket', max: 'Up to 12 guests per booking.',
     contact: 'Contact details', contactHint: 'Enter the booking contact’s details.', name: 'Full name', email: 'Email', phone: 'Phone',
-    consent: 'I have read the KVKK Information Notice.', total: 'Total', live: 'Current API price', continue: 'Review details', checking: 'Checking prices…',
+    consent: 'I have read the KVKK Information Notice.', total: 'Total', live: 'Current API price', continue: 'Review details and proceed to payment', checking: 'Checking prices…',
+    passengerScroll: 'Scroll within this area to view the other passengers.',
     notice: 'Payments and ticket issuance are currently disabled. This step does not create a booking or hold any places.',
     review: 'Booking preview', checked: 'Prices checked again', edit: 'Edit details',
     changed: 'The API price has changed. Your updated total is shown below.', back: 'Back to tours',
@@ -114,7 +115,7 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
     drawer.current?.focus()
     const trapFocus = (event: KeyboardEvent) => {
       if (event.key !== 'Tab') return
-      const focusable = Array.from(drawer.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), a[href]') ?? [])
+      const focusable = Array.from(drawer.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), a[href], [tabindex="0"]') ?? [])
         .filter((element) => element.getClientRects().length > 0)
       const first = focusable[0]; const last = focusable[focusable.length - 1]
       if (event.shiftKey && (document.activeElement === first || document.activeElement === drawer.current)) { event.preventDefault(); last?.focus() }
@@ -212,13 +213,19 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
           <div className="reservation-itinerary"><span><MapPin /> {quote.portName}</span><span><CalendarDays /> {dateLabel(quote.tourDate)}</span><span><Clock3 /> {quote.departureTime.slice(0, 5)}</span></div>
           <div className="reservation-review__tickets">{quote.tickets.map((item) => <div key={item.externalPriceId}><span>{item.quantity} × {language === 'en' ? item.ticketTypeEn || item.ticketType : item.ticketType}<small>{formatMoney(item.unitAmount, language)} {c.each}</small></span><strong>{formatMoney(item.amount, language)}</strong></div>)}</div>
           <div className="reservation-review__contact"><h3>{c.contact}</h3><strong>{contact.name.trim()}</strong><span>{contact.email.trim()}</span><span>{contact.phone.trim()}</span></div>
-          <section className="reservation-review__passengers"><h3>{pc.title}</h3>{passengerSlots.map((slot, index) => <div className="reservation-review__passenger" key={slot.key}>
-            <small>{index + 1}. {pc.passenger} · {slot.ticketType}</small>
-            <strong>{slot.details.firstName.trim()} {slot.details.lastName.trim()}</strong>
-            <span>{slot.details.gender === 'male' ? pc.male : pc.female} · {slot.details.nationality === 'TR' ? pc.turkish : pc.foreign}</span>
-            <span>{pc.identity}: {maskIdentity(slot.details.identityNumber)}</span>
-            <span>{pc.birthDate}: {dateLabel(slot.details.birthDate)}</span>
-          </div>)}</section>
+          <section className="reservation-review__passengers">
+            <div className="reservation-section-heading"><h3 id="reservation-review-passengers-title">{pc.title}</h3>{passengerSlots.length > 1 && <p>{c.passengerScroll}</p>}</div>
+            <div className={`reservation-passenger-list${passengerSlots.length > 1 ? ' reservation-passenger-list--scrollable' : ''}`}
+              role={passengerSlots.length > 1 ? 'region' : undefined} aria-labelledby="reservation-review-passengers-title" tabIndex={passengerSlots.length > 1 ? 0 : undefined}>
+              {passengerSlots.map((slot, index) => <div className="reservation-review__passenger" key={slot.key}>
+                <small>{index + 1}. {pc.passenger} · {slot.ticketType}</small>
+                <strong>{slot.details.firstName.trim()} {slot.details.lastName.trim()}</strong>
+                <span>{slot.details.gender === 'male' ? pc.male : pc.female} · {slot.details.nationality === 'TR' ? pc.turkish : pc.foreign}</span>
+                <span>{pc.identity}: {maskIdentity(slot.details.identityNumber)}</span>
+                <span>{pc.birthDate}: {dateLabel(slot.details.birthDate)}</span>
+              </div>)}
+            </div>
+          </section>
           {priceChanged && <p className="reservation-notice" role="status">{c.changed}</p>}
           <div className="booking-total"><span>{c.total}<small>{quote.guestCount} {c.guests}</small></span><strong>{formatMoney(quote.amount, language, quote.currency)}</strong></div>
           {!paymentEnabled && <p className="reservation-notice">{c.notice}</p>}
@@ -251,11 +258,13 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
               <label><span className="reservation-field-label">{c.email}</span><input type="email" autoComplete="email" name="email" required maxLength={320} value={contact.email} onChange={(event) => setContact({ ...contact, email: event.target.value })} /></label>
               <label><span className="reservation-field-label">{c.phone}</span><input type="tel" autoComplete="tel" name="phone" required minLength={7} maxLength={32} pattern={'[+0-9\\s\\(\\)\\.\\-]{7,32}'} value={contact.phone} onChange={(event) => setContact({ ...contact, phone: event.target.value })} /></label>
             </section>
-            <section className="reservation-passengers"><div className="reservation-section-heading"><h3>{pc.title}</h3><p>{pc.hint}</p></div>
-              {passengerSlots.map((slot, index) => <PassengerForm key={slot.key} index={index} ticketType={slot.ticketType} passenger={slot.details} language={language} today={today}
-                onChange={(value) => { setPassengerData((current) => ({ ...current, [slot.key]: value })); clearQuoteError() }} />)}
+            <section className="reservation-passengers"><div className="reservation-section-heading"><h3 id="reservation-passengers-title">{pc.title}</h3><p>{pc.hint}</p>{passengerSlots.length > 1 && <p>{c.passengerScroll}</p>}</div>
+              <div className={`reservation-passenger-list${passengerSlots.length > 1 ? ' reservation-passenger-list--scrollable' : ''}`}
+                role={passengerSlots.length > 1 ? 'region' : undefined} aria-labelledby="reservation-passengers-title" tabIndex={passengerSlots.length > 1 ? 0 : undefined}>
+                {passengerSlots.map((slot, index) => <PassengerForm key={slot.key} index={index} ticketType={slot.ticketType} passenger={slot.details} language={language} today={today}
+                  onChange={(value) => { setPassengerData((current) => ({ ...current, [slot.key]: value })); clearQuoteError() }} />)}
+              </div>
             </section>
-            <BookingPaymentFields language={language} unavailable={!paymentEnabled} />
             <div className="reservation-contact">
               <label className="reservation-consent"><input type="checkbox" required checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span><Link to="/kvkk-aydinlatma-metni" target="_blank" rel="noopener noreferrer">{c.consent}</Link></span></label>
               <small className="reservation-helper">{c.privacy}</small>

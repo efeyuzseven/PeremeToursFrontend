@@ -20,11 +20,13 @@ npm run test:e2e
 
 Tur listesi ve yönetici tarafından değiştirilebilen tur içerikleri backend API üzerinden gelir. Tur kartlarında fiyat ve tarih gösterilmez; yalnızca rezervasyon butonu bulunur. Rezervasyon ekranı açıldığında kalkış noktası, tarih/saat, bilet tipleri, TR/EN bilet notları ve güncel fiyatlar EasyTicket'tan alınır. API hatasında örnek fiyat kullanılmaz. Farklı bilet tiplerinden ayrı ayrı adet seçilebilir (toplam 1–12 misafir).
 
-Ad soyad, e-posta ve telefon girildikten sonra `POST /api/v1/tours/quote` güncel fiyatı sunucuda tekrar doğrular ve bir önizleme gösterilir. Kişisel bilgiler bu aşamada sunucuya gönderilmez veya kaydedilmez. Ödeme/bilet kesimi kapalıdır; önizleme bir rezervasyon oluşturmaz ve yer ayırmaz. Kontenjan sayıları API tarafından sunulmadığı için arayüzde tahmini kontenjan gösterilmez.
+İletişim ve yolcu bilgileri girildikten sonra **Bilgileri Kontrol et ve Ödemeye geç** butonu alanları doğrular; `POST /api/v1/tours/quote` güncel fiyatı sunucuda tekrar kontrol eder. Başarılı doğrulamanın ardından rezervasyon özeti ve ödeme bilgileri gösterilir. İlk formda ve doğrulama sürerken kart alanları bulunmaz; bilgiler düzenlenmek üzere geri dönüldüğünde de kaldırılır. Kişisel bilgiler fiyat sorgusunda sunucuya gönderilmez veya kaydedilmez. Bu buton ödeme başlatmaz, rezervasyon oluşturmaz ve yer ayırmaz. Kontenjan sayıları API tarafından sunulmadığı için arayüzde tahmini kontenjan gösterilmez.
 
 Her seçilen bilet için ad, soyad, cinsiyet, uyruk (T.C./yabancı), T.C. kimlik/pasaport numarası ve doğum tarihi girilir. T.C. numarası için 11 haneli biçim, pasaport için doluluk ve doğum tarihi için gelecekte olmama kontrolü yapılır; resmî kimlik doğrulaması yapılmaz. Önizlemede kimlik/pasaport numarası maskelenir. Bilet adedi azaltıldığında çıkarılan yolcunun bilgileri silinir; kişisel veriler tarayıcı depolamasına veya fiyat sorgusuna eklenmez.
 
-Kart üzerindeki isim, kart numarası, son kullanma ayı/yılı ve CVC alanları tasarımda vardır ancak ödeme etkinleştirilmediği için devre dışıdır. Kart bilgisi toplanmaz veya saklanmaz; POS etkinleştirme bu değişikliğin kapsamında değildir.
+Birden fazla yolcu varsa hem bilgi girişindeki hem özetteki yolcu listesi kendi sınırlı alanında kaydırılır. Başlık alanın dışında kalır; tek yolcuda iç kaydırma kullanılmaz. Alan klavyeyle odaklanabilir ve listenin sonuna gelindiğinde kaydırma ana panele aktarılmaz.
+
+Kart üzerindeki isim, kart numarası, son kullanma ayı/yılı ve CVC alanları yalnızca ödeme adımında gösterilir. Etkinlik durumu `GET /api/v1/payments/availability` üzerinden alınır; ödeme kapalıysa kart alanları devre dışıdır. Kullanıcı tutarı ayrıca onaylayıp güvenli ödeme butonuna basınca Ziraat Sanal POS / 3D Secure işlemi başlar. Kart bilgileri tarayıcı depolamasına yazılmaz.
 
 Playwright testleri yerel Microsoft Edge üzerinde masaüstü ve mobil boyutlarda çalışır; gerçek API/ödeme yerine test verileri kullanılır.
 

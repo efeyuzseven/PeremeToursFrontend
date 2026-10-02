@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 
 const date = '2099-10-03'
 const prices = [
@@ -54,6 +54,65 @@ async function fillContact(page: Page) {
   await dialog.getByRole('checkbox').check()
 }
 
+async function expectIndependentPassengerScroll(page: Page, list: Locator) {
+  const dialog = page.getByRole('dialog')
+  await expect(list).toHaveAttribute('role', 'region')
+  await expect(list).toHaveAttribute('tabindex', '0')
+  await expect(list).toHaveCSS('overflow-y', 'auto')
+  expect(await list.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true)
+  await list.scrollIntoViewIfNeeded()
+  await list.evaluate((element) => { element.scrollTop = 0; (element as HTMLElement).focus({ preventScroll: true }) })
+  const outerScroll = await dialog.evaluate((element) => element.scrollTop)
+  await list.hover()
+  await page.mouse.wheel(0, 200)
+  await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBeGreaterThan(0)
+  await expect.poll(() => dialog.evaluate((element) => element.scrollTop)).toBeCloseTo(outerScroll, 0)
+  await page.keyboard.press('End')
+  await expect.poll(() => list.evaluate((element) => Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop))).toBeLessThan(2)
+  // At the end of the list, wheel gestures must not spill over into the drawer.
+  await page.mouse.wheel(0, 300)
+  await expect.poll(() => dialog.evaluate((element) => element.scrollTop)).toBeCloseTo(outerScroll, 0)
+}
+
+test('multiple passengers scroll independently in both the form and the payment summary', async ({ page }, testInfo) => {
+  await mockApi(page)
+  await page.route('**/api/v1/tours/quote', (route) => route.fulfill({ json: {
+    externalTourId: 2, tourName: 'Türk Gecesi', portName: 'Kabataş', tourDate: date, departureTime: '20:30:00',
+    guestCount: 2, amount: 2300, currency: 'TRY', checkedAtUtc: new Date().toISOString(),
+    tickets: [{ externalPriceId: 145, ticketType: 'Alkolsüz', quantity: 2, unitAmount: 1150, amount: 2300 }],
+  } }))
+  await openBooking(page)
+  const dialog = page.getByRole('dialog')
+  await expectIndependentPassengerScroll(page, dialog.locator('.reservation-passengers .reservation-passenger-list'))
+  await fillContact(page)
+  await dialog.getByRole('button', { name: 'Bilgileri Kontrol et ve Ödemeye geç' }).click()
+  await expect(dialog.getByText('Fiyat yeniden kontrol edildi')).toBeVisible()
+  await expectIndependentPassengerScroll(page, dialog.locator('.reservation-review__passengers .reservation-passenger-list'))
+  await dialog.locator('.reservation-review__passengers').screenshot({ path: testInfo.outputPath('passengers-scroll.png') })
+  expect(await dialog.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(false)
+})
+
+test('a single passenger has no nested scroll area in either booking step', async ({ page }) => {
+  await mockApi(page)
+  await page.route('**/api/v1/tours/quote', (route) => route.fulfill({ json: {
+    externalTourId: 2, tourName: 'Türk Gecesi', portName: 'Kabataş', tourDate: date, departureTime: '20:30:00',
+    guestCount: 1, amount: 1150, currency: 'TRY', checkedAtUtc: new Date().toISOString(),
+    tickets: [{ externalPriceId: 145, ticketType: 'Alkolsüz', quantity: 1, unitAmount: 1150, amount: 1150 }],
+  } }))
+  await openBooking(page)
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Alkolsüz: Bilet azalt' }).click()
+  await expect(dialog.locator('.reservation-passenger')).toHaveCount(1)
+  await expect(dialog.locator('.reservation-passenger-list')).toHaveCSS('max-height', 'none')
+  await expect(dialog.locator('.reservation-passenger-list--scrollable')).toHaveCount(0)
+  await fillContact(page)
+  await dialog.getByRole('button', { name: 'Bilgileri Kontrol et ve Ödemeye geç' }).click()
+  await expect(dialog.getByText('Fiyat yeniden kontrol edildi')).toBeVisible()
+  await expect(dialog.locator('.reservation-review__passenger')).toHaveCount(1)
+  await expect(dialog.locator('.reservation-passenger-list')).toHaveCSS('max-height', 'none')
+  await expect(dialog.locator('.reservation-passenger-list--scrollable')).toHaveCount(0)
+})
+
 test('mixed ticket types, valid date/time, contact details and a server-checked preview', async ({ page }, testInfo) => {
   await mockApi(page)
   await page.route('**/api/v1/tours/quote', async (route) => {
@@ -77,7 +136,8 @@ test('mixed ticket types, valid date/time, contact details and a server-checked 
   const noOverflow = await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)
   expect(noOverflow).toBe(true)
   await page.screenshot({ path: testInfo.outputPath('booking-details.png') })
-  await dialog.getByRole('button', { name: 'Bilgileri kontrol et' }).click()
+  await expect(dialog.locator('.reservation-payment')).toHaveCount(0)
+  await dialog.getByRole('button', { name: 'Bilgileri Kontrol et ve Ödemeye geç' }).click()
   await expect(dialog.getByText('Fiyat yeniden kontrol edildi')).toBeVisible()
   await expect(dialog.getByRole('heading', { level: 2 })).toBeInViewport({ ratio: 1 })
   await expect(dialog.getByText('Test Misafir')).toBeVisible()
@@ -88,6 +148,7 @@ test('mixed ticket types, valid date/time, contact details and a server-checked 
   await expect(dialog.getByText(/Bu adım rezervasyon oluşturmaz/)).toBeVisible()
   await dialog.getByRole('button', { name: 'Bilgileri düzenle' }).click()
   await expect(dialog.getByLabel('Ad soyad', { exact: true })).toHaveValue('Test Misafir')
+  await expect(dialog.locator('.reservation-payment')).toHaveCount(0)
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.locator('#root')).not.toHaveAttribute('inert')
@@ -119,7 +180,7 @@ test('missing API prices never fall back to made-up amounts', async ({ page }) =
   await expect(page.locator('.tour-card__footer')).toHaveText('Rezervasyon Yap')
   await page.locator('.tour-card__footer button').click()
   await expect(page.getByRole('alert')).toContainText('Tur bilgileri şu anda alınamıyor')
-  await expect(page.getByRole('button', { name: 'Bilgileri kontrol et' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Bilgileri Kontrol et ve Ödemeye geç' })).toHaveCount(0)
 })
 
 test('ticket quantities respect the 12-person limit and a minimum of one selection', async ({ page }) => {
@@ -129,7 +190,7 @@ test('ticket quantities respect the 12-person limit and a minimum of one selecti
   for (let i = 0; i < 10; i++) await dialog.getByRole('button', { name: 'Alkolsüz: Bilet artır' }).click()
   await expect(dialog.getByRole('button', { name: 'Alkollü: Bilet artır' })).toBeDisabled()
   for (let i = 0; i < 12; i++) await dialog.getByRole('button', { name: 'Alkolsüz: Bilet azalt' }).click()
-  await expect(dialog.getByRole('button', { name: 'Bilgileri kontrol et' })).toBeDisabled()
+  await expect(dialog.getByRole('button', { name: 'Bilgileri Kontrol et ve Ödemeye geç' })).toBeDisabled()
 })
 
 test('English labels and upstream ticket translations are displayed', async ({ page }) => {
@@ -143,7 +204,8 @@ test('English labels and upstream ticket translations are displayed', async ({ p
   await expect(page.getByRole('dialog').getByText('No transfer service.')).toBeVisible()
   await expect(page.getByRole('dialog').getByLabel('First name', { exact: true }).first()).toBeVisible()
   await expect(page.getByRole('dialog').getByLabel('Date of birth', { exact: true }).first()).toBeVisible()
-  await expect(page.getByRole('dialog').getByLabel('Card number', { exact: true })).toBeDisabled()
+  await expect(page.getByRole('dialog').getByLabel('Card number', { exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Review details and proceed to payment', exact: true })).toBeVisible()
 })
 
 test('changed prices are disclosed and the server total is used in the preview', async ({ page }) => {
@@ -155,7 +217,7 @@ test('changed prices are disclosed and the server total is used in the preview',
   } }))
   await openBooking(page)
   await fillContact(page)
-  await page.getByRole('button', { name: 'Bilgileri kontrol et' }).click()
+  await page.getByRole('button', { name: 'Bilgileri Kontrol et ve Ödemeye geç' }).click()
   await expect(page.getByText('API fiyatı güncellendi.', { exact: false })).toBeVisible()
   await expect(page.getByRole('dialog').locator('.booking-total')).toContainText('2.400')
 })
@@ -167,10 +229,11 @@ test('an invalidated departure produces an error rather than a booking confirmat
   } }))
   await openBooking(page)
   await fillContact(page)
-  await page.getByRole('button', { name: 'Bilgileri kontrol et' }).click()
+  await page.getByRole('button', { name: 'Bilgileri Kontrol et ve Ödemeye geç' }).click()
   await expect(page.getByRole('alert')).toContainText('Seçilen tarih veya sefer artık kullanılamıyor')
   await expect(page.getByText('Fiyat yeniden kontrol edildi')).toHaveCount(0)
   await expect(page.getByLabel('Ad soyad', { exact: true })).toHaveValue('Test Misafir')
+  await expect(page.getByRole('dialog').locator('.reservation-payment')).toHaveCount(0)
 })
 
 test('passenger details follow ticket counts without reusing removed personal details', async ({ page }) => {
@@ -192,7 +255,7 @@ test('passenger details follow ticket counts without reusing removed personal de
   await expect(passengers.nth(2).locator('legend')).toContainText('Alkollü')
 })
 
-test('foreign passengers use passports, future birth dates are invalid, and card fields stay disabled', async ({ page }, testInfo) => {
+test('foreign passengers use passports, future birth dates are invalid, and payment fields stay hidden', async ({ page }, testInfo) => {
   await mockApi(page)
   await openBooking(page)
   const dialog = page.getByRole('dialog')
@@ -205,12 +268,12 @@ test('foreign passengers use passports, future birth dates are invalid, and card
   await passenger.getByLabel('Doğum Tarihi', { exact: true }).fill('2999-01-01')
   expect(await passenger.getByLabel('Doğum Tarihi', { exact: true }).evaluate((element) => (element as HTMLInputElement).validity.rangeOverflow)).toBe(true)
   for (const label of ['Kart Üzerindeki İsim', 'Kart Numarası', 'CVC']) {
-    await expect(dialog.getByLabel(label, { exact: true })).toBeDisabled()
+    await expect(dialog.getByLabel(label, { exact: true })).toHaveCount(0)
   }
-  await expect(dialog.getByRole('button', { name: /^Son Kullanma Ayı/ })).toBeDisabled()
-  await expect(dialog.getByRole('button', { name: /^Son Kullanma Yılı/ })).toBeDisabled()
+  await expect(dialog.getByRole('button', { name: /^Son Kullanma Ayı/ })).toHaveCount(0)
+  await expect(dialog.getByRole('button', { name: /^Son Kullanma Yılı/ })).toHaveCount(0)
   await passenger.screenshot({ path: testInfo.outputPath('passenger-fields.png') })
-  await dialog.locator('.reservation-payment').screenshot({ path: testInfo.outputPath('payment-fields.png') })
+  await expect(dialog.locator('.reservation-payment')).toHaveCount(0)
 })
 
 test('missing passenger gender blocks the quote request', async ({ page }) => {
@@ -228,7 +291,8 @@ test('missing passenger gender blocks the quote request', async ({ page }) => {
   await passenger.getByLabel('Doğum Tarihi', { exact: true }).fill('1990-01-01')
   let quoteRequests = 0
   page.on('request', (request) => { if (request.url().endsWith('/tours/quote')) quoteRequests++ })
-  await dialog.getByRole('button', { name: 'Bilgileri kontrol et' }).click()
+  await dialog.getByRole('button', { name: 'Bilgileri Kontrol et ve Ödemeye geç' }).click()
   await expect(dialog.getByRole('alert')).toContainText('Tüm yolcuların bilgilerini kontrol et')
+  await expect(dialog.locator('.reservation-payment')).toHaveCount(0)
   expect(quoteRequests).toBe(0)
 })

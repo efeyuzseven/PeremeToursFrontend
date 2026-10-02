@@ -48,9 +48,10 @@ async function openReview(page: Page) {
     await passenger.getByLabel('T.C. Kimlik / Pasaport No', { exact: true }).fill('12345678901')
     await passenger.getByLabel('Doğum Tarihi', { exact: true }).fill('1990-01-01')
   }
-  await expect(dialog.getByLabel('Kart Numarası', { exact: true })).toBeDisabled()
+  await expect(dialog.locator('.reservation-payment')).toHaveCount(0)
+  await expect(dialog.getByLabel('Kart Numarası', { exact: true })).toHaveCount(0)
   await dialog.getByRole('checkbox').check()
-  await dialog.getByRole('button', { name: 'Bilgileri kontrol et' }).click()
+  await dialog.getByRole('button', { name: 'Bilgileri Kontrol et ve Ödemeye geç' }).click()
   await expect(dialog.getByLabel('Kart Numarası', { exact: true })).toBeEnabled()
   await expect(dialog).not.toContainText('Ödeme henüz etkin değil')
 }
@@ -69,6 +70,30 @@ async function fillCard(page: Page, number = '4111111111111111') {
 
 const paidStatus = (ticketingStatus = 'Issued') => ({ ticketCode: order, amount: 4050, currency: 'TRY', paymentStatus: 'Paid', ticketingStatus,
   tickets: ticketingStatus === 'Issued' ? [{ pnr: 'MOCK-PNR-1', ticketGuid: 'mock-ticket-1' }, { pnr: 'MOCK-PNR-2', ticketGuid: 'mock-ticket-2' }, { pnr: 'MOCK-PNR-3', ticketGuid: 'mock-ticket-3' }] : [] })
+
+test('payment fields appear only after the current booking details have been checked', async ({ page }) => {
+  await mockCatalog(page)
+  let releaseQuote!: () => void
+  const quoteGate = new Promise<void>((resolve) => { releaseQuote = resolve })
+  await page.route('**/api/v1/tours/quote', async (route) => {
+    await quoteGate
+    await route.fulfill({ json: quote })
+  })
+  const openingReview = openReview(page)
+  const dialog = page.getByRole('dialog')
+  try {
+    await expect(dialog.getByRole('button', { name: 'Fiyat kontrol ediliyor…' })).toBeDisabled({ timeout: 45_000 })
+    await expect(dialog.locator('.reservation-payment')).toHaveCount(0)
+    await expect(dialog.getByLabel('Kart Numarası', { exact: true })).toHaveCount(0)
+  } finally {
+    releaseQuote()
+    await openingReview
+  }
+  await expect(dialog.getByRole('heading', { name: 'Ödeme Bilgileri', exact: true })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Bilgileri düzenle' }).click()
+  await expect(dialog.getByLabel('Ad soyad', { exact: true })).toHaveValue('Test Misafir')
+  await expect(dialog.locator('.reservation-payment')).toHaveCount(0)
+})
 
 test('payment sends mixed tickets and passenger data once, sandboxed bank result is checked on the server', async ({ page }, testInfo) => {
   await mockCatalog(page)

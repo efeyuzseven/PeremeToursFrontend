@@ -3,8 +3,9 @@ import { useEffect, useId, useRef, useState } from 'react'
 
 type Option = { value: string; label: string }
 
-export function BookingSelect({ label, value, options, onChange }: {
+export function BookingSelect({ label, value, options, onChange, disabled = false, placeholder = '—' }: {
   label: string; value: string; options: Option[]; onChange: (value: string) => void
+  disabled?: boolean; placeholder?: string
 }) {
   const [open, setOpen] = useState(false)
   const id = useId()
@@ -41,8 +42,8 @@ export function BookingSelect({ label, value, options, onChange }: {
     <span id={`${id}-label`} className="reservation-field-label">{label}</span>
     <button ref={trigger} className="reservation-select__trigger" type="button" aria-haspopup="listbox"
       aria-expanded={open} aria-controls={open ? id : undefined} aria-labelledby={`${id}-label ${id}-value`}
-      disabled={!options.length} onClick={() => setOpen(!open)}>
-      <span id={`${id}-value`}>{options.find((option) => option.value === value)?.label ?? '—'}</span><ChevronDown size={17} />
+      disabled={disabled || !options.length} onClick={() => setOpen(!open)}>
+      <span id={`${id}-value`}>{options.find((option) => option.value === value)?.label ?? placeholder}</span><ChevronDown size={17} />
     </button>
     {open && <div className="reservation-select__options" role="listbox" id={id} aria-labelledby={`${id}-label`}>
       {options.map((option) => <button key={option.value} type="button" role="option" aria-selected={option.value === value}

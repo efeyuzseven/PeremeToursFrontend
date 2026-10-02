@@ -22,6 +22,10 @@ Tur listesi ve yönetici tarafından değiştirilebilen tur içerikleri backend 
 
 Ad soyad, e-posta ve telefon girildikten sonra `POST /api/v1/tours/quote` güncel fiyatı sunucuda tekrar doğrular ve bir önizleme gösterilir. Kişisel bilgiler bu aşamada sunucuya gönderilmez veya kaydedilmez. Ödeme/bilet kesimi kapalıdır; önizleme bir rezervasyon oluşturmaz ve yer ayırmaz. Kontenjan sayıları API tarafından sunulmadığı için arayüzde tahmini kontenjan gösterilmez.
 
+Her seçilen bilet için ad, soyad, cinsiyet, uyruk (T.C./yabancı), T.C. kimlik/pasaport numarası ve doğum tarihi girilir. T.C. numarası için 11 haneli biçim, pasaport için doluluk ve doğum tarihi için gelecekte olmama kontrolü yapılır; resmî kimlik doğrulaması yapılmaz. Önizlemede kimlik/pasaport numarası maskelenir. Bilet adedi azaltıldığında çıkarılan yolcunun bilgileri silinir; kişisel veriler tarayıcı depolamasına veya fiyat sorgusuna eklenmez.
+
+Kart üzerindeki isim, kart numarası, son kullanma ayı/yılı ve CVC alanları tasarımda vardır ancak ödeme etkinleştirilmediği için devre dışıdır. Kart bilgisi toplanmaz veya saklanmaz; POS etkinleştirme bu değişikliğin kapsamında değildir.
+
 Playwright testleri yerel Microsoft Edge üzerinde masaüstü ve mobil boyutlarda çalışır; gerçek API/ödeme yerine test verileri kullanılır.
 
 `npm run test:live`, AWS test sitesinde masaüstü ve mobil rezervasyon önizlemesini kontrol eder. Yalnızca canlı fiyat sorgusu yapar; kayıt oluşturmaz veya banka işlemi başlatmaz. Ekran görüntüleri git'e eklenmeyen `test-results` klasörüne kaydedilir.

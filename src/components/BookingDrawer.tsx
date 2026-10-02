@@ -6,6 +6,9 @@ import { useAuth } from '../auth/AuthContext'
 import { ApiError, apiRequest } from '../lib/api'
 import { formatMoney, isTryPrice, isUpcomingDeparture, loadTourBookingOptions, type PortAvailability, type TourQuote } from '../lib/tours'
 import { BookingSelect } from './BookingSelect'
+import { PassengerForm } from './PassengerForm'
+import { BookingPaymentFields } from './BookingPaymentFields'
+import { emptyPassenger, isCompletePassenger, istanbulToday, maskIdentity, passengerTexts, type PassengerDetails } from '../lib/passengers'
 import './booking.css'
 
 const texts = {
@@ -22,7 +25,7 @@ const texts = {
     changed: 'API fiyatı güncellendi. Yeni toplam tutarı aşağıda görebilirsin.', back: 'Turlara dön',
     invalid: 'Lütfen bir sefer ve en az bir bilet seç.', quoteError: 'Seçim veya fiyat doğrulanamadı. Lütfen bilgileri kontrol edip tekrar dene.',
     invalidContact: 'Ad soyad ve telefon bilgilerini kontrol et. Telefon numarası en az 7 rakam içermeli.',
-    privacy: 'İletişim bilgilerin bu aşamada yalnızca bu ekranda tutulur; sunucuya kaydedilmez.',
+    privacy: 'İletişim ve yolcu bilgilerin bu aşamada yalnızca bu ekranda tutulur; sunucuya gönderilmez veya kaydedilmez.',
   },
   en: {
     eyebrow: 'BOOKING DETAILS', lead: 'Let’s plan', accent: 'your journey.', close: 'Close booking',
@@ -37,7 +40,7 @@ const texts = {
     changed: 'The API price has changed. Your updated total is shown below.', back: 'Back to tours',
     invalid: 'Please select a departure and at least one ticket.', quoteError: 'Your selection or price could not be verified. Please check your details and try again.',
     invalidContact: 'Please check your full name and phone number. The phone number must contain at least 7 digits.',
-    privacy: 'At this stage, contact details stay on this screen only and are not saved to the server.',
+    privacy: 'At this stage, contact and passenger details stay on this screen only and are not sent or saved to the server.',
   },
 }
 
@@ -47,6 +50,8 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
 }) {
   const { user } = useAuth()
   const c = texts[language]
+  const pc = passengerTexts[language]
+  const today = istanbulToday()
   const [options, setOptions] = useState<PortAvailability[] | null>(null)
   const [error, setError] = useState(false)
   const [reload, setReload] = useState(0)
@@ -54,6 +59,7 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
   const [date, setDate] = useState(initialDate)
   const [departureId, setDepartureId] = useState(0)
   const [quantities, setQuantities] = useState<Record<number, number> | null>(null)
+  const [passengerData, setPassengerData] = useState<Record<string, PassengerDetails>>({})
   const [contact, setContact] = useState({
     name: [user?.firstName, user?.lastName].filter(Boolean).join(' '), email: user?.email ?? '', phone: '',
   })
@@ -114,15 +120,32 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
   const counts = quantities ?? (firstPrice ? { [firstPrice.externalPriceId]: initialGuests } : {})
   const guestCount = prices.reduce((sum, item) => sum + (counts[item.externalPriceId] ?? 0), 0)
   const total = prices.reduce((sum, item) => sum + item.amount * (counts[item.externalPriceId] ?? 0), 0)
+  const passengerSlots = prices.flatMap((price) => Array.from({ length: counts[price.externalPriceId] ?? 0 }, (_, index) => {
+    const key = `${price.externalPriceId}:${index}`
+    return { key, ticketType: (language === 'en' ? price.passengerTypeEn || price.passengerType : price.passengerType), details: passengerData[key] ?? emptyPassenger() }
+  }))
   const bookingNote = language === 'en' ? port?.availability.bookingNoteEn || port?.availability.bookingNote : port?.availability.bookingNote
   const ready = !!port && !!departure && prices.length > 0
   const clearQuoteError = () => setQuoteError('')
+  const changeQuantity = (priceId: number, quantity: number) => {
+    setQuantities({ ...counts, [priceId]: quantity })
+    // Remove details belonging to a removed ticket; adding it again starts with a blank passenger.
+    setPassengerData((current) => Object.fromEntries(Object.entries(current).filter(([key]) =>
+      !key.startsWith(`${priceId}:`) || Number(key.split(':')[1]) < quantity)))
+    clearQuoteError()
+  }
   const retry = () => { setError(false); setQuoteError(''); setOptions(null); setQuantities(null); setReload((value) => value + 1) }
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!port || !departure || guestCount < 1 || guestCount > 12 || !consent) { setQuoteError(c.invalid); return }
     if (contact.name.trim().length < 2 || contact.phone.replace(/\D/g, '').length < 7) { setQuoteError(c.invalidContact); return }
+    const invalidPassengerIndex = passengerSlots.findIndex((slot) => !isCompletePassenger(slot.details, today))
+    if (invalidPassengerIndex >= 0) {
+      setQuoteError(pc.invalid)
+      drawer.current?.querySelectorAll('.reservation-passenger')[invalidPassengerIndex]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return
+    }
     setChecking(true); setQuoteError('')
     const controller = new AbortController()
     quoteController.current = controller
@@ -165,6 +188,13 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
           <div className="reservation-itinerary"><span><MapPin /> {quote.portName}</span><span><CalendarDays /> {dateLabel(quote.tourDate)}</span><span><Clock3 /> {quote.departureTime.slice(0, 5)}</span></div>
           <div className="reservation-review__tickets">{quote.tickets.map((item) => <div key={item.externalPriceId}><span>{item.quantity} × {language === 'en' ? item.ticketTypeEn || item.ticketType : item.ticketType}<small>{formatMoney(item.unitAmount, language)} {c.each}</small></span><strong>{formatMoney(item.amount, language)}</strong></div>)}</div>
           <div className="reservation-review__contact"><h3>{c.contact}</h3><strong>{contact.name.trim()}</strong><span>{contact.email.trim()}</span><span>{contact.phone.trim()}</span></div>
+          <section className="reservation-review__passengers"><h3>{pc.title}</h3>{passengerSlots.map((slot, index) => <div className="reservation-review__passenger" key={slot.key}>
+            <small>{index + 1}. {pc.passenger} · {slot.ticketType}</small>
+            <strong>{slot.details.firstName.trim()} {slot.details.lastName.trim()}</strong>
+            <span>{slot.details.gender === 'male' ? pc.male : pc.female} · {slot.details.nationality === 'TR' ? pc.turkish : pc.foreign}</span>
+            <span>{pc.identity}: {maskIdentity(slot.details.identityNumber)}</span>
+            <span>{pc.birthDate}: {dateLabel(slot.details.birthDate)}</span>
+          </div>)}</section>
           {priceChanged && <p className="reservation-notice" role="status">{c.changed}</p>}
           <div className="booking-total"><span>{c.total}<small>{quote.guestCount} {c.guests}</small></span><strong>{formatMoney(quote.amount, language, quote.currency)}</strong></div>
           <p className="reservation-notice">{c.notice}</p>
@@ -174,7 +204,7 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
           <fieldset disabled={checking}>
             <div className="reservation-fields">
               <BookingSelect label={c.port} value={String(port.port.externalPortId)} options={options.map((item) => ({ value: String(item.port.externalPortId), label: item.port.name }))}
-                onChange={(value) => { setPortId(Number(value)); setDepartureId(0); setQuantities(null); clearQuoteError() }} />
+                onChange={(value) => { setPortId(Number(value)); setDepartureId(0); setQuantities(null); setPassengerData({}); clearQuoteError() }} />
               <BookingSelect label={c.date} value={selectedDate} options={dates.map((value) => ({ value, label: dateLabel(value) }))}
                 onChange={(value) => { setDate(value); setDepartureId(0); clearQuoteError() }} />
               <BookingSelect label={c.time} value={String(departure.externalId)} options={dayDepartures.map((item) => ({ value: String(item.externalId), label: item.time!.slice(0, 5) }))}
@@ -184,7 +214,7 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
               {prices.map((price) => { const name = (language === 'en' ? price.passengerTypeEn || price.passengerType : price.passengerType) || `#${price.externalPriceId}`; const count = counts[price.externalPriceId] ?? 0
                 return <div className={`reservation-ticket-type ${count > 0 ? 'reservation-ticket-type--selected' : ''}`} key={price.externalPriceId}>
                   <div><strong>{name}</strong><span>{formatMoney(price.amount, language)} <small>{c.each}</small></span></div>
-                  <div className="reservation-counter"><button type="button" disabled={count === 0} aria-label={`${name}: ${c.decrease}`} onClick={() => { setQuantities({ ...counts, [price.externalPriceId]: count - 1 }); clearQuoteError() }}><Minus size={16} /></button><output aria-label={name} aria-live="polite">{count}</output><button type="button" disabled={guestCount >= 12} aria-label={`${name}: ${c.increase}`} onClick={() => { setQuantities({ ...counts, [price.externalPriceId]: count + 1 }); clearQuoteError() }}><Plus size={16} /></button></div>
+                  <div className="reservation-counter"><button type="button" disabled={count === 0} aria-label={`${name}: ${c.decrease}`} onClick={() => changeQuantity(price.externalPriceId, count - 1)}><Minus size={16} /></button><output aria-label={name} aria-live="polite">{count}</output><button type="button" disabled={guestCount >= 12} aria-label={`${name}: ${c.increase}`} onClick={() => changeQuantity(price.externalPriceId, count + 1)}><Plus size={16} /></button></div>
                 </div>
               })}<small className="reservation-helper">{c.max}</small>
             </section>
@@ -193,9 +223,16 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
               <label><span className="reservation-field-label">{c.name}</span><input autoComplete="name" name="name" required minLength={2} maxLength={160} value={contact.name} onChange={(event) => setContact({ ...contact, name: event.target.value })} /></label>
               <label><span className="reservation-field-label">{c.email}</span><input type="email" autoComplete="email" name="email" required maxLength={320} value={contact.email} onChange={(event) => setContact({ ...contact, email: event.target.value })} /></label>
               <label><span className="reservation-field-label">{c.phone}</span><input type="tel" autoComplete="tel" name="phone" required minLength={7} maxLength={32} pattern={'[+0-9\\s\\(\\)\\.\\-]{7,32}'} value={contact.phone} onChange={(event) => setContact({ ...contact, phone: event.target.value })} /></label>
+            </section>
+            <section className="reservation-passengers"><div className="reservation-section-heading"><h3>{pc.title}</h3><p>{pc.hint}</p></div>
+              {passengerSlots.map((slot, index) => <PassengerForm key={slot.key} index={index} ticketType={slot.ticketType} passenger={slot.details} language={language} today={today}
+                onChange={(value) => { setPassengerData((current) => ({ ...current, [slot.key]: value })); clearQuoteError() }} />)}
+            </section>
+            <BookingPaymentFields language={language} />
+            <div className="reservation-contact">
               <label className="reservation-consent"><input type="checkbox" required checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span><Link to="/kvkk-aydinlatma-metni" target="_blank" rel="noopener noreferrer">{c.consent}</Link></span></label>
               <small className="reservation-helper">{c.privacy}</small>
-            </section>
+            </div>
           </fieldset>
           {quoteError && <div className="reservation-error" role="alert">{quoteError}<button className="reservation-back" type="button" onClick={retry}><RefreshCw size={16} /> {c.retry}</button></div>}
           <div className="booking-total" aria-live="polite"><span>{c.total}<small>{guestCount} {c.guests} · {c.live}</small></span><strong>{formatMoney(total, language)}</strong></div>

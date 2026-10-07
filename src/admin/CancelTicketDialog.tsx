@@ -198,8 +198,8 @@ export default function CancelTicketDialog({
           <>
             <p className="admin-cancel-note">
               {tr
-                ? 'Bu işlem rezervasyondaki tüm EasyTicket biletlerini iptal eder. Banka durumuna göre tahsilat iptali veya tam tutar iadesi yapılır. Kısmi yolcu/tutar iptali yapılmaz.'
-                : 'This cancels every EasyTicket ticket in the booking. The payment is voided or refunded in full based on bank status. Partial passenger cancellations or refunds are not supported.'}
+                ? 'Banka durumuna göre tahsilat iptali veya tam tutar iadesi yapılır ve rezervasyon kapatılır. Bilet iptali arka planda yürütülür. Kısmi yolcu/tutar iptali yapılmaz.'
+                : 'The payment is voided or refunded in full based on bank status and the booking is closed. Ticket cancellation runs in the background. Partial passenger cancellations or refunds are not supported.'}
             </p>
             <label className="admin-cancel-reason">
               {tr ? 'İptal nedeni' : 'Reason'}
@@ -263,21 +263,19 @@ export default function CancelTicketDialog({
             <p>
               {completed
                 ? tr
-                  ? 'EasyTicket iptali ve banka iptal/iade sonucu doğrulandı. Bankanın karta yansıtma süresi farklı olabilir.'
-                  : 'EasyTicket cancellation and bank reversal were confirmed. Card statement timing depends on the bank.'
+                  ? 'Banka iptal/iade işlemini onayladı ve rezervasyon kapatıldı. Bankanın karta yansıtma süresi farklı olabilir.'
+                  : 'The bank confirmed the reversal/refund and the booking is closed. Card statement timing depends on the bank.'
                 : result.canRetry
                   ? tr
-                    ? 'EasyTicket ön kontrolü tamamlanamadı. Bilet iptali ve banka iadesi gönderilmedi. Yeniden onaylayarak işlemi deneyebilirsin.'
-                    : 'The EasyTicket precheck failed. No ticket cancellation or bank refund was sent. You can confirm and retry the request.'
-                  : result.providerCancelled
-                    ? tr
-                      ? 'EasyTicket bileti iptal edildi; banka iadesi henüz doğrulanmadı. Yeni iade başlatma.'
-                      : 'EasyTicket was cancelled, but the bank reversal is not confirmed. Do not start another refund.'
-                    : tr
-                      ? 'Bilet ve banka sonucu birlikte kontrol edilmeli. Yeni iptal veya iade başlatma.'
-                      : 'Review the ticket and bank records together. Do not submit another cancellation or refund.'}
+                    ? 'Banka iadesi henüz başlatılmadı. Yeniden onaylayarak banka iptal/iade işlemini tamamlayabilirsin.'
+                    : 'No bank refund was started. You can confirm and complete the bank reversal/refund.'
+                  : tr
+                    ? 'Banka iptal/iade sonucu doğrulanamadı. Yeni iade başlatma; mevcut banka sonucunu kontrol et.'
+                    : 'The bank reversal/refund could not be confirmed. Do not refund again; check the existing bank result.'}
             </p>
-            {result.failureCode && <code>{result.failureCode}</code>}
+            {!completed && result.failureCode && (
+              <code>{result.failureCode}</code>
+            )}
           </div>
         )}
         {submitted.current && (

@@ -149,6 +149,11 @@ export function BookingPayment({ booking, language, token, enabled, onLockChange
   const paid = status?.paymentStatus === 'Paid'
   const issued = paid && status?.ticketingStatus === 'Issued'
   const failed = status?.paymentStatus === 'Failed'
+  const cancelled = status?.paymentStatus === 'Refunded'
+  const finish = () => {
+    try { sessionStorage.removeItem(recoveryKey) } catch { /* Memory-only fallback. */ }
+    onFinish()
+  }
   const emailHint = status?.emailStatus === 'Sent'
     ? (language === 'tr' ? 'Ödeme bilgilendirmesi iletişim e-posta adresine gönderildi.' : 'A payment confirmation was sent to your booking contact email.')
     : status?.emailStatus === 'Queued' || status?.emailStatus === 'Processing'
@@ -163,18 +168,16 @@ export function BookingPayment({ booking, language, token, enabled, onLockChange
     <button type="button" className="reservation-back" disabled={checking} onClick={() => void readStatus()}><RefreshCw size={16} /> {c.check}</button>
   </section>
   if (status || uncertain) return <section className={`reservation-payment-result ${issued ? 'reservation-payment-result--success' : ''}`} role="status">
-    {issued ? <CheckCircle2 size={34} /> : failed ? <CircleAlert size={34} /> : <LoaderCircle size={34} className="reservation-spinner" />}
-    <h3>{issued ? c.success : paid ? c.paid : failed ? c.failed : c.uncertain}</h3>
-    {!issued && <p>{paid ? c.paidHint : failed ? c.failedHint : c.uncertainHint}</p>}
+    {issued || cancelled ? <CheckCircle2 size={34} /> : failed ? <CircleAlert size={34} /> : <LoaderCircle size={34} className="reservation-spinner" />}
+    <h3>{issued ? c.success : cancelled ? c.cancelled : paid ? c.paid : failed ? c.failed : c.uncertain}</h3>
+    {!issued && <p>{cancelled ? c.cancelledHint : paid ? c.paidHint : failed ? c.failedHint : c.uncertainHint}</p>}
     {status && <p className="reservation-order-code">{c.code}<strong>{status.ticketCode}</strong></p>}
     {paid && emailHint && <p>{emailHint}</p>}
     {issued && <div className="reservation-issued-tickets">{status.tickets.map((ticket, index) => <div key={ticket.ticketGuid ?? index}><span>{index + 1}. {c.pnr}</span><strong>{ticket.pnr}</strong></div>)}</div>}
-    {issued && <><p>{language === 'tr' ? 'Yolculuğun için sipariş ve PNR kodlarını sakla.' : 'Keep your order and PNR codes for your trip.'}</p><button type="button" className="button button--navy" onClick={() => {
-      try { sessionStorage.removeItem(recoveryKey) } catch { /* Memory-only fallback. */ }
-      onFinish()
-    }}>{language === 'tr' ? 'Tamam, turlara dön' : 'Done, back to tours'}</button></>}
+    {issued && <p>{language === 'tr' ? 'Yolculuğun için sipariş ve PNR kodlarını sakla.' : 'Keep your order and PNR codes for your trip.'}</p>}
+    {(issued || cancelled) && <button type="button" className="button button--navy" onClick={finish}>{language === 'tr' ? 'Tamam, turlara dön' : 'Done, back to tours'}</button>}
     {failed ? <button type="button" className="button button--navy" onClick={retryFailed}>{c.retry}</button>
-      : !issued && <><button type="button" className="reservation-back" disabled={checking} onClick={() => void readStatus()}><RefreshCw size={16} /> {checking ? c.confirming : c.check}</button><a className="reservation-back" href="mailto:merhaba@peremetours.com">{c.support}</a></>}
+      : !issued && !cancelled && <><button type="button" className="reservation-back" disabled={checking} onClick={() => void readStatus()}><RefreshCw size={16} /> {checking ? c.confirming : c.check}</button><a className="reservation-back" href="mailto:merhaba@peremetours.com">{c.support}</a></>}
   </section>
   return booking ? <>{error && <p className="reservation-error" role="alert">{error}</p>}{!requiresReview && <BookingPaymentFields language={language} enabled={enabled} unavailable={!enabled} busy={starting} amount={booking.quote.amount} onPay={pay} />}</> : null
 }

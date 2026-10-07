@@ -289,3 +289,31 @@ test('network ambiguity keeps the attempt token and recovers status after a page
   await expect(page.getByLabel('Kart Numarası', { exact: true })).toHaveCount(0)
   expect(calls).toBe(1)
 })
+
+test('a bank-confirmed cancellation stops the spinner and explicitly clears recovery without another charge', async ({ page }) => {
+  await mockCatalog(page)
+  const attempt = '11111111-1111-4111-8111-111111111111'
+  await page.addInitScript((token) => sessionStorage.setItem('pereme-payment-attempt', token), attempt)
+  let charges = 0
+  await page.route('**/payments/tour/initialize', (route) => { charges++; return route.abort() })
+  await page.route('**/payments/tour/status', (route) => {
+    expect(route.request().headers()['x-payment-token']).toBe(attempt)
+    return route.fulfill({ json: { ticketCode: order, paymentStatus: 'Refunded', ticketingStatus: 'NotRequired', tickets: [] } })
+  })
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await expect(page.locator('.tour-card')).toHaveCount(1)
+  await page.locator('.tour-card__footer button').click()
+  await page.getByRole('button', { name: 'Ödeme sonucunu kontrol et' }).click()
+  await expect(page.getByRole('heading', { name: 'Ödeme iptal edildi', exact: true })).toBeVisible()
+  await expect(page.getByText(order, { exact: true })).toBeVisible()
+  await expect(page.locator('.reservation-payment-result .reservation-spinner')).toHaveCount(0)
+  await expect(page.getByLabel('Kart Numarası', { exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Tekrar dene', exact: true })).toHaveCount(0)
+  expect(await page.evaluate(() => sessionStorage.getItem('pereme-payment-attempt'))).toBe(attempt)
+  await page.getByRole('button', { name: 'Tamam, turlara dön' }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  expect(await page.evaluate(() => sessionStorage.getItem('pereme-payment-attempt'))).toBeNull()
+  expect(charges).toBe(0)
+  await page.locator('.tour-card__footer button').click()
+  await expect(page.getByRole('heading', { name: 'Bilet tipini seç', exact: true })).toBeVisible()
+})

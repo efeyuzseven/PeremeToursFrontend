@@ -15,7 +15,7 @@ export type PaymentStart = { ticketId: string; ticketCode: string; amount: numbe
 export type PaymentStatus = {
   ticketCode: string; amount: number; currency: string
   paymentStatus: 'Pending' | 'Processing' | 'Paid' | 'Failed' | 'ReviewRequired' | 'Refunded'
-  ticketingStatus: 'Pending' | 'Processing' | 'Issued' | 'ReviewRequired'
+  ticketingStatus: 'NotRequired' | 'Pending' | 'Processing' | 'Issued' | 'ReviewRequired'
   tickets: { pnr: string | null; ticketGuid: string | null }[]
   emailStatus?: 'Queued' | 'Processing' | 'Sent' | 'Failed' | 'ReviewRequired' | null
 }
@@ -53,6 +53,7 @@ export const paymentTexts = {
     failed: 'Ödeme tamamlanamadı', failedHint: 'Banka işlemi onaylamadı. Kart bilgilerini kontrol edip yeniden deneyebilirsin.',
     success: 'Biletlerin hazır!', paid: 'Ödemen alındı', paidHint: 'Biletlerin kontrol ediliyor. Tekrar ödeme yapma; sipariş koduyla destek ekibine ulaş.',
     uncertain: 'Ödeme sonucu kontrol ediliyor', uncertainHint: 'Banka sonucu henüz kesinleşmedi. Tekrar ödeme yapma; sipariş koduyla destek ekibine ulaş.',
+    cancelled: 'Ödeme iptal edildi', cancelledHint: 'Banka iptal/iade işlemini onayladı. Bu rezervasyon kapatıldı; bilet oluşturulmadı.',
     code: 'Sipariş kodu', pnr: 'Bilet / PNR', support: 'Destek ekibine ulaş', check: 'Ödeme sonucunu kontrol et', retry: 'Tekrar dene',
     error: 'İşlem başlatılamadı. Lütfen tekrar dene.', changed: 'Fiyat veya seçim değişmiş olabilir. Bilgileri düzenleyip güncel tutarı yeniden kontrol et.',
     confirming: 'Ödeme sonucu doğrulanıyor…', secure: '3D Secure · Ziraat Sanal POS', acknowledge: 'Gösterilen tutarı ödemeyi onaylıyorum.',
@@ -66,6 +67,7 @@ export const paymentTexts = {
     failed: 'Payment unsuccessful', failedHint: 'The bank did not approve the transaction. Check your card details before trying again.',
     success: 'Your tickets are ready!', paid: 'Payment received', paidHint: 'Your tickets are being checked. Do not pay again; contact support with your order code.',
     uncertain: 'Checking your payment', uncertainHint: 'The bank result has not been confirmed. Do not pay again; contact support with your order code.',
+    cancelled: 'Payment cancelled', cancelledHint: 'The bank confirmed the cancellation/refund. This booking is closed; no tickets were issued.',
     code: 'Order code', pnr: 'Ticket / PNR', support: 'Contact support', check: 'Check payment status', retry: 'Try again',
     error: 'Payment could not be started. Please try again.', changed: 'The price or selection may have changed. Edit your details and check the current total again.',
     confirming: 'Verifying the payment result…', secure: '3D Secure · Ziraat Virtual POS', acknowledge: 'I confirm payment of the displayed amount.',

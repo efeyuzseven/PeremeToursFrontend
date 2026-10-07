@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { apiRequest, ApiError } from '../lib/api'
+import { setPageMetadata } from '../lib/site'
 import { TicketQr } from '../components/TicketQr'
 import PublicPageLayout, { type PublicLanguage } from './PublicPageLayout'
 import './account.css'
@@ -86,7 +87,7 @@ function AccountContent({ language }: { language: PublicLanguage }) {
   const [reload, setReload] = useState(0)
   useEffect(() => {
     const controller = new AbortController()
-    document.title = tr ? 'Hesabım — PeremeTours' : 'My account — PeremeTours'
+    setPageMetadata({ title: tr ? 'Hesabım' : 'My account', language, indexable: false })
     Promise.all([
       apiRequest<Profile>('/api/v1/account/profile', {
         token: session!.accessToken,
@@ -135,7 +136,7 @@ function AccountContent({ language }: { language: PublicLanguage }) {
         if (!controller.signal.aborted) setLoading(false)
       })
     return () => controller.abort()
-  }, [session, reload, tr])
+  }, [session, reload, tr, language])
   const date = (value: string) =>
     new Intl.DateTimeFormat(tr ? 'tr-TR' : 'en-GB', {
       day: 'numeric',

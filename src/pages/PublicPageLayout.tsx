@@ -2,6 +2,7 @@ import { ArrowRight, Globe2, Menu, UserRound, X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { SITE_NAME } from '../lib/site'
 import './info-pages.css'
 
 export type PublicLanguage = 'tr' | 'en'
@@ -67,7 +68,7 @@ export default function PublicPageLayout({ children }: PublicPageLayoutProps) {
         <div><strong>{c.explore}</strong><Link to="/#turlar">{c.tours}</Link><Link to="/#hizmetler">{c.services}</Link></div>
         <div><strong>{c.support}</strong><Link to="/sikca-sorulan-sorular">{c.faq}</Link><Link to="/iletisim">{c.contact}</Link><Link to="/kvkk-aydinlatma-metni">{c.kvkk}</Link></div>
       </div>
-      <div className="shell info-footer__bottom">© 2026 PeremeTours</div>
+      <div className="shell info-footer__bottom">© 2026 {SITE_NAME}</div>
     </footer>
   </div>
 }

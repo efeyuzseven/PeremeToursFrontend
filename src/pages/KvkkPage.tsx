@@ -1,10 +1,11 @@
 import { Mail, ShieldCheck } from 'lucide-react'
 import { useEffect } from 'react'
 import PublicPageLayout from './PublicPageLayout'
+import { setPageMetadata } from '../lib/site'
 
 function KvkkContent() {
   useEffect(() => {
-    document.title = 'KVKK Aydınlatma Metni — PeremeTours'
+    setPageMetadata({ title: 'KVKK Aydınlatma Metni', language: 'tr' })
   }, [])
 
   return <>

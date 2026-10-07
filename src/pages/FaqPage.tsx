@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { apiRequest, ApiError } from '../lib/api'
 import PublicPageLayout, { type PublicLanguage } from './PublicPageLayout'
+import { setPageMetadata } from '../lib/site'
 
 type FrequentlyAskedQuestion = {
   id: number
@@ -37,8 +38,8 @@ function FaqContent({ language }: { language: PublicLanguage }) {
   const c = copy[language]
 
   useEffect(() => {
-    document.title = language === 'tr' ? 'Sıkça Sorulan Sorular — PeremeTours' : 'Frequently Asked Questions — PeremeTours'
-  }, [language])
+    setPageMetadata({ title: language === 'tr' ? 'Sıkça Sorulan Sorular' : 'Frequently Asked Questions', description: c.description, language })
+  }, [language, c.description])
 
   useEffect(() => {
     let active = true

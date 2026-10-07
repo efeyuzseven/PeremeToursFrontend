@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { apiRequest, ApiError } from '../lib/api'
+import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
 
 type ManagedQuestion = {
@@ -55,7 +56,7 @@ export default function FrequentlyAskedQuestionsPage() {
   const [error, setError] = useState('')
   const c = copy[language]
 
-  useEffect(() => { document.title = `${c.title} — PeremeTours` }, [c.title])
+  useEffect(() => { setPageMetadata({ title: c.title, language, indexable: false }) }, [c.title, language])
 
   useEffect(() => {
     let active = true

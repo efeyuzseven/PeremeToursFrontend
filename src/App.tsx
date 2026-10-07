@@ -32,6 +32,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import type { HomepageContentDocument } from './content/homepage'
 import { apiBaseUrl, apiRequest } from './lib/api'
+import { setPageMetadata, SITE_NAME } from './lib/site'
 import { BookingDrawer } from './components/BookingDrawer'
 
 type Language = 'tr' | 'en'
@@ -241,7 +242,7 @@ const copy = {
     },
     story: {
       eyebrow: 'Instagram’dan Pereme', lead: 'Boğaz’daki anlara', accent: 'yakından bak.',
-      description: 'PeremeTours Instagram hesabındaki güncel videoları ve misafir anlarını keşfet.',
+      description: 'Dentur | Pereme Tours Instagram hesabındaki güncel videoları ve misafir anlarını keşfet.',
       note: 'İstanbul’a bir de\nburadan bak.',
       quote: '“Gün batımı çok güzeldi ama asıl fark, ekibin küçük detayları düşünmesiydi. Kendimizi turist gibi değil, İstanbul’un misafiri gibi hissettik.”',
       meta: 'Ankara · Gün Batımı Turu',
@@ -255,7 +256,7 @@ const copy = {
         ['Yardım', 'KVKK Aydınlatma Metni'],
       ],
       newsletterTitle: 'İstanbul’dan haberin olsun.', newsletterText: 'Yeni rotalar ve sürpriz fiyatlar, ayda en fazla iki kez.',
-      emailPlaceholder: 'E-posta adresin', copyright: '© 2026 PeremeTours. Demo tasarım.', agency: 'TÜRSAB bilgisi eklenecek',
+      emailPlaceholder: 'E-posta adresin', copyright: `© 2026 ${SITE_NAME}`, agency: 'TÜRSAB bilgisi eklenecek',
     },
     drawer: {
       successLabel: 'Talebin hazır', successTitle: 'Şimdi ödeme altyapısını bekliyoruz.',
@@ -320,7 +321,7 @@ const copy = {
     },
     story: {
       eyebrow: 'Pereme on Instagram', lead: 'See moments from', accent: 'the Bosphorus.',
-      description: 'Discover recent videos and guest moments from the PeremeTours Instagram account.',
+      description: 'Discover recent videos and guest moments from the Dentur | Pereme Tours Instagram account.',
       note: 'See Istanbul from\na different side.',
       quote: '“The sunset was beautiful, but the real difference was the team’s attention to every small detail. We felt like guests of Istanbul, not tourists.”',
       meta: 'Ankara · Sunset Cruise',
@@ -334,7 +335,7 @@ const copy = {
         ['Support', 'KVKK Notice'],
       ],
       newsletterTitle: 'Stay close to Istanbul.', newsletterText: 'New routes and surprise fares, no more than twice a month.',
-      emailPlaceholder: 'Your email address', copyright: '© 2026 PeremeTours. Design demo.', agency: 'TÜRSAB details to be added',
+      emailPlaceholder: 'Your email address', copyright: `© 2026 ${SITE_NAME}`, agency: 'TÜRSAB details to be added',
     },
     drawer: {
       successLabel: 'Your request is ready', successTitle: 'The payment connection comes next.',
@@ -434,13 +435,7 @@ function App() {
 
   useEffect(() => {
     document.documentElement.lang = language
-    document.title = language === 'tr' ? 'PeremeTours — Boğaz’ın Ritmini Yakala' : 'PeremeTours — Find Your Bosphorus Moment'
-    document.querySelector('meta[name="description"]')?.setAttribute(
-      'content',
-      language === 'tr'
-        ? 'PeremeTours ile Boğaz Turu, Türk Gecesi Dinner Cruise, Sunset ve DayTime deneyimlerini keşfedin.'
-        : 'Discover Bosphorus Cruise, Turkish Night Dinner Cruise, Sunset and Daytime experiences with PeremeTours.',
-    )
+    setPageMetadata({ language })
     window.localStorage.setItem('pereme-language', language)
   }, [language])
 
@@ -623,7 +618,7 @@ function App() {
         </div>
       </section>
 
-      <div className="marquee" aria-label="PeremeTours">
+      <div className="marquee" aria-label={SITE_NAME}>
         <div className="marquee__track">{[0, 1].map((item) => <div className="marquee__group" key={item} aria-hidden={item === 1}>{c.marquee.map((label) => <span className="marquee__item" key={label}><span>{label}</span><Sparkles /></span>)}</div>)}</div>
       </div>
 
@@ -676,7 +671,7 @@ function App() {
 
       <section className="stories" id="hikayeler">
         <div className="shell"><div className="stories__heading"><div className="eyebrow"><Camera size={17} /> {page?.stories.eyebrow ?? c.story.eyebrow}</div><h2>{page?.stories.lead ?? c.story.lead} <em>{page?.stories.accent ?? c.story.accent}</em></h2><p>{page?.stories.description ?? c.story.description}</p></div>
-          {instagramUrls.length > 0 ? <div className="instagram-grid">{instagramUrls.map((url) => { const embedUrl = instagramEmbedUrl(url); return embedUrl && <iframe key={url} src={embedUrl} title="PeremeTours Instagram" loading="lazy" allowFullScreen /> })}</div> : <div className="stories__inner stories__inner--fallback">
+          {instagramUrls.length > 0 ? <div className="instagram-grid">{instagramUrls.map((url) => { const embedUrl = instagramEmbedUrl(url); return embedUrl && <iframe key={url} src={embedUrl} title={`${SITE_NAME} Instagram`} loading="lazy" allowFullScreen /> })}</div> : <div className="stories__inner stories__inner--fallback">
             <div className="story-collage" aria-hidden="true"><img className="story-collage__main" src="/assets/tour-sunset.webp" alt="" /><img className="story-collage__small" src="/assets/tour-private.webp" alt="" /><div className="story-collage__note"><span>“</span>{c.story.note.split('\n').map((line) => <span className="story-note__line" key={line}>{line}</span>)}</div></div>
             <div className="testimonial"><Quote size={40} /><blockquote>{page?.stories.quote ?? c.story.quote}</blockquote><div className="testimonial__person"><div>EM</div><span><strong>Elif &amp; Mert</strong>{page?.stories.meta ?? c.story.meta}</span></div></div>
           </div>}

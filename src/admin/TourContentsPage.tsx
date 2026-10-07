@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { apiBaseUrl, ApiError, apiRequest, apiUpload } from '../lib/api'
+import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
 
 type ManagedTourContent = {
@@ -79,8 +80,8 @@ export default function TourContentsPage() {
   }, [uploadPreview])
 
   useEffect(() => {
-    document.title = `${c.title} — PeremeTours`
-  }, [c.title])
+    setPageMetadata({ title: c.title, language, indexable: false })
+  }, [c.title, language])
 
   useEffect(() => {
     let active = true

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { apiRequest, ApiError } from '../lib/api'
+import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
 import CancelTicketDialog from './CancelTicketDialog'
 import './cancellation.css'
@@ -64,8 +65,8 @@ export default function TicketsPage() {
   }
 
   useEffect(() => {
-    document.title = `${c.title} — PeremeTours`
-  }, [c.title])
+    setPageMetadata({ title: c.title, language, indexable: false })
+  }, [c.title, language])
 
   useEffect(() => {
     let active = true

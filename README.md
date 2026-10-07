@@ -2,6 +2,9 @@
 
 İstanbul Boğazı tur ve deneyim satış sitesi için hazırlanan responsive tasarım prototipi.
 
+Site adı: **Dentur | Pereme Tours**. Resmî adres: <https://www.pereme.com.tr>.
+Sekme başlıkları, canonical ve paylaşım bilgileri `src/lib/site.ts` üzerinden yönetilir; giriş, hesap ve yönetici sayfaları `noindex` kullanır. Alan adının AWS'ye yönlendirilmesi tamamlanana kadar mevcut CloudFront test adresi kullanılmaya devam eder.
+
 ## Geliştirme
 
 ```bash

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth, type UserRole } from '../auth/AuthContext'
 import { apiRequest, ApiError } from '../lib/api'
+import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
 
 type ManagedUser = {
@@ -26,8 +27,8 @@ export default function UsersPage() {
   const c = copy[language]
 
   useEffect(() => {
-    document.title = `${c.title} — PeremeTours`
-  }, [c.title])
+    setPageMetadata({ title: c.title, language, indexable: false })
+  }, [c.title, language])
 
   useEffect(() => {
     let active = true

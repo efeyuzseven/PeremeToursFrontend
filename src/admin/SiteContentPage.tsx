@@ -4,6 +4,7 @@ import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import type { HomepageContentDocument, HomepageLanguageContent } from '../content/homepage'
 import { ApiError, apiRequest } from '../lib/api'
+import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
 
 const copy = {
@@ -73,8 +74,8 @@ export default function SiteContentPage() {
   const c = copy[language]
 
   useEffect(() => {
-    document.title = `${c.title} — PeremeTours`
-  }, [c.title])
+    setPageMetadata({ title: c.title, language, indexable: false })
+  }, [c.title, language])
 
   useEffect(() => {
     let active = true

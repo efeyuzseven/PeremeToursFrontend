@@ -1,6 +1,7 @@
 import { ArrowRight, Camera, Clock3, Mail, MapPin, MessageCircle, Send } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import PublicPageLayout, { type PublicLanguage } from './PublicPageLayout'
+import { setPageMetadata } from '../lib/site'
 
 const copy = {
   tr: {
@@ -26,8 +27,8 @@ function ContactContent({ language }: { language: PublicLanguage }) {
   const c = copy[language]
 
   useEffect(() => {
-    document.title = language === 'tr' ? 'İletişim — PeremeTours' : 'Contact — PeremeTours'
-  }, [language])
+    setPageMetadata({ title: language === 'tr' ? 'İletişim' : 'Contact', description: c.description, language })
+  }, [language, c.description])
 
   const sendMessage = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

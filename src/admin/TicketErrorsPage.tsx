@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { apiRequest } from '../lib/api'
+import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
 
 type Stage = 'Payment' | 'Ticketing' | 'Email' | 'Cancellation'
@@ -48,7 +49,7 @@ export default function TicketErrorsPage() {
   const [data, setData] = useState<ErrorPage | null>(null)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
-  useEffect(() => { document.title = `${c.title} — PeremeTours` }, [c.title])
+  useEffect(() => { setPageMetadata({ title: c.title, language, indexable: false }) }, [c.title, language])
   useEffect(() => {
     const controller = new AbortController()
     const params = new URLSearchParams({ page: String(page), pageSize: '20' })

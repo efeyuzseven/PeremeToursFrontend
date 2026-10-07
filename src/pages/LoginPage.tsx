@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { ApiError } from '../lib/api'
+import { setPageMetadata } from '../lib/site'
 import './login.css'
 
 type Language = 'tr' | 'en'
@@ -40,7 +41,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     document.documentElement.lang = language
-    document.title = language === 'tr' ? 'Giriş Yap — PeremeTours' : 'Sign In — PeremeTours'
+    setPageMetadata({ title: language === 'tr' ? 'Giriş Yap' : 'Sign In', language, indexable: false })
     localStorage.setItem('pereme-language', language)
   }, [language])
 

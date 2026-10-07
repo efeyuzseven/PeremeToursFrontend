@@ -215,6 +215,12 @@ for (const state of ['Completed', 'ReviewRequired'] as const) {
     expect(calls).toBe(1)
     await expect(
       dialog.getByRole('button', {
+        name: 'İptal ve iadeyi yeniden dene',
+        exact: true,
+      }),
+    ).toHaveCount(0)
+    await expect(
+      dialog.getByRole('button', {
         name: 'İptali ve iadeyi onayla',
         exact: true,
       }),
@@ -229,3 +235,102 @@ for (const state of ['Completed', 'ReviewRequired'] as const) {
     })
   })
 }
+
+test('safe precheck failure can retry only after a fresh explicit confirmation', async ({
+  page,
+}) => {
+  await session(page, 'Admin')
+  let calls = 0
+  await page.route('**/api/v1/admin/tickets', (route) =>
+    route.fulfill({
+      json: [
+        {
+          ...booking,
+          customerName: 'Demo Guest',
+          customerEmail: 'demo@example.test',
+          channel: 'Web',
+          canCancel: false,
+          canRetryCancellation: calls < 2,
+          cancellationStatus: calls < 2 ? 'ReviewRequired' : 'Completed',
+          cancellationFailureCode:
+            calls < 2 ? 'PROVIDER_CANCELLATION_CHECK_FAILED' : null,
+          createdAtUtc: '2026-10-07T12:00:00Z',
+          updatedAtUtc: '2026-10-07T12:00:00Z',
+        },
+      ],
+    }),
+  )
+  await page.route(
+    `**/api/v1/admin/tickets/${booking.id}/cancel`,
+    async (route) => {
+      calls++
+      expect(route.request().postDataJSON()).toEqual({
+        ticketCode: booking.ticketCode,
+        expectedAmount: 350,
+        reason: 'Mock cancellation',
+      })
+      await route.fulfill({
+        json:
+          calls === 1
+            ? {
+                status: 'ReviewRequired',
+                providerCancelled: false,
+                failureCode: 'PROVIDER_CANCELLATION_UNAVAILABLE',
+                canRetry: true,
+              }
+            : { status: 'Completed', providerCancelled: true, canRetry: false },
+      })
+    },
+  )
+  await page.goto('/admin/tickets')
+  await expect(page.getByText(/Ön kontrol başarısız/)).toBeVisible()
+  expect(calls).toBe(0)
+  await page
+    .getByRole('button', { name: 'İptal ve iadeyi yeniden dene', exact: true })
+    .click()
+  const dialog = page.getByRole('dialog')
+  const confirm = dialog.getByRole('button', {
+    name: 'İptali ve iadeyi onayla',
+    exact: true,
+  })
+  await expect(confirm).toBeDisabled()
+  await dialog
+    .getByLabel('İptal nedeni', { exact: true })
+    .fill('Mock cancellation')
+  await dialog.getByRole('checkbox').check()
+  await confirm.click()
+  await expect(
+    dialog.getByRole('heading', {
+      name: 'İptal / iade başlatılamadı',
+      exact: true,
+    }),
+  ).toBeVisible()
+  await expect(
+    dialog.getByText(/Bilet iptali ve banka iadesi gönderilmedi/),
+  ).toBeVisible()
+  expect(calls).toBe(1)
+  await dialog
+    .getByRole('button', { name: 'İptal ve iadeyi yeniden dene', exact: true })
+    .click()
+  await expect(dialog.getByRole('checkbox')).not.toBeChecked()
+  await expect(confirm).toBeDisabled()
+  expect(calls).toBe(1)
+  await dialog.getByRole('checkbox').check()
+  await confirm.evaluate((element) => {
+    ;(element as HTMLButtonElement).click()
+    ;(element as HTMLButtonElement).click()
+  })
+  await expect(
+    dialog.getByRole('heading', {
+      name: 'İptal / iade onaylandı',
+      exact: true,
+    }),
+  ).toBeVisible()
+  expect(calls).toBe(2)
+  await expect(
+    dialog.getByRole('button', {
+      name: 'İptal ve iadeyi yeniden dene',
+      exact: true,
+    }),
+  ).toHaveCount(0)
+})

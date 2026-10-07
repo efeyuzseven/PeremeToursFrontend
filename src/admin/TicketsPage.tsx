@@ -17,7 +17,7 @@ type TourTicket = {
   status: TicketStatus; channel: TicketChannel; paymentStatus?: TicketPaymentStatus; createdAtUtc: string; updatedAtUtc: string
   ticketingStatus?: TicketingStatus; externalVoucherGuid?: string; ticketingFailureCode?: string; paymentFailureCode?: string
   emailStatus?: 'Queued' | 'Processing' | 'Sent' | 'Failed' | 'ReviewRequired'; emailSentAtUtc?: string
-  canCancel?: boolean; cancellationStatus?: string | null; cancellationFailureCode?: string | null
+  canCancel?: boolean; canRetryCancellation?: boolean; cancellationStatus?: string | null; cancellationFailureCode?: string | null
 }
 type CatalogTour = {
   externalTourId: number
@@ -154,7 +154,7 @@ export default function TicketsPage() {
             <td>{ticket.guestCount}</td><td><strong>{formatMoney(ticket.amount)}</strong></td><td><span className="channel-pill">{ticket.channel === 'Web' ? c.web : c.admin}</span></td>
             <td><div className="admin-payment-state"><span className={`payment-pill payment-${paymentStatus.toLowerCase()}`}>{paymentStatusCopy[language][paymentStatus]}</span>
               {automatic && ticket.ticketingStatus && <small>{ticket.cancellationStatus === 'Completed' ? (language === 'tr' ? 'EasyTicket iptal edildi' : 'EasyTicket cancelled') : ticketingCopy[language][ticket.ticketingStatus]}</small>}
-              {ticket.cancellationStatus && <small className="admin-payment-warning">{language === 'tr' ? 'İptal' : 'Cancellation'}: {ticket.cancellationStatus === 'Completed' ? (language === 'tr' ? 'Tamamlandı' : 'Completed') : ticket.cancellationStatus === 'ReviewRequired' ? (language === 'tr' ? 'Kontrol gerekli — tekrar iade yapmayın' : 'Review required — do not refund again') : (language === 'tr' ? 'İşleniyor — tekrar başlatmayın' : 'Processing — do not replay')}</small>}
+              {ticket.cancellationStatus && <small className="admin-payment-warning">{language === 'tr' ? 'İptal' : 'Cancellation'}: {ticket.cancellationStatus === 'Completed' ? (language === 'tr' ? 'Tamamlandı' : 'Completed') : ticket.canRetryCancellation ? (language === 'tr' ? 'Ön kontrol başarısız — iptal/iade gönderilmedi, yeniden denenebilir' : 'Precheck failed — no cancellation/refund sent, retry available') : ticket.cancellationStatus === 'ReviewRequired' ? (language === 'tr' ? 'Kontrol gerekli — tekrar iade yapmayın' : 'Review required — do not refund again') : (language === 'tr' ? 'İşleniyor — tekrar başlatmayın' : 'Processing — do not replay')}</small>}
               {ticket.cancellationFailureCode && <small>{ticket.cancellationFailureCode}</small>}
               {ticket.emailStatus && <small>{language === 'tr' ? 'Mail' : 'Email'}: {({ tr: { Queued: 'Kuyrukta', Processing: 'Gönderiliyor', Sent: 'Gönderildi', Failed: 'Gönderilemedi', ReviewRequired: 'Gönderim kontrol edilmeli' }, en: { Queued: 'Queued', Processing: 'Sending', Sent: 'Sent', Failed: 'Delivery failed', ReviewRequired: 'Delivery review required' } })[language][ticket.emailStatus]}</small>}
               {(ticket.paymentFailureCode || ticket.ticketingFailureCode) && <small>{ticket.paymentFailureCode || ticket.ticketingFailureCode}</small>}
@@ -165,7 +165,7 @@ export default function TicketsPage() {
               onChange={(event) => void changeStatus(ticket, event.target.value as TicketStatus)}>
               {(automatic ? [ticket.status, ...(ticket.status === 'Confirmed' ? ['Used' as const] : [])] : ['Pending', 'Confirmed', 'Cancelled', 'Used'] as TicketStatus[])
                 .map((status) => <option key={status} value={status}>{statusCopy[language][status]}</option>)}
-            </select>{ticket.canCancel && <button type="button" className="admin-cancel-button" onClick={() => setCancelTicket(ticket)}>{language === 'tr' ? 'Bileti iptal et' : 'Cancel booking'}</button>}</td>
+            </select>{(ticket.canCancel || ticket.canRetryCancellation) && <button type="button" className="admin-cancel-button" onClick={() => setCancelTicket(ticket)}>{ticket.canRetryCancellation ? (language === 'tr' ? 'İptal ve iadeyi yeniden dene' : 'Retry cancellation & refund') : (language === 'tr' ? 'Bileti iptal et' : 'Cancel booking')}</button>}</td>
           </tr>
         })}
       </tbody></table></div>

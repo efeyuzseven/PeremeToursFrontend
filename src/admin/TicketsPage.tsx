@@ -4,6 +4,8 @@ import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { apiRequest, ApiError } from '../lib/api'
 import type { AdminLanguage } from './AdminLayout'
+import CancelTicketDialog from './CancelTicketDialog'
+import './cancellation.css'
 
 type TicketStatus = 'Pending' | 'Confirmed' | 'Cancelled' | 'Used'
 type TicketChannel = 'Web' | 'Admin'
@@ -15,6 +17,7 @@ type TourTicket = {
   status: TicketStatus; channel: TicketChannel; paymentStatus?: TicketPaymentStatus; createdAtUtc: string; updatedAtUtc: string
   ticketingStatus?: TicketingStatus; externalVoucherGuid?: string; ticketingFailureCode?: string; paymentFailureCode?: string
   emailStatus?: 'Queued' | 'Processing' | 'Sent' | 'Failed' | 'ReviewRequired'; emailSentAtUtc?: string
+  canCancel?: boolean; cancellationStatus?: string | null; cancellationFailureCode?: string | null
 }
 type CatalogTour = {
   externalTourId: number
@@ -53,7 +56,12 @@ export default function TicketsPage() {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<'All' | TicketStatus>('All')
   const [createOpen, setCreateOpen] = useState(false)
+  const [cancelTicket, setCancelTicket] = useState<TourTicket | null>(null)
   const c = pageCopy[language]
+  const refreshTickets = () => {
+    void apiRequest<TourTicket[]>('/api/v1/admin/tickets', { token: session!.accessToken, cache: 'no-store' })
+      .then(setTickets).catch(() => setError(c.error))
+  }
 
   useEffect(() => {
     document.title = `${c.title} — PeremeTours`
@@ -145,22 +153,25 @@ export default function TicketsPage() {
             <td><div className="table-tour"><strong>{ticket.tourName}</strong><small><CalendarDays /> {formatDate(ticket.tourDate)} · {ticket.departureTime.slice(0, 5)}</small></div></td>
             <td>{ticket.guestCount}</td><td><strong>{formatMoney(ticket.amount)}</strong></td><td><span className="channel-pill">{ticket.channel === 'Web' ? c.web : c.admin}</span></td>
             <td><div className="admin-payment-state"><span className={`payment-pill payment-${paymentStatus.toLowerCase()}`}>{paymentStatusCopy[language][paymentStatus]}</span>
-              {automatic && ticket.ticketingStatus && <small>{ticketingCopy[language][ticket.ticketingStatus]}</small>}
+              {automatic && ticket.ticketingStatus && <small>{ticket.cancellationStatus === 'Completed' ? (language === 'tr' ? 'EasyTicket iptal edildi' : 'EasyTicket cancelled') : ticketingCopy[language][ticket.ticketingStatus]}</small>}
+              {ticket.cancellationStatus && <small className="admin-payment-warning">{language === 'tr' ? 'İptal' : 'Cancellation'}: {ticket.cancellationStatus === 'Completed' ? (language === 'tr' ? 'Tamamlandı' : 'Completed') : ticket.cancellationStatus === 'ReviewRequired' ? (language === 'tr' ? 'Kontrol gerekli — tekrar iade yapmayın' : 'Review required — do not refund again') : (language === 'tr' ? 'İşleniyor — tekrar başlatmayın' : 'Processing — do not replay')}</small>}
+              {ticket.cancellationFailureCode && <small>{ticket.cancellationFailureCode}</small>}
               {ticket.emailStatus && <small>{language === 'tr' ? 'Mail' : 'Email'}: {({ tr: { Queued: 'Kuyrukta', Processing: 'Gönderiliyor', Sent: 'Gönderildi', Failed: 'Gönderilemedi', ReviewRequired: 'Gönderim kontrol edilmeli' }, en: { Queued: 'Queued', Processing: 'Sending', Sent: 'Sent', Failed: 'Delivery failed', ReviewRequired: 'Delivery review required' } })[language][ticket.emailStatus]}</small>}
               {(ticket.paymentFailureCode || ticket.ticketingFailureCode) && <small>{ticket.paymentFailureCode || ticket.ticketingFailureCode}</small>}
               {(paymentStatus === 'ReviewRequired' || ticket.ticketingStatus === 'ReviewRequired') && <small className="admin-payment-warning">{language === 'tr' ? 'Yeni tahsilat yapmayın. Banka / EasyTicket kaydını sipariş koduyla kontrol edin.' : 'Do not charge again. Reconcile the bank / EasyTicket record using the order code.'}</small>}
             </div></td>
             <td><select className={`status-select status-${ticket.status.toLowerCase()}`} value={ticket.status}
-              disabled={automatic && !(paymentStatus === 'Paid' && ticket.ticketingStatus === 'Issued')}
+              disabled={!!ticket.cancellationStatus || (automatic && !(paymentStatus === 'Paid' && ticket.ticketingStatus === 'Issued'))}
               onChange={(event) => void changeStatus(ticket, event.target.value as TicketStatus)}>
               {(automatic ? [ticket.status, ...(ticket.status === 'Confirmed' ? ['Used' as const] : [])] : ['Pending', 'Confirmed', 'Cancelled', 'Used'] as TicketStatus[])
                 .map((status) => <option key={status} value={status}>{statusCopy[language][status]}</option>)}
-            </select></td>
+            </select>{ticket.canCancel && <button type="button" className="admin-cancel-button" onClick={() => setCancelTicket(ticket)}>{language === 'tr' ? 'Bileti iptal et' : 'Cancel booking'}</button>}</td>
           </tr>
         })}
       </tbody></table></div>
       {!loading && visibleTickets.length === 0 && <div className="admin-empty"><TicketCheck /><p>{c.empty}</p></div>}
     </section>
+    {cancelTicket && <CancelTicketDialog ticket={cancelTicket} token={session!.accessToken} language={language} onClose={() => setCancelTicket(null)} onChanged={refreshTickets} />}
 
     {createOpen && <div className="admin-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreateOpen(false) }}><section className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="ticket-modal-title"><button className="admin-modal__close" onClick={() => setCreateOpen(false)}><X /></button><div className="admin-modal__heading"><span><TicketCheck /></span><div><h2 id="ticket-modal-title">{c.modalTitle}</h2><p>{c.modalText}</p></div></div><form onSubmit={createTicket}>
       <label className="field-wide">{c.tourName}{catalogTours.length > 0 ? <select name="tourName" required defaultValue=""><option value="" disabled>—</option>{catalogTours.map((tour) => <option key={tour.externalTourId} value={tour.name}>{tour.categoryName} · {tour.name}</option>)}</select> : <input name="tourName" required maxLength={160} />}</label><label>{c.date}<input type="date" name="tourDate" required /></label><label>{c.time}<input type="time" name="departureTime" required /></label><label className="field-wide">{c.name}<input name="customerName" required maxLength={160} /></label><label className="field-wide">{c.email}<input type="email" name="customerEmail" required maxLength={320} /></label><label>{c.guestCount}<input type="number" name="guestCount" defaultValue={2} min={1} max={100} required /></label><label>{c.amount}<span className="money-input"><input type="number" name="amount" min="0.01" step="0.01" required /><i>₺</i></span></label><div className="admin-modal__actions field-wide"><button type="button" onClick={() => setCreateOpen(false)}>{c.cancel}</button><button className="admin-primary-button" disabled={saving} type="submit">{saving ? <span className="button-spinner" /> : <><CheckCircle2 /> {c.save}</>}</button></div>

@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 import { apiRequest } from '../lib/api'
 import type { AdminLanguage } from './AdminLayout'
 
-type Stage = 'Payment' | 'Ticketing' | 'Email'
+type Stage = 'Payment' | 'Ticketing' | 'Email' | 'Cancellation'
 type ErrorEntry = {
   id: string; ticketId: string; ticketCode: string; tourName: string; tourDate: string
   amount: number; currency: string; stage: Stage; code: string; providerCode?: string
@@ -66,7 +66,7 @@ export default function TicketErrorsPage() {
   const dateTime = (date: string) => new Intl.DateTimeFormat(language === 'tr' ? 'tr-TR' : 'en-GB', {
     dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Istanbul',
   }).format(new Date(date))
-  const icon = (value: Stage) => value === 'Payment' ? <Banknote size={16} /> : value === 'Ticketing' ? <TicketCheck size={16} /> : <Mail size={16} />
+  const icon = (value: Stage) => value === 'Payment' ? <Banknote size={16} /> : value === 'Ticketing' ? <TicketCheck size={16} /> : value === 'Cancellation' ? <AlertCircle size={16} /> : <Mail size={16} />
   const detail = (entry: ErrorEntry) => language === 'tr' ? entry.message
     : entry.providerCode === 'CORE-2201' ? 'The bank API user could not be authenticated. Check user approval, permissions and credentials in the bank portal.'
       : englishDetails[entry.code] ?? 'The bank did not approve this payment. Check the detailed response using the booking reference in the bank portal.'
@@ -79,7 +79,7 @@ export default function TicketErrorsPage() {
     <section className="ticket-errors-panel" aria-busy={loading}>
       <div className="ticket-error-toolbar">
         <div className="ticket-error-filters" role="group" aria-label={language === 'tr' ? 'Hata aşaması' : 'Error stage'}>
-          {(['All', 'Payment', 'Ticketing', 'Email'] as const).map((value) => <button key={value} aria-pressed={stage === value} onClick={() => { setStage(value); setPage(1); reload() }}>{value !== 'All' && icon(value)}{value === 'All' ? c.all : c[value]}</button>)}
+          {(['All', 'Payment', 'Ticketing', 'Email', 'Cancellation'] as const).map((value) => <button key={value} aria-pressed={stage === value} onClick={() => { setStage(value); setPage(1); reload() }}>{value !== 'All' && icon(value)}{value === 'All' ? c.all : value === 'Cancellation' ? (language === 'tr' ? 'İptal / iade' : 'Cancellation / refund') : c[value]}</button>)}
         </div>
         <form className="ticket-error-search" onSubmit={submitSearch}><Search size={17} /><input aria-label={c.search} placeholder={c.search} maxLength={160} value={search} onChange={(event) => setSearch(event.target.value)} /><button type="submit">{c.find}</button></form>
       </div>
@@ -87,7 +87,7 @@ export default function TicketErrorsPage() {
         : failed ? <div className="admin-empty" role="alert"><AlertCircle /><p>{c.error}</p><button className="admin-primary-button" onClick={reload}>{c.refresh}</button></div>
           : data?.items.length === 0 ? <div className="admin-empty"><ShieldCheck /><p>{c.empty}</p></div>
             : <div className="ticket-error-list">{data?.items.map((entry) => <article className="ticket-error-card" key={entry.id}>
-              <header><span className="ticket-error-stage">{icon(entry.stage)}{c[entry.stage]}</span><time dateTime={entry.createdAtUtc}>{dateTime(entry.createdAtUtc)} · İstanbul</time></header>
+              <header><span className="ticket-error-stage">{icon(entry.stage)}{entry.stage === 'Cancellation' ? (language === 'tr' ? 'İptal / iade' : 'Cancellation / refund') : c[entry.stage]}</span><time dateTime={entry.createdAtUtc}>{dateTime(entry.createdAtUtc)} · İstanbul</time></header>
               <div className="ticket-error-card__main"><div><strong>{entry.ticketCode}</strong><p>{entry.tourName} · {new Intl.DateTimeFormat(language === 'tr' ? 'tr-TR' : 'en-GB', { dateStyle: 'medium' }).format(new Date(`${entry.tourDate}T12:00:00`))}</p></div>
                 <span>{new Intl.NumberFormat(language === 'tr' ? 'tr-TR' : 'en-GB', { style: 'currency', currency: entry.currency }).format(entry.amount)}</span></div>
               <div className="ticket-error-codes"><code>{entry.code}</code>{entry.providerCode && <code>{entry.providerCode}</code>}{entry.isHistorical && <span>{c.history}</span>}</div>

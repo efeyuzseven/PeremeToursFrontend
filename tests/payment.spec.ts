@@ -72,7 +72,7 @@ async function fillCard(page: Page, number = '4111111111111111') {
 }
 
 const paidStatus = (ticketingStatus = 'Issued') => ({ ticketCode: order, amount: 4050, currency: 'TRY', paymentStatus: 'Paid', ticketingStatus,
-  tickets: ticketingStatus === 'Issued' ? [{ pnr: 'MOCK-PNR-1', ticketGuid: 'mock-ticket-1' }, { pnr: 'MOCK-PNR-2', ticketGuid: 'mock-ticket-2' }, { pnr: 'MOCK-PNR-3', ticketGuid: 'mock-ticket-3' }] : [] })
+  tickets: ticketingStatus === 'Issued' ? [{ pnr: 'MOCK-PNR-1', ticketGuid: '11111111-1111-4111-8111-111111111111' }, { pnr: 'MOCK-PNR-2', ticketGuid: '22222222-2222-4222-8222-222222222222' }, { pnr: 'MOCK-PNR-3', ticketGuid: '33333333-3333-4333-8333-333333333333' }] : [] })
 
 test('expiry lists stay open when scrollbar interaction blurs the focused option', async ({ page }) => {
   await mockCatalog(page)
@@ -220,6 +220,7 @@ test('payment sends mixed tickets and passenger data once, sandboxed bank result
   await page.frameLocator('iframe').getByRole('button', { name: 'Finish mock verification' }).click()
   await expect(page.getByText('Biletlerin hazır!')).toBeVisible()
   await expect(page.locator('.reservation-issued-tickets > div')).toHaveCount(3)
+  await expect(page.getByTestId('ticket-qr')).toHaveCount(3)
   expect(initializations).toBe(1)
   expect(await page.getByRole('dialog').evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(false)
   await page.getByRole('button', { name: 'Tamam, turlara dön' }).click()

@@ -18,6 +18,7 @@ export type PaymentStatus = {
   ticketingStatus: 'NotRequired' | 'Pending' | 'Processing' | 'Issued' | 'ReviewRequired'
   tickets: { pnr: string | null; ticketGuid: string | null }[]
   emailStatus?: 'Queued' | 'Processing' | 'Sent' | 'Failed' | 'ReviewRequired' | null
+  cancellationStatus?: string | null
 }
 export type PaymentBooking = {
   quote: TourQuote; externalTourId: number; externalDeparturePortId: number; externalDepartureId: number
@@ -53,7 +54,7 @@ export const paymentTexts = {
     failed: 'Ödeme tamamlanamadı', failedHint: 'Banka işlemi onaylamadı. Kart bilgilerini kontrol edip yeniden deneyebilirsin.',
     success: 'Biletlerin hazır!', paid: 'Ödemen alındı', paidHint: 'Biletlerin kontrol ediliyor. Tekrar ödeme yapma; sipariş koduyla destek ekibine ulaş.',
     uncertain: 'Ödeme sonucu kontrol ediliyor', uncertainHint: 'Banka sonucu henüz kesinleşmedi. Tekrar ödeme yapma; sipariş koduyla destek ekibine ulaş.',
-    cancelled: 'Ödeme iptal edildi', cancelledHint: 'Banka iptal/iade işlemini onayladı. Bu rezervasyon kapatıldı; bilet oluşturulmadı.',
+    cancelled: 'Ödeme iptal edildi', cancelledHint: 'Banka iptal/iade işlemini onayladı. Bu rezervasyon kapatıldı; geçerli bir bilet bulunmuyor.',
     code: 'Sipariş kodu', pnr: 'Bilet / PNR', support: 'Destek ekibine ulaş', check: 'Ödeme sonucunu kontrol et', retry: 'Tekrar dene',
     error: 'İşlem başlatılamadı. Lütfen tekrar dene.', changed: 'Fiyat veya seçim değişmiş olabilir. Bilgileri düzenleyip güncel tutarı yeniden kontrol et.',
     confirming: 'Ödeme sonucu doğrulanıyor…', secure: '3D Secure · Ziraat Sanal POS', acknowledge: 'Gösterilen tutarı ödemeyi onaylıyorum.',

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ApiError, apiBaseUrl, apiRequest } from '../lib/api'
 import { getPaymentRecovery, paymentRecoveryKey as recoveryKey, paymentTexts, type PaymentBooking, type PaymentCard, type PaymentStart, type PaymentStatus } from '../lib/payments'
 import { BookingPaymentFields } from './BookingPaymentFields'
+import { TicketQr } from './TicketQr'
 
 export function BookingPayment({ booking, language, token, enabled, onLockChange, onBusyChange, onFinish }: {
   booking?: PaymentBooking; language: 'tr' | 'en'; token?: string; enabled: boolean
@@ -147,7 +148,8 @@ export function BookingPayment({ booking, language, token, enabled, onLockChange
     if (!booking) onFinish()
   }
   const paid = status?.paymentStatus === 'Paid'
-  const issued = paid && status?.ticketingStatus === 'Issued'
+  const cancelling = !!status?.cancellationStatus && status.cancellationStatus !== 'Completed'
+  const issued = paid && status?.ticketingStatus === 'Issued' && !status?.cancellationStatus
   const failed = status?.paymentStatus === 'Failed'
   const cancelled = status?.paymentStatus === 'Refunded'
   const finish = () => {
@@ -169,11 +171,11 @@ export function BookingPayment({ booking, language, token, enabled, onLockChange
   </section>
   if (status || uncertain) return <section className={`reservation-payment-result ${issued ? 'reservation-payment-result--success' : ''}`} role="status">
     {issued || cancelled ? <CheckCircle2 size={34} /> : failed ? <CircleAlert size={34} /> : <LoaderCircle size={34} className="reservation-spinner" />}
-    <h3>{issued ? c.success : cancelled ? c.cancelled : paid ? c.paid : failed ? c.failed : c.uncertain}</h3>
-    {!issued && <p>{cancelled ? c.cancelledHint : paid ? c.paidHint : failed ? c.failedHint : c.uncertainHint}</p>}
+    <h3>{issued ? c.success : cancelled ? c.cancelled : cancelling ? (language === 'tr' ? 'İptal / iade kontrol ediliyor' : 'Cancellation / refund under review') : paid ? c.paid : failed ? c.failed : c.uncertain}</h3>
+    {!issued && <p>{cancelled ? c.cancelledHint : cancelling ? (language === 'tr' ? 'Rezervasyon için iptal işlemi başlatıldı. İade sonucu kesinleşene kadar tekrar ödeme veya iptal işlemi yapma.' : 'A cancellation was requested. Do not pay or cancel again until the refund is confirmed.') : paid ? c.paidHint : failed ? c.failedHint : c.uncertainHint}</p>}
     {status && <p className="reservation-order-code">{c.code}<strong>{status.ticketCode}</strong></p>}
     {paid && emailHint && <p>{emailHint}</p>}
-    {issued && <div className="reservation-issued-tickets">{status.tickets.map((ticket, index) => <div key={ticket.ticketGuid ?? index}><span>{index + 1}. {c.pnr}</span><strong>{ticket.pnr}</strong></div>)}</div>}
+    {issued && <div className="reservation-issued-tickets">{status.tickets.map((ticket, index) => <div key={ticket.ticketGuid ?? index}><span>{index + 1}. {c.pnr}</span><strong>{ticket.pnr}</strong><TicketQr guid={ticket.ticketGuid} label={`${index + 1}. ${language === 'tr' ? 'yolcu bileti' : 'passenger ticket'}`} /></div>)}</div>}
     {issued && <p>{language === 'tr' ? 'Yolculuğun için sipariş ve PNR kodlarını sakla.' : 'Keep your order and PNR codes for your trip.'}</p>}
     {(issued || cancelled) && <button type="button" className="button button--navy" onClick={finish}>{language === 'tr' ? 'Tamam, turlara dön' : 'Done, back to tours'}</button>}
     {failed ? <button type="button" className="button button--navy" onClick={retryFailed}>{c.retry}</button>

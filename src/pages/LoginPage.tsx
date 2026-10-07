@@ -45,7 +45,7 @@ export default function LoginPage() {
   }, [language])
 
   useEffect(() => {
-    if (session) navigate(session.user.role === 'Admin' ? '/admin/tickets' : '/', { replace: true })
+    if (session) navigate(session.user.role === 'Admin' ? '/admin/tickets' : '/hesabim', { replace: true })
   }, [navigate, session])
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -63,7 +63,8 @@ export default function LoginPage() {
             lastName: String(data.get('lastName') || ''),
           })
       const requestedPath = (location.state as { from?: string } | null)?.from
-      navigate(result.user.role === 'Admin' ? requestedPath || '/admin/tickets' : '/', { replace: true })
+      const safeRequestedPath = requestedPath?.startsWith('/') && !requestedPath.startsWith('//') && (result.user.role === 'Admin' || !requestedPath.startsWith('/admin')) ? requestedPath : null
+      navigate(safeRequestedPath || (result.user.role === 'Admin' ? '/admin/tickets' : '/hesabim'), { replace: true })
     } catch (caught) {
       setError(caught instanceof ApiError ? caught.message : 'İşlem tamamlanamadı.')
     } finally {

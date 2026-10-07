@@ -11,6 +11,8 @@ import TourContentsPage from './admin/TourContentsPage'
 import UsersPage from './admin/UsersPage'
 import { AuthProvider } from './auth/AuthContext'
 import ProtectedAdminRoute from './auth/ProtectedAdminRoute'
+import ProtectedAccountRoute from './auth/ProtectedAccountRoute'
+import AccountPage from './pages/AccountPage'
 import LoginPage from './pages/LoginPage'
 import ContactPage from './pages/ContactPage'
 import FaqPage from './pages/FaqPage'
@@ -24,6 +26,7 @@ createRoot(document.getElementById('root')!).render(
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route element={<ProtectedAccountRoute />}><Route path="/hesabim" element={<AccountPage />} /><Route path="/account" element={<AccountPage />} /></Route>
           <Route path="/iletisim" element={<ContactPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/sikca-sorulan-sorular" element={<FaqPage />} />

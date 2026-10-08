@@ -34,6 +34,7 @@ import type { HomepageContentDocument } from './content/homepage'
 import { apiBaseUrl, apiRequest } from './lib/api'
 import { setPageMetadata, SITE_NAME } from './lib/site'
 import { BookingDrawer } from './components/BookingDrawer'
+import { categoryPath, tourPath } from './content/tour-pages'
 
 type Language = 'tr' | 'en'
 type Category = 'bosphorus' | 'turkish-night' | 'sunset' | 'daytime'
@@ -516,12 +517,6 @@ function App() {
     document.getElementById('turlar')?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const showCategoryTours = (category: Category) => {
-    setFilter(category)
-    setShowAll(true)
-    requestAnimationFrame(() => document.getElementById('turlar')?.scrollIntoView({ behavior: 'smooth' }))
-  }
-
   const serviceItems = page?.services.items
     ?? c.services.items.map(([categoryKey, title, description, browseLabel, bookingLabel]) => ({ categoryKey, title, description, browseLabel, bookingLabel }))
   const benefits = page?.why.benefits
@@ -636,7 +631,7 @@ function App() {
                   <div className="tour-card__rating"><Star size={14} fill="currentColor" /> {tour.rating} <span>({tour.reviews})</span></div>
                 </div>
                 <div className="tour-card__body">
-                  <span className="tour-card__category">{c.categories[tour.category]}</span><h3>{tour.title[language]}</h3><p>{tour.description[language]}</p>
+                  <span className="tour-card__category">{c.categories[tour.category]}</span><h3>{tour.live ? <Link to={tourPath(tour.id)}>{tour.title[language]}</Link> : tour.title[language]}</h3><p>{tour.description[language]}</p>
                   <div className="tour-card__meta"><span><Clock3 size={16} /> {tour.duration[language]}</span><span><MapPin size={16} /> {tour.location[language]}</span></div>
                   <div className="tour-card__footer"><button type="button" disabled={!tour.live} onClick={() => openBooking(tour)} aria-label={`${tour.title[language]} ${c.tours.select}`}>{c.tours.select} <ArrowRight size={18} /></button></div>
                 </div>
@@ -655,7 +650,7 @@ function App() {
               const relatedTour = tours.find((tour) => tour.category === item.categoryKey)
               return <article className="service-card" key={item.categoryKey}>
                 <div className="service-card__image"><img src={relatedTour?.image ?? fallbackTours.find((tour) => tour.category === item.categoryKey)?.image} alt="" /><span>0{index + 1}</span></div>
-                <div className="service-card__body"><small>{c.categories[item.categoryKey]}</small><h3>{item.title}</h3><p>{item.description}</p><div><button type="button" onClick={() => showCategoryTours(item.categoryKey)}>{item.browseLabel} <ArrowRight /></button><button type="button" disabled={!relatedTour?.live} onClick={() => openBooking(relatedTour)}>{item.bookingLabel} <Ticket /></button></div></div>
+                <div className="service-card__body"><small>{c.categories[item.categoryKey]}</small><h3>{item.title}</h3><p>{item.description}</p><div><Link to={categoryPath(item.categoryKey)}>{item.browseLabel} <ArrowRight /></Link><button type="button" disabled={!relatedTour?.live} onClick={() => openBooking(relatedTour)}>{item.bookingLabel} <Ticket /></button></div></div>
               </article>
             })}
           </div>
@@ -685,7 +680,7 @@ function App() {
           <div className="footer__brand"><Logo light language={language} /><p>{c.footer.tagline.split('\n').map((line) => <span key={line}>{line}<br /></span>)}</p><a href="mailto:merhaba@peremetours.com">merhaba@peremetours.com</a></div>
           <div className="footer__links">{c.footer.columns.map(([title, ...links], columnIndex) => <div key={title}><strong>{title}</strong>{links.map((link, index) => {
             const to = columnIndex === 0
-              ? '/#turlar'
+              ? ['/#turlar', categoryPath('bosphorus'), categoryPath('turkish-night'), categoryPath('daytime')][index]
               : columnIndex === 1
                 ? ['/#neden-biz', '/#hikayeler', '/sikca-sorulan-sorular', '/iletisim'][index]
                 : '/kvkk-aydinlatma-metni'

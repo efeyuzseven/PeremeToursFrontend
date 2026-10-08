@@ -37,6 +37,10 @@ Playwright testleri yerel Microsoft Edge üzerinde masaüstü ve mobil boyutlard
 
 Arayüz Türkçe ve İngilizce çalışır. Dil seçimi tarayıcıda saklanır. Yönetici panelindeki `Site İçerikleri` ekranından ana sayfanın iki dildeki metinleri, Hizmetlerimiz kartları ve Instagram video bağlantıları düzenlenebilir.
 
+Hizmetlerimiz bölümündeki **İlgili turları gör** bağlantıları `/turlar/turk-gecesi`, `/turlar/sunset`, `/turlar/daytime` ve `/turlar/bogaz-turu` sayfalarını açar. Her canlı tur ayrıca `/tur/{externalTourId}` detay sayfasına sahiptir; ana sayfa ve ilgili tur kartlarındaki başlıklardan erişilir. Bu sayfalardaki rezervasyon butonları mevcut canlı bilet/fiyat akışını açar; liste kartlarında fiyat gösterilmez. Gizlenen veya artık kaynak katalogda bulunmayan turların detay sayfaları yayınlanmaz.
+
+Admin panelindeki **Tur Sayfaları** (`/admin/tour-pages`) ekranı dört hizmet sayfasını ve API'den gelen her turun detay sayfasını yönetir. TR/EN başlık, giriş, buton ve SEO metinleri ayrı saklanır. Tam genişlik veya yan yana kapak, kapak görseli, metin/öne çıkanlar/galeri bölümleri, bölüm sırası, görünürlük ve beyaz/açık mavi arka plan seçilebilir. Taslaklar dil değiştirirken korunur; kaydetmeden iki dilde canlı önizleme yapılabilir. Görseller JPG/PNG/WebP ve en fazla 8 MB olmalıdır. **Sayfayı kaydet** ile iki dil birlikte yayınlanır. Bu içerik değişiklikleri EasyTicket fiyatlarını veya seferlerini değiştirmez.
+
 `/iletisim` ve `/sikca-sorulan-sorular` herkese açık ve mobil uyumlu yardım sayfalarıdır. SSS içerikleri yönetici panelindeki `Sıkça Sorulanlar` ekranından iki dilde eklenebilir, düzenlenebilir, sıralanabilir ve yayından kaldırılabilir.
 
 ## AWS test yayını

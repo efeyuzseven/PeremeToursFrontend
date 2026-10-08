@@ -17,6 +17,8 @@ import LoginPage from './pages/LoginPage'
 import ContactPage from './pages/ContactPage'
 import FaqPage from './pages/FaqPage'
 import KvkkPage from './pages/KvkkPage'
+import TourPage from './pages/TourPage'
+import TourPagesPage from './admin/TourPagesPage'
 import './styles.css'
 
 createRoot(document.getElementById('root')!).render(
@@ -25,6 +27,8 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <Routes>
           <Route path="/" element={<App />} />
+          <Route path="/turlar/:categorySlug" element={<TourPage />} />
+          <Route path="/tur/:tourId" element={<TourPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route element={<ProtectedAccountRoute />}><Route path="/hesabim" element={<AccountPage />} /><Route path="/account" element={<AccountPage />} /></Route>
           <Route path="/iletisim" element={<ContactPage />} />
@@ -39,6 +43,7 @@ createRoot(document.getElementById('root')!).render(
               <Route path="tickets" element={<TicketsPage />} />
               <Route path="ticket-errors" element={<TicketErrorsPage />} />
               <Route path="tour-contents" element={<TourContentsPage />} />
+              <Route path="tour-pages" element={<TourPagesPage />} />
               <Route path="site-content" element={<SiteContentPage />} />
               <Route path="faqs" element={<FrequentlyAskedQuestionsPage />} />
               <Route path="users" element={<UsersPage />} />

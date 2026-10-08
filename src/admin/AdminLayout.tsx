@@ -43,6 +43,7 @@ export default function AdminLayout() {
           <NavLink to="/admin/tickets" onClick={() => setMenuOpen(false)}><TicketCheck /> {c.tickets}</NavLink>
           <NavLink to="/admin/ticket-errors" onClick={() => setMenuOpen(false)}><CircleAlert /> {language === 'tr' ? 'Bilet Hata Kayıtları' : 'Ticket Error Logs'}</NavLink>
           <NavLink to="/admin/tour-contents" onClick={() => setMenuOpen(false)}><Images /> {c.tourContents}</NavLink>
+          <NavLink to="/admin/tour-pages" onClick={() => setMenuOpen(false)}><FilePenLine /> {language === 'tr' ? 'Tur Sayfaları' : 'Tour Pages'}</NavLink>
           <NavLink to="/admin/site-content" onClick={() => setMenuOpen(false)}><FilePenLine /> {c.siteContent}</NavLink>
           <NavLink to="/admin/faqs" onClick={() => setMenuOpen(false)}><CircleHelp /> {c.faqs}</NavLink>
           <NavLink to="/admin/users" onClick={() => setMenuOpen(false)}><UsersRound /> {c.users}</NavLink>

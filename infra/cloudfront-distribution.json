@@ -1,7 +1,8 @@
 {
   "CallerReference": "peremetours-test-20260902-01",
   "Aliases": {
-    "Quantity": 0
+    "Quantity": 2,
+    "Items": ["pereme.com.tr", "www.pereme.com.tr"]
   },
   "DefaultRootObject": "index.html",
   "Origins": {
@@ -51,7 +52,8 @@
       "Quantity": 0
     },
     "FunctionAssociations": {
-      "Quantity": 0
+      "Quantity": 1,
+      "Items": [{ "FunctionARN": "arn:aws:cloudfront::890571110014:function/peremetours-www-to-apex", "EventType": "viewer-request" }]
     },
     "FieldLevelEncryptionId": "",
     "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
@@ -87,8 +89,9 @@
   "PriceClass": "PriceClass_100",
   "Enabled": true,
   "ViewerCertificate": {
-    "CloudFrontDefaultCertificate": true,
-    "MinimumProtocolVersion": "TLSv1"
+    "ACMCertificateArn": "arn:aws:acm:us-east-1:890571110014:certificate/3e7354cf-beae-44b4-9288-a950f05a3ed2",
+    "SSLSupportMethod": "sni-only",
+    "MinimumProtocolVersion": "TLSv1.2_2021"
   },
   "Restrictions": {
     "GeoRestriction": {

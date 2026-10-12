@@ -5,7 +5,7 @@
 - CloudFront distribution: `E2CWRTSM9C24S6`
 - Test URL: <https://d2bmjk2h6qp4lz.cloudfront.net>
 - Official site name: `Dentur | Pereme Tours`
-- Official URL: <https://www.pereme.com.tr>
+- Primary URL: <https://pereme.com.tr>
 
 The bucket blocks all public access. CloudFront reads objects through Origin Access Control, redirects HTTP to HTTPS, adds AWS managed security headers and maps SPA 403/404 responses to `index.html`.
 
@@ -15,17 +15,23 @@ Deploy a new version from PowerShell:
 .\scripts\deploy-test.ps1
 ```
 
-## Custom domain cutover (pending)
+## Custom domain cutover (AWS prepared; external DNS pending)
 
-As checked on 2026-10-07, DNS is managed outside this AWS account at Güzel Hosting. `www.pereme.com.tr` is a CNAME to `pereme.com.tr`, which points to a different hosting server. The CloudFront distribution currently has no custom aliases or ACM certificate for this domain. Updating page metadata does not migrate DNS or the existing website.
+On 2026-10-12 the domain delegates to `jimmy.ns.cloudflare.com` and `summer.ns.cloudflare.com`. Both ACM validation CNAME records are present and certificate `arn:aws:acm:us-east-1:890571110014:certificate/3e7354cf-beae-44b4-9288-a950f05a3ed2` is issued. The apex still resolves to the previous server, `104.247.167.147`; DNS is managed outside this AWS account.
 
-Before replacing the existing `www` record:
+The existing distribution is prepared with both custom aliases and the issued certificate, SNI-only and TLS 1.2 minimum. `peremetours-www-to-apex` is a native CloudFront Function (not Lambda) using `www-to-apex.js`. It redirects only the exact `www` host to `https://pereme.com.tr`, preserving paths and encoded/repeated query values. The CloudFront test host is not redirected. Validate it with `node scripts/test-domain-redirect.mjs`. Previous live distribution configuration is backed up in the private tour-image bucket under `deployment-backups/domain-cutover/`; always retrieve the current ETag before any rollback update.
 
-1. Confirm access to the domain's DNS panel and approval to switch the existing site.
-2. Request and DNS-validate an ACM certificate in `us-east-1` covering `www.pereme.com.tr` (and `pereme.com.tr` if serving the apex).
-3. Attach the issued certificate and matching aliases to the existing CloudFront distribution.
-4. Configure backend CORS and the Ziraat frontend origin for the new domain. The bank frame and callback use a restricted frontend origin: changing DNS alone is not enough. Keep the current origin until cutover to avoid interrupting test payments.
-5. Point `www` via CNAME to `d2bmjk2h6qp4lz.cloudfront.net`. Configure an HTTPS apex-to-www redirect or provider-supported ALIAS/ANAME separately; do not use CloudFront IP addresses as fixed A records.
-6. Verify HTTPS, sign-in, live tour availability and the bank callback before making the new domain primary. Then update email website links to the official URL.
+Backend CORS and bank iframe/callback allowlists include the apex, `www` and the test origin. Existing payment credentials, callback API URL and SMTP settings are retained. PostMessage uses explicit target origins, never `*` or request-header-derived origins.
 
-Existing support email addresses and SMTP credentials are not changed by this branding update.
+DNS owner handoff (Cloudflare, initially **DNS only / grey cloud**, TTL Auto):
+
+| Type | Name | Target |
+| --- | --- | --- |
+| CNAME | `@` | `d2bmjk2h6qp4lz.cloudfront.net` |
+| CNAME | `www` | `d2bmjk2h6qp4lz.cloudfront.net` |
+
+Replace only the conflicting old apex A/AAAA and `www` records. Cloudflare flattens the apex CNAME; do not assign fixed CloudFront IPs. Preserve MX, SPF/DKIM/DMARC TXT, mail-related records and both ACM validation CNAMEs. If enabling Cloudflare proxy later, use **Full (strict)** TLS, not Flexible, and ensure caching/WAF do not interfere with application behavior.
+
+After DNS switches, verify normal HTTPS (without DNS overrides), `www` redirects with query values intact, deep routes, TR/EN, live tour availability, sign-in and the payment frame/CORS policies. Verification must not start purchases/refunds or submit live card data. Then change the runtime `MailSettings:WebsiteUrl` to `https://pereme.com.tr`; it intentionally remains on the working test URL until the external DNS cutover is confirmed.
+
+Existing email accounts, MX records and SMTP credentials are not changed by the AWS preparation.

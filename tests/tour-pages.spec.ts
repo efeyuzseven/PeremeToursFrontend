@@ -108,7 +108,7 @@ test('TR and EN titles, body and SEO change without changing the page URL', asyn
   await expect(page.getByRole('heading', { name: 'Highlights', exact: true })).toBeVisible()
   await expect(page).toHaveTitle('Sunset experience — Dentur | Pereme Tours')
   await expect(page.locator('head meta[name="description"]')).toHaveAttribute('content', 'English Sunset SEO description.')
-  await expect(page.locator('head link[rel="canonical"]')).toHaveAttribute('href', 'https://www.pereme.com.tr/turlar/sunset')
+  await expect(page.locator('head link[rel="canonical"]')).toHaveAttribute('href', 'https://pereme.com.tr/turlar/sunset')
   await page.reload()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sunset experience')
 })

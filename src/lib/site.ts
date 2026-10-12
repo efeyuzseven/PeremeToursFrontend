@@ -1,5 +1,5 @@
 export const SITE_NAME = 'Dentur | Pereme Tours'
-export const SITE_URL = 'https://www.pereme.com.tr'
+export const SITE_URL = 'https://pereme.com.tr'
 
 type PageMetadata = {
   title?: string

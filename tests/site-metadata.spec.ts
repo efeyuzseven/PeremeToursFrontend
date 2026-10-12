@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 const brand = 'Dentur | Pereme Tours'
-const website = 'https://www.pereme.com.tr'
+const website = 'https://pereme.com.tr'
 
 test.beforeEach(async ({ page }) => {
   await page.route('**/fonts.googleapis.com/**', (route) => route.abort())

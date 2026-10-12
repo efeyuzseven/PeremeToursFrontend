@@ -5,6 +5,8 @@
 Site adı: **Dentur | Pereme Tours**. Ana adres: <https://pereme.com.tr>. `www.pereme.com.tr`, yol ve sorgu parametrelerini koruyan bir 308 yönlendirmesiyle ana adrese gider.
 Sekme başlıkları, canonical ve paylaşım bilgileri `src/lib/site.ts` üzerinden yönetilir; giriş, hesap ve yönetici sayfaları `noindex` kullanır. Alan adı, DNS ve SSL geçişi tamamlandı; canlı adres normal DNS ile 2026-10-12 tarihinde masaüstü/mobil olarak doğrulandı. DNS kayıtları ve geçiş kontrolleri `infra/README.md` içindedir.
 
+Giriş ekranındaki **Şifremi unuttum** bağlantısı `/sifremi-unuttum` sayfasını açar. TR/EN e-posta talebi ve `/sifre-sifirla` yeni şifre ekranı mevcuttur; yönetici yönlendirme notu gösterilmez, mevcut yönetici giriş yönlendirmesi korunur. E-posta bağlantısındaki tek kullanımlık kod URL fragment'inden alınır ve adres çubuğundan temizlenir; tarayıcı depolamasına yazılmaz. Şifre sıfırlandıktan sonra yerel oturum temizlenir ve yeni şifreyle yeniden giriş gerekir. Bu sayfalar `noindex, nofollow` kullanır.
+
 ## Geliştirme
 
 ```bash

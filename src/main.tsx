@@ -29,7 +29,9 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/" element={<App />} />
           <Route path="/turlar/:categorySlug" element={<TourPage />} />
           <Route path="/tur/:tourId" element={<TourPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage key="login" />} />
+          <Route path="/sifremi-unuttum" element={<LoginPage key="forgot" initialMode="forgot" />} />
+          <Route path="/sifre-sifirla" element={<LoginPage key="reset" initialMode="reset" />} />
           <Route element={<ProtectedAccountRoute />}><Route path="/hesabim" element={<AccountPage />} /><Route path="/account" element={<AccountPage />} /></Route>
           <Route path="/iletisim" element={<ContactPage />} />
           <Route path="/contact" element={<ContactPage />} />

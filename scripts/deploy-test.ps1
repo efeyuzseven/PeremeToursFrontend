@@ -10,7 +10,6 @@ npm run build
 if ($LASTEXITCODE -ne 0) { throw 'Production build failed.' }
 
 aws s3 sync 'dist/assets' "s3://$BucketName/assets" `
-  --delete `
   --region $Region `
   --cache-control 'public,max-age=31536000,immutable'
 if ($LASTEXITCODE -ne 0) { throw 'Asset upload failed.' }
@@ -36,4 +35,4 @@ aws cloudfront create-invalidation `
   --no-cli-pager
 if ($LASTEXITCODE -ne 0) { throw 'CloudFront invalidation failed.' }
 
-Write-Host 'Deployment complete: https://d2bmjk2h6qp4lz.cloudfront.net'
+Write-Host 'Deployment complete: https://pereme.com.tr'

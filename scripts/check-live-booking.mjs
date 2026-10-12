@@ -10,9 +10,17 @@ try {
     const page = await context.newPage()
     const errors = []
     let paymentStarts = 0
+    let blockedWrites = 0
+    await page.route('**/api/v1/**', (route) => {
+      const request = route.request()
+      const path = new URL(request.url()).pathname
+      if (['GET', 'OPTIONS'].includes(request.method()) || (request.method() === 'POST' && path === '/api/v1/tours/quote')) return route.continue()
+      blockedWrites++
+      return route.abort()
+    })
     page.on('pageerror', (error) => errors.push(error.message))
     page.on('request', (request) => { if (new URL(request.url()).pathname === '/api/v1/payments/tour/initialize') paymentStarts++ })
-    await page.goto('https://d2bmjk2h6qp4lz.cloudfront.net', { waitUntil: 'domcontentloaded' })
+    await page.goto('https://pereme.com.tr', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('.tour-card__footer button').first()).toBeEnabled({ timeout: 30_000 })
     await expect(page.locator('.tour-card .price')).toHaveCount(0)
     await expect(page.locator('.final-cta__image')).toHaveCSS('background-image', /ad2ca4f6-d888-4621-b0c1-b3db5903f0ac\.webp/)
@@ -86,6 +94,7 @@ try {
       expirySelections = true
     }
     const overflow = await dialog.evaluate((element) => element.scrollWidth > element.clientWidth)
+    expect(blockedWrites).toBe(0)
     await page.screenshot({ path: `test-results/live-booking-${viewport.width}.png` })
     console.log(JSON.stringify({ viewport, cardActions, guestCount: quote.guestCount, amount: quote.amount, paymentEnabled: paymentSettings.enabled, passengerFormScroll, passengerReviewScroll, expirySelections, paymentStarts, overflow, errors }))
     expect(paymentStarts).toBe(0)

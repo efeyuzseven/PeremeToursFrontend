@@ -1,9 +1,9 @@
 # PeremeTours Frontend
 
-İstanbul Boğazı tur ve deneyim satış sitesi için hazırlanan responsive tasarım prototipi.
+İstanbul Boğazı tur ve deneyim satışları için canlı, mobil uyumlu web sitesi. Gerçek kullanıcı, rezervasyon ve ödeme verileri içerir.
 
 Site adı: **Dentur | Pereme Tours**. Ana adres: <https://pereme.com.tr>. `www.pereme.com.tr`, yol ve sorgu parametrelerini koruyan bir 308 yönlendirmesiyle ana adrese gider.
-Sekme başlıkları, canonical ve paylaşım bilgileri `src/lib/site.ts` üzerinden yönetilir; giriş, hesap ve yönetici sayfaları `noindex` kullanır. AWS alan adı/SSL hazırlığı tamamlandı; Cloudflare DNS hedefi değiştirilene kadar mevcut CloudFront test adresi kullanılmaya devam eder. DNS kayıtları ve geçiş kontrolleri `infra/README.md` içindedir.
+Sekme başlıkları, canonical ve paylaşım bilgileri `src/lib/site.ts` üzerinden yönetilir; giriş, hesap ve yönetici sayfaları `noindex` kullanır. Alan adı, DNS ve SSL geçişi tamamlandı; canlı adres normal DNS ile 2026-10-12 tarihinde masaüstü/mobil olarak doğrulandı. DNS kayıtları ve geçiş kontrolleri `infra/README.md` içindedir.
 
 ## Geliştirme
 
@@ -33,7 +33,7 @@ Kart üzerindeki isim, kart numarası, son kullanma ayı/yılı ve CVC alanları
 
 Playwright testleri yerel Microsoft Edge üzerinde masaüstü ve mobil boyutlarda çalışır; gerçek API/ödeme yerine test verileri kullanılır.
 
-`npm run test:live`, AWS test sitesinde masaüstü ve mobil rezervasyon önizlemesini kontrol eder. Yalnızca canlı fiyat sorgusu yapar; kayıt oluşturmaz veya banka işlemi başlatmaz. Ekran görüntüleri git'e eklenmeyen `test-results` klasörüne kaydedilir.
+`npm run test:live`, `https://pereme.com.tr` üzerinde masaüstü ve mobil rezervasyon önizlemesini kontrol eder. Yalnızca GET/OPTIONS ve kayıt oluşturmayan fiyat doğrulama isteğine izin verir; diğer API yazma işlemlerini, özellikle ödeme başlatmayı engeller. Kart verisi göndermez. Ekran görüntüleri git'e eklenmeyen `test-results` klasörüne kaydedilir.
 
 Arayüz Türkçe ve İngilizce çalışır. Dil seçimi tarayıcıda saklanır. Yönetici panelindeki `Site İçerikleri` ekranından ana sayfanın iki dildeki metinleri, Hizmetlerimiz kartları ve Instagram video bağlantıları düzenlenebilir.
 
@@ -43,15 +43,17 @@ Admin panelindeki **Tur Sayfaları** (`/admin/tour-pages`) ekranı dört hizmet 
 
 `/iletisim` ve `/sikca-sorulan-sorular` herkese açık ve mobil uyumlu yardım sayfalarıdır. SSS içerikleri yönetici panelindeki `Sıkça Sorulanlar` ekranından iki dilde eklenebilir, düzenlenebilir, sıralanabilir ve yayından kaldırılabilir.
 
-## AWS test yayını
+## AWS canlı yayını
 
-Test ortamı: <https://d2bmjk2h6qp4lz.cloudfront.net>
+Canlı adres: <https://pereme.com.tr>. CloudFront adresi aynı canlı servisin alternatif origin'idir. AWS kaynak/script adlarındaki `test` tarihî adlandırmadır; ortam deneme veya demo değildir.
 
 Yeni bir sürüm yayınlamak için:
 
 ```powershell
 .\scripts\deploy-test.ps1
 ```
+
+Canlı kullanıcıların eski bundle'ları yükleyebilmesi için yayın sırasında önceki görsel/JS/CSS dosyaları silinmez.
 
 ## Görsel varlıklar
 

@@ -195,7 +195,7 @@ const copy = {
     a11y: {
       mainNav: 'Ana menü', language: 'Dil seçimi', openMenu: 'Menüyü aç', closeMenu: 'Menüyü kapat', closeBooking: 'Rezervasyonu kapat',
       decrease: 'Misafir azalt', increase: 'Misafir artır', scrollTours: 'Turlara kaydır', tourCategories: 'Tur kategorileri',
-      previousReview: 'Önceki yorum', nextReview: 'Sonraki yorum', newsletter: 'Bültene kaydol', email: 'E-posta adresi',
+      previousReview: 'Önceki yorum', nextReview: 'Sonraki yorum',
     },
     hero: {
       eyebrow: 'İstanbul, suyun öteki tarafından', lead: 'Şehri izleme.', accent: 'Onunla ak.',
@@ -256,8 +256,7 @@ const copy = {
         ['Pereme', 'Hakkımızda', 'Hikâyeler', 'Sıkça sorulanlar', 'İletişim'],
         ['Yardım', 'KVKK Aydınlatma Metni'],
       ],
-      newsletterTitle: 'İstanbul’dan haberin olsun.', newsletterText: 'Yeni rotalar ve sürpriz fiyatlar, ayda en fazla iki kez.',
-      emailPlaceholder: 'E-posta adresin', copyright: `© 2026 ${SITE_NAME}`,
+      copyright: `© 2026 ${SITE_NAME}`,
     },
     drawer: {
       successLabel: 'Talebin hazır', successTitle: 'Şimdi ödeme altyapısını bekliyoruz.',
@@ -274,7 +273,7 @@ const copy = {
     a11y: {
       mainNav: 'Main navigation', language: 'Choose language', openMenu: 'Open menu', closeMenu: 'Close menu', closeBooking: 'Close booking',
       decrease: 'Remove guest', increase: 'Add guest', scrollTours: 'Scroll to tours', tourCategories: 'Tour categories',
-      previousReview: 'Previous review', nextReview: 'Next review', newsletter: 'Join the newsletter', email: 'Email address',
+      previousReview: 'Previous review', nextReview: 'Next review',
     },
     hero: {
       eyebrow: 'Istanbul, from the other side of the water', lead: 'Don’t just watch.', accent: 'Flow with it.',
@@ -335,8 +334,7 @@ const copy = {
         ['Pereme', 'About us', 'Stories', 'Frequently asked', 'Contact'],
         ['Support', 'KVKK Notice'],
       ],
-      newsletterTitle: 'Stay close to Istanbul.', newsletterText: 'New routes and surprise fares, no more than twice a month.',
-      emailPlaceholder: 'Your email address', copyright: `© 2026 ${SITE_NAME}`,
+      copyright: `© 2026 ${SITE_NAME}`,
     },
     drawer: {
       successLabel: 'Your request is ready', successTitle: 'The payment connection comes next.',
@@ -686,7 +684,6 @@ function App() {
                 : '/kvkk-aydinlatma-metni'
             return <Link key={link} to={to}>{link}</Link>
           })}</div>)}</div>
-          <div className="newsletter"><strong>{c.footer.newsletterTitle}</strong><p>{c.footer.newsletterText}</p><form onSubmit={(event) => event.preventDefault()}><input type="email" placeholder={c.footer.emailPlaceholder} aria-label={c.a11y.email} required /><button type="submit" aria-label={c.a11y.newsletter}><ArrowRight /></button></form></div>
         </div>
         <div className="shell footer__bottom"><span>{c.footer.copyright}</span><a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><Camera size={17} /> Instagram</a></div>
       </footer>

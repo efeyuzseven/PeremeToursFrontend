@@ -2043,7 +2043,7 @@ footer {
 .footer__top {
   padding: 75px 0 62px;
   display: grid;
-  grid-template-columns: .9fr 1.5fr .75fr;
+  grid-template-columns: .9fr 2.25fr;
   gap: 65px;
 }
 
@@ -2072,8 +2072,7 @@ footer {
   gap: 13px;
 }
 
-.footer__links strong,
-.newsletter strong {
+.footer__links strong {
   margin-bottom: 8px;
   color: #fff;
   font-size: 11px;
@@ -2087,37 +2086,6 @@ footer {
 }
 
 .footer__links a:hover { color: var(--coral); }
-
-.newsletter p {
-  margin: 14px 0 20px;
-  font-size: 11px;
-  line-height: 1.6;
-}
-
-.newsletter form {
-  display: flex;
-  border-bottom: 1px solid rgba(255,255,255,.3);
-}
-
-.newsletter input {
-  width: 100%;
-  padding: 12px 0;
-  border: 0;
-  outline: 0;
-  color: #fff;
-  background: transparent;
-  font-size: 11px;
-}
-
-.newsletter input::placeholder { color: rgba(255,255,255,.4); }
-
-.newsletter button {
-  border: 0;
-  color: #fff;
-  background: transparent;
-}
-
-.newsletter button svg { width: 17px; }
 
 .footer__bottom {
   min-height: 70px;
@@ -2398,7 +2366,6 @@ footer {
   .stories__inner { gap: 55px; }
   .instagram-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer__top { grid-template-columns: 1fr 1.6fr; }
-  .newsletter { grid-column: 1 / -1; max-width: 420px; }
 }
 
 @media (max-width: 720px) {
@@ -2488,7 +2455,6 @@ footer {
   .final-cta h2 { font-size: 50px; }
   .footer__top { grid-template-columns: 1fr; padding: 60px 0 50px; }
   .footer__links { grid-template-columns: 1fr 1fr; row-gap: 42px; }
-  .newsletter { grid-column: auto; }
   .footer__bottom { padding: 25px 0; flex-wrap: wrap; gap: 14px; }
   .booking-drawer { padding: 42px 22px 30px; }
   .booking-drawer__close { top: 18px; right: 18px; }

@@ -65,7 +65,7 @@
 .faq-contact > a svg { width: 17px; }
 
 .contact-section { background: rgba(106,157,210,.055); }
-.contact-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 17px; margin-top: -132px; margin-bottom: 68px; position: relative; }
+.contact-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; margin-top: -132px; margin-bottom: 68px; position: relative; }
 .contact-cards > * { position: relative; min-height: 250px; padding: 29px; border: 1px solid rgba(31,71,140,.12); border-radius: 17px; background: #fff; box-shadow: 0 18px 48px rgba(7,27,53,.08); transition: transform .2s ease, box-shadow .2s ease; }
 .contact-cards > a:hover { transform: translateY(-5px); box-shadow: 0 24px 55px rgba(7,27,53,.13); }
 .contact-cards > * > span { display: grid; place-items: center; width: 49px; height: 49px; margin-bottom: 29px; border-radius: 50%; color: var(--blue); background: rgba(106,157,210,.13); }
@@ -138,8 +138,6 @@
   .info-header nav { display: none; }
   .info-menu-button { display: grid; }
   .info-mobile-menu { display: block; }
-  .contact-cards { grid-template-columns: 1fr 1fr; }
-  .contact-cards > :last-child { grid-column: 1 / -1; }
   .contact-form-layout { grid-template-columns: 1fr; padding: 45px; gap: 45px; }
   .legal-document { padding-inline: 42px; }
 }
@@ -160,7 +158,6 @@
   .faq-contact { align-items: flex-start; flex-direction: column; padding: 27px 24px; }
   .faq-contact > a { width: 100%; justify-content: center; }
   .contact-cards { grid-template-columns: 1fr; margin-top: -100px; }
-  .contact-cards > :last-child { grid-column: auto; }
   .contact-cards > * { min-height: 225px; }
   .contact-form-layout { padding: 30px 20px; }
   .contact-form { grid-template-columns: 1fr; }

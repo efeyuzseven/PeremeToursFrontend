@@ -18,6 +18,7 @@ export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    public readonly code?: string,
   ) {
     super(message)
   }
@@ -33,6 +34,7 @@ async function readApiResponse<T>(response: Response): Promise<T> {
     throw new ApiError(
       response.status,
       validationMessage || data.detail || data.message || data.title || 'İşlem tamamlanamadı.',
+      data.title,
     )
   }
   return data as T

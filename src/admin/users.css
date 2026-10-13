@@ -1,0 +1,12 @@
+.user-edit-button { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 11px; border: 1px solid rgba(106,157,210,.28); border-radius: 8px; color: #1f478c; background: #fff; font-size: 11px; font-weight: 700; }
+.user-edit-button:hover { background: rgba(106,157,210,.12); }
+.user-edit-button:focus-visible { outline: 2px solid #1f478c; outline-offset: 3px; }
+.user-edit-button:disabled { cursor: not-allowed; opacity: .55; }
+.user-edit-dialog { color: #071b35; }
+.user-edit-dialog form > label { min-width: 0; font-size: 12px; }
+.user-edit-dialog input { font-size: 14px; }
+.user-edit-dialog input[readonly] { color: #1f478c; background: rgba(106,157,210,.1); }
+.user-edit-note { margin: 0; padding: 13px 15px; border-radius: 10px; color: #1f478c; background: rgba(106,157,210,.1); font-size: 12px; font-weight: 400; line-height: 1.65; overflow-wrap: anywhere; }
+.user-edit-note span { display: block; margin-top: 8px; font-weight: 700; }
+.user-edit-error { margin: 0; padding: 12px 15px; border: 1px solid #6a9dd2; border-radius: 10px; color: #071b35; font-size: 13px; line-height: 1.6; }
+.users-success { margin-bottom: 16px; padding: 13px 16px; border: 1px solid rgba(106,157,210,.3); border-radius: 10px; color: #1f478c; background: #fff; font-size: 13px; }

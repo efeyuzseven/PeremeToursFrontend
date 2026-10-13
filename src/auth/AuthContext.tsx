@@ -29,7 +29,9 @@ type AuthContextValue = {
   user: AuthUser | null
   login: (email: string, password: string) => Promise<AuthSession>
   register: (input: RegisterInput) => Promise<AuthSession>
-  logout: () => void
+  logout: (reason?: 'email-updated') => void
+  logoutReason: 'email-updated' | null
+  refreshUser: () => Promise<void>
 }
 
 const storageKey = 'peremetours-session'
@@ -53,9 +55,11 @@ function readSession(): AuthSession | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(readSession)
+  const [logoutReason, setLogoutReason] = useState<'email-updated' | null>(null)
 
   const saveSession = (nextSession: AuthSession) => {
     window.sessionStorage.setItem(storageKey, JSON.stringify(nextSession))
+    setLogoutReason(null)
     setSession(nextSession)
     return nextSession
   }
@@ -63,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(() => ({
     session,
     user: session?.user ?? null,
+    logoutReason,
     async login(email, password) {
       const result = await apiRequest<AuthSession>('/api/v1/auth/login', {
         method: 'POST',
@@ -77,11 +82,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       return saveSession(result)
     },
-    logout() {
+    logout(reason) {
       window.sessionStorage.removeItem(storageKey)
+      setLogoutReason(reason ?? null)
       setSession(null)
     },
-  }), [session])
+    async refreshUser() {
+      if (!session) return
+      const user = await apiRequest<AuthUser>('/api/v1/auth/me', { token: session.accessToken, cache: 'no-store' })
+      saveSession({ ...session, user })
+    },
+  }), [session, logoutReason])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

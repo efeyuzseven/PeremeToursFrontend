@@ -29,6 +29,7 @@ const text = {
     tooMany: 'Çok fazla deneme yapıldı. Lütfen biraz sonra tekrar dene.',
     failed: 'İşlem tamamlanamadı. Lütfen tekrar dene.', show: 'Şifreyi göster', hide: 'Şifreyi gizle',
     backLogin: 'Giriş ekranına dön', requestAgain: 'Yeni bağlantı iste',
+    emailUpdated: 'Giriş e-postanız güncellendi. Yeni adresiniz ve mevcut şifrenizle yeniden giriş yapın.',
   },
   en: {
     back: 'Back to website', eyebrow: 'My Pereme account', title: 'Your Bosphorus story starts here.',
@@ -49,6 +50,7 @@ const text = {
     tooMany: 'Too many attempts. Please try again later.',
     failed: 'We could not complete this request. Please try again.', show: 'Show password', hide: 'Hide password',
     backLogin: 'Back to sign in', requestAgain: 'Request a new link',
+    emailUpdated: 'Your login email has been updated. Sign in again with the new address and your existing password.',
   },
 }
 
@@ -60,7 +62,7 @@ export default function LoginPage({ initialMode = 'login' }: { initialMode?: Mod
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [complete, setComplete] = useState(false)
-  const { login, register, logout, session } = useAuth()
+  const { login, register, logout, session, logoutReason } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const c = text[language]
@@ -139,6 +141,7 @@ export default function LoginPage({ initialMode = 'login' }: { initialMode?: Mod
             <button role="tab" aria-selected={mode === 'register'} className={mode === 'register' ? 'active' : ''} onClick={() => { setMode('register'); setError('') }}>{c.register}</button>
           </div>}
           <div className="login-card__heading"><span>{recovery ? <LockKeyhole size={20} /> : <UserRound size={20} />}</span><div><h2>{c[mode]}</h2><p>{mode === 'forgot' ? c.forgotIntro : mode === 'reset' ? c.resetIntro : c.secure}</p></div></div>
+          {mode === 'login' && logoutReason === 'email-updated' && <p className="login-password-hint" role="status">{c.emailUpdated}</p>}
           {complete ? <div className="login-success" role="status"><span>{mode === 'forgot' ? <Mail size={24} /> : <Check size={24} />}</span><p>{mode === 'forgot' ? c.sent : c.resetDone}</p>{mode === 'forgot' && <small>{c.sentHint}</small>}<Link className="login-submit" to="/login">{c.login}<ArrowRight size={18} /></Link></div>
             : invalidLink ? <div className="login-error" role="alert"><p>{c.invalid}</p><Link className="login-recovery-link" to="/sifremi-unuttum">{c.requestAgain}<ArrowRight size={16} /></Link></div>
               : <form onSubmit={submit}>

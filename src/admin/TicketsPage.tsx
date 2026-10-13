@@ -18,6 +18,8 @@ type TourTicket = {
   status: TicketStatus; channel: TicketChannel; paymentStatus?: TicketPaymentStatus; createdAtUtc: string; updatedAtUtc: string
   ticketingStatus?: TicketingStatus; externalVoucherGuid?: string; ticketingFailureCode?: string; paymentFailureCode?: string
   emailStatus?: 'Queued' | 'Processing' | 'Sent' | 'Failed' | 'ReviewRequired'; emailSentAtUtc?: string
+  cancellationEmailStatus?: 'Queued' | 'Processing' | 'Sent' | 'Failed' | 'ReviewRequired' | null
+  cancellationEmailSentAtUtc?: string | null
   canCancel?: boolean; canRetryCancellation?: boolean; cancellationStatus?: string | null; cancellationFailureCode?: string | null
 }
 type CatalogTour = {
@@ -44,6 +46,11 @@ const paymentStatusCopy: Record<AdminLanguage, Record<TicketPaymentStatus, strin
 const ticketingCopy: Record<AdminLanguage, Record<TicketingStatus, string>> = {
   tr: { NotRequired: 'Manuel kayıt', Pending: 'Bilet kesimi bekliyor', Processing: 'Bilet kesiliyor', Issued: 'EasyTicket bileti hazır', ReviewRequired: 'EasyTicket kontrolü gerekli' },
   en: { NotRequired: 'Manual entry', Pending: 'Awaiting ticket issuance', Processing: 'Issuing tickets', Issued: 'EasyTicket issued', ReviewRequired: 'EasyTicket review required' },
+}
+
+const emailStatusCopy = {
+  tr: { Queued: 'Kuyrukta', Processing: 'Gönderiliyor', Sent: 'Gönderildi', Failed: 'Gönderilemedi', ReviewRequired: 'Gönderim kontrol edilmeli' },
+  en: { Queued: 'Queued', Processing: 'Sending', Sent: 'Sent', Failed: 'Delivery failed', ReviewRequired: 'Delivery review required' },
 }
 
 export default function TicketsPage() {
@@ -157,7 +164,9 @@ export default function TicketsPage() {
               {automatic && ticket.ticketingStatus && <small>{ticket.cancellationStatus === 'Completed' ? (language === 'tr' ? 'Rezervasyon iptal edildi' : 'Booking cancelled') : ticketingCopy[language][ticket.ticketingStatus]}</small>}
               {ticket.cancellationStatus && <small className={ticket.cancellationStatus === 'Completed' ? undefined : 'admin-payment-warning'}>{language === 'tr' ? 'İptal' : 'Cancellation'}: {ticket.cancellationStatus === 'Completed' ? (language === 'tr' ? 'Tamamlandı' : 'Completed') : ticket.canRetryCancellation ? (language === 'tr' ? 'Banka iadesi başlatılmadı — yeniden onaylanabilir' : 'Bank refund not started — confirmation available') : ticket.cancellationStatus === 'ReviewRequired' ? (language === 'tr' ? 'Banka kontrolü gerekli — tekrar iade yapmayın' : 'Bank review required — do not refund again') : (language === 'tr' ? 'İşleniyor — tekrar başlatmayın' : 'Processing — do not replay')}</small>}
               {ticket.cancellationFailureCode && ticket.cancellationStatus !== 'Completed' && <small>{ticket.cancellationFailureCode}</small>}
-              {ticket.emailStatus && <small>{language === 'tr' ? 'Mail' : 'Email'}: {({ tr: { Queued: 'Kuyrukta', Processing: 'Gönderiliyor', Sent: 'Gönderildi', Failed: 'Gönderilemedi', ReviewRequired: 'Gönderim kontrol edilmeli' }, en: { Queued: 'Queued', Processing: 'Sending', Sent: 'Sent', Failed: 'Delivery failed', ReviewRequired: 'Delivery review required' } })[language][ticket.emailStatus]}</small>}
+              {ticket.emailStatus && <small>{language === 'tr' ? 'Satın alma maili' : 'Purchase email'}: {emailStatusCopy[language][ticket.emailStatus]}</small>}
+              {ticket.cancellationEmailStatus && <small data-testid="cancellation-email-status">{language === 'tr' ? 'İptal maili' : 'Cancellation email'}: {emailStatusCopy[language][ticket.cancellationEmailStatus]}{ticket.cancellationEmailSentAtUtc && <span> · {new Intl.DateTimeFormat(language === 'tr' ? 'tr-TR' : 'en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Istanbul' }).format(new Date(ticket.cancellationEmailSentAtUtc))}</span>}</small>}
+              {ticket.cancellationStatus === 'Completed' && !ticket.cancellationEmailStatus && <small>{language === 'tr' ? 'İptal maili: Kayıt yok' : 'Cancellation email: No record'}</small>}
               {(ticket.paymentFailureCode || ticket.ticketingFailureCode) && <small>{ticket.paymentFailureCode || ticket.ticketingFailureCode}</small>}
               {(paymentStatus === 'ReviewRequired' || ticket.ticketingStatus === 'ReviewRequired') && <small className="admin-payment-warning">{language === 'tr' ? 'Yeni tahsilat yapmayın. Banka / EasyTicket kaydını sipariş koduyla kontrol edin.' : 'Do not charge again. Reconcile the bank / EasyTicket record using the order code.'}</small>}
             </div></td>

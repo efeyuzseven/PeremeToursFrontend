@@ -35,6 +35,8 @@ Kart üzerindeki isim, kart numarası, son kullanma ayı/yılı ve CVC alanları
 
 Playwright testleri yerel Microsoft Edge üzerinde masaüstü ve mobil boyutlarda çalışır; gerçek API/ödeme yerine test verileri kullanılır.
 
+`Tur Biletleri` sayfasında satın alma ve iptal maili durumları ayrı gösterilir; iptal maili gönderim zamanı İstanbul saatindedir. Kullanıcı hesabındaki rezervasyonlarda da ayrı iptal bildirimi durumu bulunur. `CANCELLATION_EMAIL_*` mail hataları banka reddi gibi gösterilmez. Geçmiş iptallerin satın alma maili `Sent` olsa bile bu, iptal maili gönderildiği anlamına gelmez; yeni banka onaylı iptallerin maili otomatik oluşturulur. Bu arayüz değişikliği iptal/iade veya mail yeniden gönderimi başlatmaz.
+
 `npm run test:live`, `https://pereme.com.tr` üzerinde masaüstü ve mobil rezervasyon önizlemesini kontrol eder. Yalnızca GET/OPTIONS ve kayıt oluşturmayan fiyat doğrulama isteğine izin verir; diğer API yazma işlemlerini, özellikle ödeme başlatmayı engeller. Kart verisi göndermez. Ekran görüntüleri git'e eklenmeyen `test-results` klasörüne kaydedilir.
 
 Arayüz Türkçe ve İngilizce çalışır. Dil seçimi tarayıcıda saklanır. Yönetici panelindeki `Site İçerikleri` ekranından ana sayfanın iki dildeki metinleri, Hizmetlerimiz kartları ve Instagram video bağlantıları düzenlenebilir.

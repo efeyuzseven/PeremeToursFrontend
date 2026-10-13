@@ -36,6 +36,8 @@ type Reservation = {
   paymentStatus: string
   ticketingStatus: string
   emailStatus: string | null
+  cancellationEmailStatus?: string | null
+  cancellationEmailSentAtUtc?: string | null
   passengers: {
     number: number
     name: string
@@ -80,6 +82,9 @@ function AccountContent({ language }: { language: PublicLanguage }) {
   const { session, logout } = useAuth()
   const navigate = useNavigate()
   const tr = language === 'tr'
+  const emailStates: Record<string, string> = tr
+    ? { Queued: 'Kuyrukta', Processing: 'Gönderiliyor', Sent: 'Gönderildi', Failed: 'Gönderilemedi', ReviewRequired: 'Gönderim kontrol edilmeli' }
+    : { Queued: 'Queued', Processing: 'Sending', Sent: 'Sent', Failed: 'Delivery failed', ReviewRequired: 'Delivery review required' }
   const [profile, setProfile] = useState<Profile | null>(null)
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [loading, setLoading] = useState(true)
@@ -281,7 +286,14 @@ function AccountContent({ language }: { language: PublicLanguage }) {
               {booking.emailStatus && (
                 <span>
                   <Mail size={15} />{' '}
-                  {states[language][booking.emailStatus] ?? booking.emailStatus}
+                  {tr ? 'Satın alma maili: ' : 'Purchase email: '}
+                  {emailStates[booking.emailStatus] ?? booking.emailStatus}
+                </span>
+              )}
+              {booking.cancellationEmailStatus && (
+                <span data-testid="cancellation-email-status"><Mail size={15} />{' '}
+                  {tr ? 'İptal maili: ' : 'Cancellation email: '}
+                  {emailStates[booking.cancellationEmailStatus] ?? booking.cancellationEmailStatus}
                 </span>
               )}
             </div>

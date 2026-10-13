@@ -35,6 +35,7 @@ const englishDetails: Record<string, string> = {
   SMTP_SEND_REJECTED: 'The mail server rejected delivery. Check the recipient address and SMTP sending permissions.',
   SMTP_RESULT_UNKNOWN: 'The delivery result is uncertain. Check SMTP logs before sending again.',
   EMAIL_ADDRESS_INVALID: 'The booking contact email address is invalid.',
+  CANCELLATION_EMAIL_NOT_CONFIRMED: 'The cancellation email was not sent because a confirmed bank cancellation/refund could not be verified. No bank operation was repeated.',
 }
 
 export default function TicketErrorsPage() {
@@ -70,7 +71,9 @@ export default function TicketErrorsPage() {
   const icon = (value: Stage) => value === 'Payment' ? <Banknote size={16} /> : value === 'Ticketing' ? <TicketCheck size={16} /> : value === 'Cancellation' ? <AlertCircle size={16} /> : <Mail size={16} />
   const detail = (entry: ErrorEntry) => language === 'tr' ? entry.message
     : entry.providerCode === 'CORE-2201' ? 'The bank API user could not be authenticated. Check user approval, permissions and credentials in the bank portal.'
-      : englishDetails[entry.code] ?? 'The bank did not approve this payment. Check the detailed response using the booking reference in the bank portal.'
+      : englishDetails[entry.code] ?? (entry.code.startsWith('CANCELLATION_EMAIL_')
+        ? `Cancellation email: ${englishDetails[entry.code.slice('CANCELLATION_EMAIL_'.length)] ?? 'Delivery could not be verified. Check SMTP logs. The bank refund has not been repeated.'}`
+        : 'The bank did not approve this payment. Check the detailed response using the booking reference in the bank portal.')
 
   return <>
     <div className="admin-page-heading"><div><span>{c.eyebrow}</span><h1>{c.title}</h1><p>{c.subtitle}</p></div>
@@ -94,7 +97,7 @@ export default function TicketErrorsPage() {
               <div className="ticket-error-codes"><code>{entry.code}</code>{entry.providerCode && <code>{entry.providerCode}</code>}{entry.isHistorical && <span>{c.history}</span>}</div>
               <p className="ticket-error-detail">{detail(entry)}</p>
               {entry.isHistorical && <p className="ticket-error-history">{c.historyNote}</p>}
-              <footer><span>{c.payment}: <strong>{states[language][entry.paymentStatus] ?? entry.paymentStatus}</strong></span><span>{c.ticket}: <strong>{states[language][entry.ticketingStatus] ?? entry.ticketingStatus}</strong></span><span>{c.email}: <strong>{entry.emailStatus ? states[language][entry.emailStatus] ?? entry.emailStatus : c.noMail}</strong></span></footer>
+              <footer><span>{c.payment}: <strong>{states[language][entry.paymentStatus] ?? entry.paymentStatus}</strong></span><span>{c.ticket}: <strong>{states[language][entry.ticketingStatus] ?? entry.ticketingStatus}</strong></span><span>{entry.code.startsWith('CANCELLATION_EMAIL_') ? language === 'tr' ? 'İptal maili' : 'Cancellation email' : c.email}: <strong>{entry.emailStatus ? states[language][entry.emailStatus] ?? entry.emailStatus : c.noMail}</strong></span></footer>
             </article>)}</div>}
       {!loading && !failed && data && data.totalCount > 0 && <div className="ticket-error-pagination"><span>{data.totalCount} {c.records} · {page} / {Math.max(1, Math.ceil(data.totalCount / data.pageSize))}</span><div><button aria-label={c.previous} disabled={page === 1} onClick={() => { setPage((value) => value - 1); reload() }}><ArrowLeft size={16} /></button><button aria-label={c.next} disabled={page * data.pageSize >= data.totalCount} onClick={() => { setPage((value) => value + 1); reload() }}><ArrowRight size={16} /></button></div></div>}
     </section>

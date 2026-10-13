@@ -564,7 +564,7 @@ img {
   gap: 7px;
 }
 
-.experience-card__types span {
+.experience-card__types a {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -576,6 +576,18 @@ img {
   background: rgba(255,255,255,.055);
   font-size: 9px;
   font-weight: 600;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.experience-card__types a:hover {
+  border-color: rgba(255,255,255,.35);
+  background: rgba(106,157,210,.24);
+  transform: translateY(-1px);
+}
+
+.experience-card__types a:focus-visible {
+  outline: 2px solid #6a9dd2;
+  outline-offset: 3px;
 }
 
 .experience-card__types b {

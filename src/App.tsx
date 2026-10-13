@@ -34,7 +34,7 @@ import type { HomepageContentDocument } from './content/homepage'
 import { apiBaseUrl, apiRequest } from './lib/api'
 import { INSTAGRAM_PROFILE_URL, setPageMetadata, SITE_NAME } from './lib/site'
 import { BookingDrawer } from './components/BookingDrawer'
-import { categoryPath, tourPath } from './content/tour-pages'
+import { categoryPath, tourCategories, tourPath } from './content/tour-pages'
 
 type Language = 'tr' | 'en'
 type Category = 'bosphorus' | 'turkish-night' | 'sunset' | 'daytime'
@@ -575,7 +575,7 @@ function App() {
           <div className="hero__experience-card">
             <div className="experience-card__top"><span><Waves size={15} /> {c.hero.cardLabel}</span><i>{c.hero.cardCount}</i></div>
             <p className="experience-card__lead">{c.hero.cardLead}<br /><em>{c.hero.cardAccent}</em></p>
-            <div className="experience-card__types">{c.hero.cardTypes.map((type, index) => <span key={type}><b>0{index + 1}</b>{type}</span>)}</div>
+            <div className="experience-card__types">{tourCategories.map((category, index) => <Link key={category} to={categoryPath(category)}><b aria-hidden="true">0{index + 1}</b>{c.hero.cardTypes[index]}</Link>)}</div>
             <div className="experience-card__note"><Sparkles size={14} /> {c.hero.cardNote}</div>
           </div>
           <div className="hero__side-note" aria-hidden="true"><span>41° 02′ N</span><div /><span>29° 00′ E</span></div>

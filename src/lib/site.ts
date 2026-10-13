@@ -1,5 +1,6 @@
 export const SITE_NAME = 'Dentur | Pereme Tours'
 export const SITE_URL = 'https://pereme.com.tr'
+export const INSTAGRAM_PROFILE_URL = 'https://www.instagram.com/peremetours/'
 
 type PageMetadata = {
   title?: string

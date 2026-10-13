@@ -32,7 +32,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import type { HomepageContentDocument } from './content/homepage'
 import { apiBaseUrl, apiRequest } from './lib/api'
-import { setPageMetadata, SITE_NAME } from './lib/site'
+import { INSTAGRAM_PROFILE_URL, setPageMetadata, SITE_NAME } from './lib/site'
 import { BookingDrawer } from './components/BookingDrawer'
 import { categoryPath, tourPath } from './content/tour-pages'
 
@@ -257,7 +257,7 @@ const copy = {
         ['Yardım', 'KVKK Aydınlatma Metni'],
       ],
       newsletterTitle: 'İstanbul’dan haberin olsun.', newsletterText: 'Yeni rotalar ve sürpriz fiyatlar, ayda en fazla iki kez.',
-      emailPlaceholder: 'E-posta adresin', copyright: `© 2026 ${SITE_NAME}`, agency: 'TÜRSAB bilgisi eklenecek',
+      emailPlaceholder: 'E-posta adresin', copyright: `© 2026 ${SITE_NAME}`,
     },
     drawer: {
       successLabel: 'Talebin hazır', successTitle: 'Şimdi ödeme altyapısını bekliyoruz.',
@@ -336,7 +336,7 @@ const copy = {
         ['Support', 'KVKK Notice'],
       ],
       newsletterTitle: 'Stay close to Istanbul.', newsletterText: 'New routes and surprise fares, no more than twice a month.',
-      emailPlaceholder: 'Your email address', copyright: `© 2026 ${SITE_NAME}`, agency: 'TÜRSAB details to be added',
+      emailPlaceholder: 'Your email address', copyright: `© 2026 ${SITE_NAME}`,
     },
     drawer: {
       successLabel: 'Your request is ready', successTitle: 'The payment connection comes next.',
@@ -688,7 +688,7 @@ function App() {
           })}</div>)}</div>
           <div className="newsletter"><strong>{c.footer.newsletterTitle}</strong><p>{c.footer.newsletterText}</p><form onSubmit={(event) => event.preventDefault()}><input type="email" placeholder={c.footer.emailPlaceholder} aria-label={c.a11y.email} required /><button type="submit" aria-label={c.a11y.newsletter}><ArrowRight /></button></form></div>
         </div>
-        <div className="shell footer__bottom"><span>{c.footer.copyright}</span><span>{c.footer.agency}</span><a href="#top"><Camera size={17} /> Instagram</a></div>
+        <div className="shell footer__bottom"><span>{c.footer.copyright}</span><a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><Camera size={17} /> Instagram</a></div>
       </footer>
 
       {bookingOpen && selectedTour && <BookingDrawer key={selectedTour.id} tour={selectedTour} language={language} initialDate={date} initialGuests={guests} onClose={() => setBookingOpen(false)} />}

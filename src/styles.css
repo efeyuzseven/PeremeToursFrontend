@@ -2490,7 +2490,6 @@ footer {
   .footer__links { grid-template-columns: 1fr 1fr; row-gap: 42px; }
   .newsletter { grid-column: auto; }
   .footer__bottom { padding: 25px 0; flex-wrap: wrap; gap: 14px; }
-  .footer__bottom > span:nth-child(2) { display: none; }
   .booking-drawer { padding: 42px 22px 30px; }
   .booking-drawer__close { top: 18px; right: 18px; }
   .booking-drawer__top h2,

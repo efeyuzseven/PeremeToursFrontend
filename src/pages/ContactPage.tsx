@@ -1,7 +1,7 @@
 import { ArrowRight, Camera, Clock3, Mail, MapPin, MessageCircle, Send } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import PublicPageLayout, { type PublicLanguage } from './PublicPageLayout'
-import { setPageMetadata } from '../lib/site'
+import { INSTAGRAM_PROFILE_URL, setPageMetadata } from '../lib/site'
 
 const copy = {
   tr: {
@@ -44,7 +44,7 @@ function ContactContent({ language }: { language: PublicLanguage }) {
     <section className="contact-section"><div className="shell">
       <div className="contact-cards">
         <a href="mailto:merhaba@peremetours.com"><span><Mail /></span><small>{c.emailTitle}</small><strong>merhaba@peremetours.com</strong><p>{c.emailText}</p><ArrowRight /></a>
-        <a href="https://www.instagram.com/" target="_blank" rel="noreferrer"><span><Camera /></span><small>{c.socialTitle}</small><strong>@peremetours</strong><p>{c.socialText}</p><ArrowRight /></a>
+        <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><span><Camera /></span><small>{c.socialTitle}</small><strong>@peremetours</strong><p>{c.socialText}</p><ArrowRight /></a>
         <article><span><MapPin /></span><small>{c.locationTitle}</small><strong>İstanbul Boğazı</strong><p>{c.locationText}</p></article>
       </div>
       <div className="contact-form-layout">

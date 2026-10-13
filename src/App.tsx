@@ -30,7 +30,7 @@ import {
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
-import type { HomepageContentDocument } from './content/homepage'
+import { normalizeHomepage, type HomepageContentDocument } from './content/homepage'
 import { apiBaseUrl, apiRequest } from './lib/api'
 import { INSTAGRAM_PROFILE_URL, setPageMetadata, siteScrollBehavior, SITE_NAME } from './lib/site'
 import { BookingDrawer } from './components/BookingDrawer'
@@ -410,8 +410,27 @@ function App() {
   const languagePickerRef = useRef<HTMLDivElement>(null)
   const experiencePickerRef = useRef<HTMLDivElement>(null)
   const calendarPickerRef = useRef<HTMLDivElement>(null)
-  const c = copy[language]
   const page = homepageContent?.[language]
+  const base = copy[language]
+  const t = (key: string, fallback: string) => page?.texts?.[key] ?? fallback
+  const hidden = (key: string) => homepageContent?.hiddenSections?.includes(key) ?? false
+  const image = (key: string, fallback: string) => {
+    const url = homepageContent?.images?.[key] || fallback
+    return url.startsWith('/api/') ? `${apiBaseUrl}${url}` : url
+  }
+  const position = (key: string) => homepageContent?.imagePositions?.[key]
+  const c = { ...base,
+    nav: base.nav.map(([label, href], index) => [t(`nav.${index}`, label), href]).filter(([, href]) =>
+      !hidden(({ '#hizmetler': 'services', '#neden-biz': 'why', '#hikayeler': 'stories' } as Record<string, string>)[href])),
+    hero: { ...base.hero, ...Object.fromEntries(Object.entries(base.hero).filter(([, value]) => typeof value === 'string').map(([key, value]) => [key, t(`hero.${key}`, value as string)])),
+      cardTypes: base.hero.cardTypes.map((value, index) => t(`hero.cardTypes.${index}`, value)) },
+    booking: { ...base.booking, experience: t('booking.experience', base.booking.experience), date: t('booking.date', base.booking.date), guest: t('booking.guest', base.booking.guest), search: t('booking.search', base.booking.search) },
+    categories: { all: t('categories.all', base.categories.all), 'turkish-night': t('categories.turkishNight', base.categories['turkish-night']), sunset: t('categories.sunset', base.categories.sunset), daytime: t('categories.daytime', base.categories.daytime), bosphorus: t('categories.bosphorus', base.categories.bosphorus) },
+    marquee: base.marquee.map((value, index) => t(`marquee.${index}`, value)),
+    tours: { ...base.tours, select: t('tours.select', base.tours.select), watermark: t('tours.watermark', base.tours.watermark), showLess: t('tours.showLess', base.tours.showLess), showAll: (count: number) => t('tours.showAll', base.tours.showAll(count)).replaceAll('{count}', String(count)) },
+    story: { ...base.story, note: t('story.note', base.story.note) },
+    footer: { ...base.footer, tagline: t('footer.tagline', base.footer.tagline), copyright: t('footer.copyright', base.footer.copyright), columns: base.footer.columns.map((column, index) => column.map((value, entry) => t(`footer.${index}.${entry}`, value))) },
+  }
 
   useEffect(() => {
     const controller = new AbortController()
@@ -426,8 +445,8 @@ function App() {
 
   useEffect(() => {
     const controller = new AbortController()
-    apiRequest<HomepageContentDocument>('/api/v1/site-content/homepage', { signal: controller.signal })
-      .then(setHomepageContent)
+    apiRequest<HomepageContentDocument>('/api/v1/site-content/homepage', { signal: controller.signal, cache: 'no-store' })
+      .then(result => setHomepageContent(normalizeHomepage(result)))
       .catch(() => undefined)
     return () => controller.abort()
   }, [])
@@ -529,7 +548,7 @@ function App() {
           <nav className="desktop-nav" aria-label={c.a11y.mainNav}>{c.nav.map(([label, href]) => <a key={href} href={href}>{label}</a>)}</nav>
           <div className="header__actions">
             <Link className="account-link" to={user ? '/hesabim' : '/login'}>
-              <UserRound size={16} /> <span>{language === 'tr' ? 'Hesabım' : 'My account'}</span>
+              <UserRound size={16} /> <span>{t('account', language === 'tr' ? 'Hesabım' : 'My account')}</span>
             </Link>
             <div className="language-picker" ref={languagePickerRef}>
               <button className="language" type="button" aria-label={c.a11y.language} aria-haspopup="menu" aria-expanded={languageMenu} onClick={() => setLanguageMenu((open) => !open)}>
@@ -551,14 +570,14 @@ function App() {
       <div className={`mobile-menu ${mobileMenu ? 'mobile-menu--open' : ''}`} aria-hidden={!mobileMenu}>
         <button className="mobile-menu__close" onClick={() => setMobileMenu(false)} aria-label={c.a11y.closeMenu}><X /></button>
         <Logo light language={language} />
-        <nav>{c.nav.map(([label, href]) => <a key={href} href={href} onClick={() => setMobileMenu(false)}>{label} <ArrowRight /></a>)}<Link to={user ? '/hesabim' : '/login'} onClick={() => setMobileMenu(false)}>{language === 'tr' ? 'Hesabım' : 'My account'} <UserRound /></Link>{user?.role === 'Admin' && <Link to="/admin/tickets" onClick={() => setMobileMenu(false)}>{language === 'tr' ? 'Yönetim paneli' : 'Admin panel'}</Link>}</nav>
+        <nav>{c.nav.map(([label, href]) => <a key={href} href={href} onClick={() => setMobileMenu(false)}>{label} <ArrowRight /></a>)}<Link to={user ? '/hesabim' : '/login'} onClick={() => setMobileMenu(false)}>{t('account', language === 'tr' ? 'Hesabım' : 'My account')} <UserRound /></Link>{user?.role === 'Admin' && <Link to="/admin/tickets" onClick={() => setMobileMenu(false)}>{language === 'tr' ? 'Yönetim paneli' : 'Admin panel'}</Link>}</nav>
         <div className="mobile-languages" aria-label={c.a11y.language}>
           {(['tr', 'en'] as Language[]).map((item) => <button key={item} className={language === item ? 'active' : ''} type="button" onClick={() => changeLanguage(item)}>{item.toUpperCase()} <span>{copy[item].languageName}</span></button>)}
         </div>
       </div>
 
       <section className="hero" aria-labelledby="hero-title">
-        <div className="hero__image" /><div className="hero__shade" /><div className="hero__orb hero__orb--one" /><div className="hero__orb hero__orb--two" />
+        <div className="hero__image" style={{ backgroundImage: `url("${image('hero', '/assets/ad2ca4f6-d888-4621-b0c1-b3db5903f0ac.webp')}")`, ...(position('hero') ? { backgroundPosition: position('hero') } : {}) }} /><div className="hero__shade" /><div className="hero__orb hero__orb--one" /><div className="hero__orb hero__orb--two" />
         <svg className="hero__route-map" viewBox="0 0 700 360" aria-hidden="true">
           <path d="M20 290C135 238 177 300 281 231C374 169 440 233 520 143C571 86 622 94 680 54" />
           <circle cx="281" cy="231" r="5" /><circle cx="520" cy="143" r="5" /><circle cx="680" cy="54" r="5" />
@@ -568,16 +587,16 @@ function App() {
             <div className="eyebrow eyebrow--light"><span className="eyebrow__pulse" /> {c.hero.eyebrow}</div>
             <h1 id="hero-title">{page?.hero.lead ?? c.hero.lead}<br /><em>{page?.hero.accent ?? c.hero.accent}</em></h1>
             <p>{page?.hero.description ?? c.hero.description}</p>
-            <div className="hero__buttons">
+            {!hidden('services') && <div className="hero__buttons">
               <a className="play-link" href="#hizmetler"><span><Play size={15} fill="currentColor" /></span> {c.hero.watch}</a>
-            </div>
+            </div>}
           </div>
-          <div className="hero__experience-card">
+          {!hidden('heroCard') && <div className="hero__experience-card">
             <div className="experience-card__top"><span><Waves size={15} /> {c.hero.cardLabel}</span><i>{c.hero.cardCount}</i></div>
             <p className="experience-card__lead">{c.hero.cardLead}<br /><em>{c.hero.cardAccent}</em></p>
             <div className="experience-card__types">{tourCategories.map((category, index) => <Link key={category} to={categoryPath(category)}><b aria-hidden="true">0{index + 1}</b>{c.hero.cardTypes[index]}</Link>)}</div>
             <div className="experience-card__note"><Sparkles size={14} /> {c.hero.cardNote}</div>
-          </div>
+          </div>}
           <div className="hero__side-note" aria-hidden="true"><span>41° 02′ N</span><div /><span>29° 00′ E</span></div>
           <a className="scroll-cue" href="#turlar" aria-label={c.a11y.scrollTours}><span>{c.hero.scroll}</span><ArrowDown size={18} /></a>
         </div>
@@ -611,9 +630,9 @@ function App() {
         </div>
       </section>
 
-      <div className="marquee" aria-label={SITE_NAME}>
-        <div className="marquee__track">{[0, 1].map((item) => <div className="marquee__group" key={item} aria-hidden={item === 1}>{c.marquee.map((label) => <span className="marquee__item" key={label}><span>{label}</span><Sparkles /></span>)}</div>)}</div>
-      </div>
+      {!hidden('marquee') && <div className="marquee" aria-label={SITE_NAME}>
+        <div className="marquee__track">{[0, 1].map((item) => <div className="marquee__group" key={item} aria-hidden={item === 1}>{c.marquee.map((label, index) => <span className="marquee__item" key={index}><span>{label}</span><Sparkles /></span>)}</div>)}</div>
+      </div>}
 
       <section className="tours-section" id="turlar">
         <span className="section-watermark" aria-hidden="true">{c.tours.watermark}</span>
@@ -640,49 +659,50 @@ function App() {
         </div>
       </section>
 
-      <section className="services" id="hizmetler">
+      {!hidden('services') && <section className="services" id="hizmetler">
         <div className="shell">
           <div className="section-heading section-heading--light"><div><div className="eyebrow eyebrow--light"><Sparkles size={17} /> {page?.services.eyebrow ?? c.services.eyebrow}</div><h2>{page?.services.lead ?? c.services.lead}<br /><em>{page?.services.accent ?? c.services.accent}</em></h2></div><p>{page?.services.description ?? c.services.description}</p></div>
           <div className="service-grid">
             {serviceItems.map((item, index) => {
               const relatedTour = tours.find((tour) => tour.category === item.categoryKey)
               return <article className="service-card" key={item.categoryKey}>
-                <div className="service-card__image"><img src={relatedTour?.image ?? fallbackTours.find((tour) => tour.category === item.categoryKey)?.image} alt="" /><span>0{index + 1}</span></div>
+                <div className="service-card__image"><img src={image(item.categoryKey, relatedTour?.image ?? fallbackTours.find((tour) => tour.category === item.categoryKey)!.image)} style={{ objectPosition: position(item.categoryKey) }} alt="" /><span>0{index + 1}</span></div>
                 <div className="service-card__body"><small>{c.categories[item.categoryKey]}</small><h3>{item.title}</h3><p>{item.description}</p><div><Link to={categoryPath(item.categoryKey)}>{item.browseLabel} <ArrowRight /></Link><button type="button" disabled={!relatedTour?.live} onClick={() => openBooking(relatedTour)}>{item.bookingLabel} <Ticket /></button></div></div>
               </article>
             })}
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section className="why" id="neden-biz">
+      {!hidden('why') && <section className="why" id="neden-biz">
         <div className="shell">
-          <div className="why__header"><div><div className="eyebrow"><ShieldCheck size={18} /> {page?.why.eyebrow ?? c.why.eyebrow}</div><h2>{page?.why.lead ?? c.why.lead}<br /><em>{page?.why.accent ?? c.why.accent}</em></h2></div><div className="why__score"><strong>4.9</strong><span><span className="stars">★★★★★</span> {page?.why.reviews ?? c.why.reviews}</span></div></div>
+          <div className="why__header"><div><div className="eyebrow"><ShieldCheck size={18} /> {page?.why.eyebrow ?? c.why.eyebrow}</div><h2>{page?.why.lead ?? c.why.lead}<br /><em>{page?.why.accent ?? c.why.accent}</em></h2></div><div className="why__score"><strong>{t('why.score', '4.9')}</strong><span><span className="stars">★★★★★</span> {page?.why.reviews ?? c.why.reviews}</span></div></div>
           <div className="benefit-grid">{benefits.map(({ title, description }, index) => { const Icon = [ShieldCheck, CalendarDays, Users, Compass][index]; return <article key={`${title}-${index}`}><span>0{index + 1}</span><Icon /><h3>{title}</h3><p>{description}</p></article> })}</div>
         </div>
-      </section>
+      </section>}
 
-      <section className="stories" id="hikayeler">
+      {!hidden('stories') && <section className="stories" id="hikayeler">
         <div className="shell"><div className="stories__heading"><div className="eyebrow"><Camera size={17} /> {page?.stories.eyebrow ?? c.story.eyebrow}</div><h2>{page?.stories.lead ?? c.story.lead} <em>{page?.stories.accent ?? c.story.accent}</em></h2><p>{page?.stories.description ?? c.story.description}</p></div>
           {instagramUrls.length > 0 ? <div className="instagram-grid">{instagramUrls.map((url) => { const embedUrl = instagramEmbedUrl(url); return embedUrl && <iframe key={url} src={embedUrl} title={`${SITE_NAME} Instagram`} loading="lazy" allowFullScreen /> })}</div> : <div className="stories__inner stories__inner--fallback">
-            <div className="story-collage" aria-hidden="true"><img className="story-collage__main" src="/assets/tour-sunset.webp" alt="" /><img className="story-collage__small" src="/assets/tour-private.webp" alt="" /><div className="story-collage__note"><span>“</span>{c.story.note.split('\n').map((line) => <span className="story-note__line" key={line}>{line}</span>)}</div></div>
-            <div className="testimonial"><Quote size={40} /><blockquote>{page?.stories.quote ?? c.story.quote}</blockquote><div className="testimonial__person"><div>EM</div><span><strong>Elif &amp; Mert</strong>{page?.stories.meta ?? c.story.meta}</span></div></div>
+            <div className="story-collage" aria-hidden="true"><img className="story-collage__main" src={image('storyMain', '/assets/tour-sunset.webp')} style={{ objectPosition: position('storyMain') }} alt="" /><img className="story-collage__small" src={image('storySmall', '/assets/tour-private.webp')} style={{ objectPosition: position('storySmall') }} alt="" /><div className="story-collage__note"><span>“</span>{c.story.note.split('\n').map((line, index) => <span className="story-note__line" key={index}>{line}</span>)}</div></div>
+            <div className="testimonial"><Quote size={40} /><blockquote>{page?.stories.quote ?? c.story.quote}</blockquote><div className="testimonial__person"><div>{t('story.initials', 'EM')}</div><span><strong>{t('story.author', 'Elif & Mert')}</strong>{page?.stories.meta ?? c.story.meta}</span></div></div>
           </div>}
         </div>
-      </section>
+      </section>}
 
-      <section className="final-cta"><div className="final-cta__image" /><div className="final-cta__rings" aria-hidden="true"><span /><span /><span /></div><div className="shell final-cta__content"><p>{page?.final.pre ?? c.final.pre}</p><h2>{page?.final.title ?? c.final.title}</h2><button className="button button--coral" type="button" onClick={() => openBooking()}>{page?.final.action ?? c.final.action} <ArrowRight size={19} /></button></div></section>
+      {!hidden('final') && <section className="final-cta"><div className="final-cta__image" style={{ backgroundImage: `linear-gradient(rgba(7,27,53,.48), rgba(7,27,53,.72)), url("${image('final', '/assets/ad2ca4f6-d888-4621-b0c1-b3db5903f0ac.webp')}")`, ...(position('final') ? { backgroundPosition: position('final') } : {}) }} /><div className="final-cta__rings" aria-hidden="true"><span /><span /><span /></div><div className="shell final-cta__content"><p>{page?.final.pre ?? c.final.pre}</p><h2>{page?.final.title ?? c.final.title}</h2><button className="button button--coral" type="button" onClick={() => openBooking()}>{page?.final.action ?? c.final.action} <ArrowRight size={19} /></button></div></section>}
 
       <footer>
         <div className="shell footer__top">
-          <div className="footer__brand"><Logo light language={language} /><p>{c.footer.tagline.split('\n').map((line) => <span key={line}>{line}<br /></span>)}</p><a href="mailto:merhaba@peremetours.com">merhaba@peremetours.com</a></div>
-          <div className="footer__links">{c.footer.columns.map(([title, ...links], columnIndex) => <div key={title}><strong>{title}</strong>{links.map((link, index) => {
+          <div className="footer__brand"><Logo light language={language} /><p>{c.footer.tagline.split('\n').map((line, index) => <span key={index}>{line}<br /></span>)}</p><a href={`mailto:${encodeURIComponent(t('footer.email', 'merhaba@peremetours.com')).replaceAll('%40', '@')}`}>{t('footer.email', 'merhaba@peremetours.com')}</a></div>
+          <div className="footer__links">{c.footer.columns.map(([title, ...links], columnIndex) => <div key={columnIndex}><strong>{title}</strong>{links.map((link, index) => {
             const to = columnIndex === 0
               ? ['/#turlar', categoryPath('bosphorus'), categoryPath('turkish-night'), categoryPath('daytime')][index]
               : columnIndex === 1
                 ? ['/#neden-biz', '/#hikayeler', '/sikca-sorulan-sorular', '/iletisim'][index]
                 : '/kvkk-aydinlatma-metni'
-            return <Link key={link} to={to}>{link}</Link>
+            if (columnIndex === 1 && (index === 0 && hidden('why') || index === 1 && hidden('stories'))) return null
+            return <Link key={index} to={to}>{link}</Link>
           })}</div>)}</div>
         </div>
         <div className="shell footer__bottom"><span>{c.footer.copyright}</span><a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><Camera size={17} /> Instagram</a></div>

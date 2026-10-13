@@ -37,7 +37,7 @@ test('contact opens the shared form, traps focus, closes with Escape and never s
   await expect(dialog.getByLabel('E-posta adresi', { exact: true })).toBeVisible()
   await expect(dialog.getByLabel('Konu', { exact: true })).toBeVisible()
   await expect(dialog.getByLabel('Mesajın', { exact: true })).toBeVisible()
-  await expect(dialog).toContainText('e-posta uygulamanızı açar')
+  await expect(dialog).toContainText('doğrudan ilgili ekibimize iletilir')
   await dialog.getByLabel('E-posta adresi', { exact: true }).fill('fixture.private@example.test')
   await dialog.getByLabel('Mesajın', { exact: true }).fill('Unsaved private fixture')
   const saved = await page.evaluate(() => JSON.stringify({ ...localStorage, ...sessionStorage }))

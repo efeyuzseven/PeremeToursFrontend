@@ -47,6 +47,10 @@ Admin panelindeki **Tur Sayfaları** (`/admin/tour-pages`) ekranı dört hizmet 
 
 `/iletisim` ve `/sikca-sorulan-sorular` herkese açık ve mobil uyumlu yardım sayfalarıdır. SSS içerikleri yönetici panelindeki `Sıkça Sorulanlar` ekranından iki dilde eklenebilir, düzenlenebilir, sıralanabilir ve yayından kaldırılabilir.
 
+Herkese açık ekranların sağ altında Dentur Avrasya'daki CSS gemi siluetinden uyarlanan küçük (132 × 76 px), şeffaf arka planlı, Pereme paletindeki iletişim/erişilebilirlik gemisi bulunur. Koçi/asistan görseli veya yeni bir sohbet servisi eklenmez. İletişim düğmesi mevcut `/iletisim` sayfasıyla ortak formu açar; **Mesajı hazırla** butonu `mailto:merhaba@peremetours.com` üzerinden kullanıcının e-posta uygulamasını açar. Mesaj otomatik olarak sunucudan gönderilmez ve gönderildiğine dair bir onay gösterilmez. Form taslağı depolamaya yazılmaz.
+
+Erişilebilirlik menüsü yazı boyutu, yüksek kontrast, metin aralığı, okunaklı yazı tipi, bağlantı vurgusu ve hareketleri durdurma seçeneklerini sunar. Yalnızca bu görünüm tercihleri `pereme-accessibility-settings` anahtarında cihazda saklanır; **Ayarları sıfırla** ile kaldırılır. Kart/yolcu/form değerleri okunmaz veya kaydedilmez. Hareket tercihi ve işletim sisteminin reduced-motion ayarı kodla başlatılan kaydırmalarda da dikkate alınır. Pencerelerde klavye odağı tutulur, Escape kapatır ve odağı gemiye geri verir. Gemi rezervasyon/ödeme pencereleri ve mobil menü açıkken gizlenir; yönetici ekranlarında gösterilmez veya görünüm tercihleri uygulanmaz. Bunlar yardımcı görünüm araçlarıdır; tek başına bir erişilebilirlik standardına uyum beyanı değildir.
+
 ## AWS canlı yayını
 
 Canlı adres: <https://pereme.com.tr>. CloudFront adresi aynı canlı servisin alternatif origin'idir. AWS kaynak/script adlarındaki `test` tarihî adlandırmadır; ortam deneme veya demo değildir.

@@ -32,7 +32,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import type { HomepageContentDocument } from './content/homepage'
 import { apiBaseUrl, apiRequest } from './lib/api'
-import { INSTAGRAM_PROFILE_URL, setPageMetadata, SITE_NAME } from './lib/site'
+import { INSTAGRAM_PROFILE_URL, setPageMetadata, siteScrollBehavior, SITE_NAME } from './lib/site'
 import { BookingDrawer } from './components/BookingDrawer'
 import { categoryPath, tourCategories, tourPath } from './content/tour-pages'
 
@@ -512,7 +512,7 @@ function App() {
   const findTours = () => {
     setFilter(experience)
     setShowAll(true)
-    document.getElementById('turlar')?.scrollIntoView({ behavior: 'smooth' })
+    document.getElementById('turlar')?.scrollIntoView({ behavior: siteScrollBehavior() })
   }
 
   const serviceItems = page?.services.items

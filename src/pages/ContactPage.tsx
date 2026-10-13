@@ -1,43 +1,30 @@
-import { ArrowRight, Camera, Clock3, Mail, MessageCircle, Send } from 'lucide-react'
-import { useEffect, useState, type FormEvent } from 'react'
+import { ArrowRight, Camera, Clock3, Mail, MessageCircle } from 'lucide-react'
+import { useEffect } from 'react'
 import PublicPageLayout, { type PublicLanguage } from './PublicPageLayout'
 import { INSTAGRAM_PROFILE_URL, setPageMetadata } from '../lib/site'
+import ContactForm from '../components/ContactForm'
 
 const copy = {
   tr: {
     eyebrow: 'İLETİŞİM', title: 'Aklında ne varsa,', accent: 'aynı teknedeyiz.',
     description: 'Tur seçimi, rezervasyon veya yolculuğunla ilgili her konuda bize yaz. Ekibimiz en kısa sürede sana ulaşsın.',
     emailTitle: 'E-posta', emailText: 'Rezervasyon ve genel sorular', socialTitle: 'Instagram', socialText: 'Boğaz’dan güncel anlar',
-    formEyebrow: 'BİZE YAZ', formTitle: 'Nasıl yardımcı olabiliriz?', name: 'Ad soyad', email: 'E-posta adresi', topic: 'Konu', message: 'Mesajın',
-    namePlaceholder: 'Adınız ve soyadınız', emailPlaceholder: 'ornek@eposta.com', topicPlaceholder: 'Nasıl yardımcı olabiliriz?', messagePlaceholder: 'Mesajınızı buraya yazın...', send: 'Mesajı hazırla', note: 'Gönder butonu e-posta uygulamanızı açar.',
-    ready: 'Mesajınız hazırlandı. E-posta uygulamanız açılıyor.', hours: 'Yanıt süresi', hoursText: 'Mesajlara mümkün olan en kısa sürede dönüş yapıyoruz.',
+    formEyebrow: 'BİZE YAZ', formTitle: 'Nasıl yardımcı olabiliriz?', hours: 'Yanıt süresi', hoursText: 'Mesajlara mümkün olan en kısa sürede dönüş yapıyoruz.',
   },
   en: {
     eyebrow: 'CONTACT', title: 'Whatever is on your mind,', accent: 'we are in the same boat.',
     description: 'Write to us about choosing a tour, your booking or your journey. Our team will get back to you as soon as possible.',
     emailTitle: 'Email', emailText: 'Bookings and general questions', socialTitle: 'Instagram', socialText: 'Recent moments from the Bosphorus',
-    formEyebrow: 'WRITE TO US', formTitle: 'How can we help?', name: 'Full name', email: 'Email address', topic: 'Subject', message: 'Your message',
-    namePlaceholder: 'Your full name', emailPlaceholder: 'name@example.com', topicPlaceholder: 'How can we help?', messagePlaceholder: 'Write your message here...', send: 'Prepare message', note: 'The send button opens your email application.',
-    ready: 'Your message is ready. Your email application is opening.', hours: 'Response time', hoursText: 'We reply to messages as soon as possible.',
+    formEyebrow: 'WRITE TO US', formTitle: 'How can we help?', hours: 'Response time', hoursText: 'We reply to messages as soon as possible.',
   },
 }
 
 function ContactContent({ language }: { language: PublicLanguage }) {
-  const [prepared, setPrepared] = useState(false)
   const c = copy[language]
 
   useEffect(() => {
     setPageMetadata({ title: language === 'tr' ? 'İletişim' : 'Contact', description: c.description, language })
   }, [language, c.description])
-
-  const sendMessage = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const subject = String(data.get('topic') ?? '')
-    const body = `${c.name}: ${String(data.get('name') ?? '')}\n${c.email}: ${String(data.get('email') ?? '')}\n\n${String(data.get('message') ?? '')}`
-    setPrepared(true)
-    window.location.href = `mailto:merhaba@peremetours.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-  }
 
   return <>
     <section className="info-hero contact-hero"><div className="info-hero__rings" /><div className="shell"><span><MessageCircle /> {c.eyebrow}</span><h1>{c.title}<em>{c.accent}</em></h1><p>{c.description}</p></div></section>
@@ -48,14 +35,7 @@ function ContactContent({ language }: { language: PublicLanguage }) {
       </div>
       <div className="contact-form-layout">
         <div className="contact-form-copy"><span>{c.formEyebrow}</span><h2>{c.formTitle}</h2><div><Clock3 /><p><strong>{c.hours}</strong>{c.hoursText}</p></div></div>
-        <form className="contact-form" onSubmit={sendMessage}>
-          {prepared && <div className="contact-success">{c.ready}</div>}
-          <label>{c.name}<input name="name" required maxLength={100} placeholder={c.namePlaceholder} /></label>
-          <label>{c.email}<input name="email" required type="email" maxLength={200} placeholder={c.emailPlaceholder} /></label>
-          <label className="field-wide">{c.topic}<input name="topic" required maxLength={200} placeholder={c.topicPlaceholder} /></label>
-          <label className="field-wide">{c.message}<textarea name="message" required maxLength={3000} rows={6} placeholder={c.messagePlaceholder} /></label>
-          <div className="contact-form__submit field-wide"><small>{c.note}</small><button type="submit">{c.send}<Send /></button></div>
-        </form>
+        <ContactForm language={language} />
       </div>
     </div></section>
   </>

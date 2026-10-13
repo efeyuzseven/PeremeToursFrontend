@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock3, LoaderCircle, MapPi
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
+import { siteScrollBehavior } from '../lib/site'
 import { useAuth } from '../auth/AuthContext'
 import { ApiError, apiRequest } from '../lib/api'
 import { formatMoney, isTryPrice, isUpcomingDeparture, loadTourBookingOptions, type PortAvailability, type TourQuote } from '../lib/tours'
@@ -167,7 +168,7 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
     const invalidPassengerIndex = passengerSlots.findIndex((slot) => !isCompletePassenger(slot.details, today))
     if (invalidPassengerIndex >= 0) {
       setQuoteError(pc.invalid)
-      drawer.current?.querySelectorAll('.reservation-passenger')[invalidPassengerIndex]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      drawer.current?.querySelectorAll('.reservation-passenger')[invalidPassengerIndex]?.scrollIntoView({ behavior: siteScrollBehavior(), block: 'center' })
       return
     }
     setChecking(true); setQuoteError('')
@@ -186,7 +187,7 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
       if (controller.signal.aborted) return
       setPriceChanged(Math.abs(result.amount - total) > 0.005)
       setQuote(result)
-      drawer.current?.scrollTo({ top: 0, behavior: 'smooth' })
+      drawer.current?.scrollTo({ top: 0, behavior: siteScrollBehavior() })
       requestAnimationFrame(() => bookingRoot.current?.focus({ preventScroll: true }))
     } catch (failure) {
       if (!controller.signal.aborted) setQuoteError(language === 'tr' && failure instanceof ApiError && failure.status === 400 ? failure.message : c.quoteError)

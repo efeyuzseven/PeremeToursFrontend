@@ -19,6 +19,7 @@ import FaqPage from './pages/FaqPage'
 import KvkkPage from './pages/KvkkPage'
 import TourPage from './pages/TourPage'
 import TourPagesPage from './admin/TourPagesPage'
+import FloatingSupport from './components/FloatingSupport'
 import './styles.css'
 
 createRoot(document.getElementById('root')!).render(
@@ -53,6 +54,7 @@ createRoot(document.getElementById('root')!).render(
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <FloatingSupport />
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

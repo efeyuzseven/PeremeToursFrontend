@@ -7,7 +7,7 @@ import { bookingTour, categoryImages, categoryPath, categorySlugs, resolvePageIm
   type PublicTourItem, type TourLanguage, type TourPageItem } from '../content/tour-pages'
 import { ApiError, apiRequest } from '../lib/api'
 import { istanbulToday } from '../lib/passengers'
-import { setPageMetadata } from '../lib/site'
+import { setPageMetadata, siteScrollBehavior } from '../lib/site'
 import PublicPageLayout from './PublicPageLayout'
 
 const copy = {
@@ -65,7 +65,7 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
     .sort((a, b) => a.sortOrder - b.sortOrder || a.externalTourId - b.externalTourId)
   const openBooking = () => {
     if (page.externalTourId && ownTour) setSelected(ownTour)
-    else document.getElementById('related-tours')?.scrollIntoView({ behavior: 'smooth' })
+    else document.getElementById('related-tours')?.scrollIntoView({ behavior: siteScrollBehavior() })
   }
   return <>
     <nav className="shell tour-page-breadcrumb" aria-label={language === 'tr' ? 'Sayfa yolu' : 'Breadcrumb'}>

@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import App from './App'
@@ -21,6 +21,10 @@ import TourPage from './pages/TourPage'
 import TourPagesPage from './admin/TourPagesPage'
 import FloatingSupport from './components/FloatingSupport'
 import './styles.css'
+
+// This entry point mounts the application; the admin-only screen is intentionally loaded on demand.
+// eslint-disable-next-line react-refresh/only-export-components
+const FeedbackPage = lazy(() => import('./admin/FeedbackPage'))
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -50,6 +54,7 @@ createRoot(document.getElementById('root')!).render(
               <Route path="site-content" element={<SiteContentPage />} />
               <Route path="faqs" element={<FrequentlyAskedQuestionsPage />} />
               <Route path="users" element={<UsersPage />} />
+              <Route path="feedback" element={<Suspense fallback={<div className="site-content-loading"><span className="button-spinner" /></div>}><FeedbackPage /></Suspense>} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

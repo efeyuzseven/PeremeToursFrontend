@@ -92,6 +92,7 @@ test('all admin pages use branded, non-indexable metadata in both languages', as
     ['/admin/site-content', 'Site İçerikleri', 'Site Content'],
     ['/admin/faqs', 'Sıkça Sorulan Sorular', 'Frequently Asked Questions'],
     ['/admin/users', 'Kullanıcılar', 'Users'],
+    ['/admin/feedback', 'Geri Bildirimler', 'Feedback'],
   ]) {
     await page.evaluate(() => localStorage.setItem('pereme-language', 'tr'))
     await page.goto(route)

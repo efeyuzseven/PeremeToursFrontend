@@ -1,4 +1,4 @@
-import { ArrowUpRight, CircleAlert, CircleHelp, FilePenLine, Globe2, Images, LayoutDashboard, LogOut, Menu, ShipWheel, TicketCheck, UsersRound, X } from 'lucide-react'
+import { ArrowUpRight, CircleAlert, CircleHelp, FilePenLine, Globe2, Images, LayoutDashboard, LogOut, Menu, MessageSquare, ShipWheel, TicketCheck, UsersRound, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
@@ -46,6 +46,7 @@ export default function AdminLayout() {
           <NavLink to="/admin/tour-pages" onClick={() => setMenuOpen(false)}><FilePenLine /> {language === 'tr' ? 'Tur Sayfaları' : 'Tour Pages'}</NavLink>
           <NavLink to="/admin/site-content" onClick={() => setMenuOpen(false)}><FilePenLine /> {c.siteContent}</NavLink>
           <NavLink to="/admin/faqs" onClick={() => setMenuOpen(false)}><CircleHelp /> {c.faqs}</NavLink>
+          <NavLink to="/admin/feedback" onClick={() => setMenuOpen(false)}><MessageSquare /> {language === 'tr' ? 'Geri Bildirimler' : 'Feedback'}</NavLink>
           <NavLink to="/admin/users" onClick={() => setMenuOpen(false)}><UsersRound /> {c.users}</NavLink>
         </nav>
         <div className="admin-sidebar__bottom">

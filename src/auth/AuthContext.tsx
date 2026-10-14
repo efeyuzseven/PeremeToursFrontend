@@ -29,10 +29,13 @@ type AuthContextValue = {
   user: AuthUser | null
   login: (email: string, password: string) => Promise<AuthSession>
   register: (input: RegisterInput) => Promise<AuthSession>
-  logout: (reason?: 'email-updated') => void
-  logoutReason: 'email-updated' | null
+  logout: (reason?: LogoutReason) => void
+  logoutReason: LogoutReason | null
   refreshUser: () => Promise<void>
+  updateOwnProfile: (firstName: string, lastName: string | null) => void
 }
+
+type LogoutReason = 'email-updated' | 'password-updated' | 'account-deleted'
 
 const storageKey = 'peremetours-session'
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -55,7 +58,7 @@ function readSession(): AuthSession | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(readSession)
-  const [logoutReason, setLogoutReason] = useState<'email-updated' | null>(null)
+  const [logoutReason, setLogoutReason] = useState<LogoutReason | null>(null)
 
   const saveSession = (nextSession: AuthSession) => {
     window.sessionStorage.setItem(storageKey, JSON.stringify(nextSession))
@@ -91,6 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!session) return
       const user = await apiRequest<AuthUser>('/api/v1/auth/me', { token: session.accessToken, cache: 'no-store' })
       saveSession({ ...session, user })
+    },
+    updateOwnProfile(firstName, lastName) {
+      if (session) saveSession({ ...session, user: { ...session.user, firstName, lastName } })
     },
   }), [session, logoutReason])
 

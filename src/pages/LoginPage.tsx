@@ -30,6 +30,8 @@ const text = {
     failed: 'İşlem tamamlanamadı. Lütfen tekrar dene.', show: 'Şifreyi göster', hide: 'Şifreyi gizle',
     backLogin: 'Giriş ekranına dön', requestAgain: 'Yeni bağlantı iste',
     emailUpdated: 'Giriş e-postanız güncellendi. Yeni adresiniz ve mevcut şifrenizle yeniden giriş yapın.',
+    passwordUpdated: 'Şifren güncellendi ve önceki oturumların kapatıldı. Yeni şifrenle giriş yapabilirsin.',
+    accountDeleted: 'Hesabın silindi. Bu işlem mevcut biletlerini iptal etmez ve otomatik iade başlatmaz.',
   },
   en: {
     back: 'Back to website', eyebrow: 'My Pereme account', title: 'Your Bosphorus story starts here.',
@@ -51,6 +53,8 @@ const text = {
     failed: 'We could not complete this request. Please try again.', show: 'Show password', hide: 'Hide password',
     backLogin: 'Back to sign in', requestAgain: 'Request a new link',
     emailUpdated: 'Your login email has been updated. Sign in again with the new address and your existing password.',
+    passwordUpdated: 'Your password was updated and previous sessions were closed. Sign in with your new password.',
+    accountDeleted: 'Your account was deleted. This does not cancel existing tickets or initiate a refund.',
   },
 }
 
@@ -142,6 +146,8 @@ export default function LoginPage({ initialMode = 'login' }: { initialMode?: Mod
           </div>}
           <div className="login-card__heading"><span>{recovery ? <LockKeyhole size={20} /> : <UserRound size={20} />}</span><div><h2>{c[mode]}</h2><p>{mode === 'forgot' ? c.forgotIntro : mode === 'reset' ? c.resetIntro : c.secure}</p></div></div>
           {mode === 'login' && logoutReason === 'email-updated' && <p className="login-password-hint" role="status">{c.emailUpdated}</p>}
+          {mode === 'login' && logoutReason === 'password-updated' && <p className="login-password-hint" role="status">{c.passwordUpdated}</p>}
+          {mode === 'login' && logoutReason === 'account-deleted' && <p className="login-password-hint" role="status">{c.accountDeleted}</p>}
           {complete ? <div className="login-success" role="status"><span>{mode === 'forgot' ? <Mail size={24} /> : <Check size={24} />}</span><p>{mode === 'forgot' ? c.sent : c.resetDone}</p>{mode === 'forgot' && <small>{c.sentHint}</small>}<Link className="login-submit" to="/login">{c.login}<ArrowRight size={18} /></Link></div>
             : invalidLink ? <div className="login-error" role="alert"><p>{c.invalid}</p><Link className="login-recovery-link" to="/sifremi-unuttum">{c.requestAgain}<ArrowRight size={16} /></Link></div>
               : <form onSubmit={submit}>

@@ -12,7 +12,6 @@ import UsersPage from './admin/UsersPage'
 import { AuthProvider } from './auth/AuthContext'
 import ProtectedAdminRoute from './auth/ProtectedAdminRoute'
 import ProtectedAccountRoute from './auth/ProtectedAccountRoute'
-import AccountPage from './pages/AccountPage'
 import LoginPage from './pages/LoginPage'
 import ContactPage from './pages/ContactPage'
 import FaqPage from './pages/FaqPage'
@@ -25,6 +24,8 @@ import './styles.css'
 // This entry point mounts the application; the admin-only screen is intentionally loaded on demand.
 // eslint-disable-next-line react-refresh/only-export-components
 const FeedbackPage = lazy(() => import('./admin/FeedbackPage'))
+// eslint-disable-next-line react-refresh/only-export-components
+const AccountPage = lazy(() => import('./pages/AccountPage'))
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -37,7 +38,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/login" element={<LoginPage key="login" />} />
           <Route path="/sifremi-unuttum" element={<LoginPage key="forgot" initialMode="forgot" />} />
           <Route path="/sifre-sifirla" element={<LoginPage key="reset" initialMode="reset" />} />
-          <Route element={<ProtectedAccountRoute />}><Route path="/hesabim" element={<AccountPage />} /><Route path="/account" element={<AccountPage />} /></Route>
+          <Route element={<ProtectedAccountRoute />}><Route path="/hesabim" element={<Suspense fallback={<div className="site-content-loading"><span className="button-spinner" /></div>}><AccountPage /></Suspense>} /><Route path="/account" element={<Suspense fallback={<div className="site-content-loading"><span className="button-spinner" /></div>}><AccountPage /></Suspense>} /></Route>
           <Route path="/iletisim" element={<ContactPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/sikca-sorulan-sorular" element={<FaqPage />} />

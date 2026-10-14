@@ -3,6 +3,34 @@
   padding-bottom: 90px;
   color: #071b35;
 }
+.account-profile, #rezervasyonlarim { scroll-margin-top: 105px; }
+.account-settings { margin-top: 27px; border-top: 1px solid #e6edf7; }
+.account-settings__form { padding-top: 24px; }
+.account-settings fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.account-settings .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.account-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.account-form-grid label { display: flex; flex-direction: column; gap: 9px; color: #1f478c; font-size: 12px; font-weight: 600; }
+.account-form-wide { grid-column: 1 / -1; }
+.account-form-grid input { width: 100%; min-height: 46px; padding: 12px 14px; border: 1px solid #dce8f5; border-radius: 10px; color: #071b35; background: #fff; font: inherit; font-size: 14px; }
+.account-form-grid input:focus { border-color: #6a9dd2; outline: 2px solid #6a9dd225; }
+.account-form-grid input:read-only { background: #f3f7fc; }
+.account-form-grid small, .account-form-hint, .account-settings__disclosure p { color: #1f478c; font-size: 12px; font-weight: 400; line-height: 1.75; }
+.account-save { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; margin-top: 20px; padding: 12px 20px; border: 1px solid #071b35; border-radius: 12px; color: #fff; background: #071b35; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.account-save:hover { background: #1f478c; }
+.account-save:disabled, .account-settings fieldset:disabled { opacity: .6; }
+.account-save:disabled { cursor: not-allowed; }
+.account-settings__disclosure { margin-top: 22px; border-top: 1px solid #e6edf7; padding-top: 8px; }
+.account-settings__disclosure summary { display: flex; align-items: center; gap: 10px; min-height: 52px; color: #1f478c; font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; }
+.account-settings__disclosure summary::-webkit-details-marker { display: none; }
+.account-settings__disclosure summary::after { content: '+'; font-size: 21px; margin-left: auto; font-weight: 400; }
+.account-settings__disclosure[open] summary::after { content: '−'; }
+.account-settings__disclosure form { padding: 0 0 10px; }
+.account-delete-check { display: flex; align-items: flex-start; gap: 10px; margin-top: 22px; font-size: 12px; line-height: 1.6; color: #1f478c; }
+.account-delete-check input { width: 17px; height: 17px; margin-top: 1px; flex-shrink: 0; accent-color: #1f478c; }
+.account-save--delete { background: #fff; color: #071b35; }
+.account-save--delete:hover { color: #fff; }
+.account-form-notice { display: flex; align-items: center; gap: 8px; padding: 14px; border: 1px solid #6a9dd2; border-radius: 10px; font-size: 13px; color: #1f478c; background: #edf3fc; }
+.account-settings :is(button, summary):focus-visible { outline: 2px solid #6a9dd2; outline-offset: 3px; }
 .account-heading,
 .account-section-heading,
 .account-reservation-heading {
@@ -187,6 +215,8 @@
   flex-basis: 100%;
 }
 @media (max-width: 640px) {
+  .account-form-grid { grid-template-columns: 1fr; gap: 17px; }
+  .account-save { width: 100%; }
   .account-page {
     padding-top: 35px;
     padding-bottom: 55px;

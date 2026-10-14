@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { SITE_NAME } from '../lib/site'
+import AccountMenu from '../components/AccountMenu'
 import './info-pages.css'
 
 export type PublicLanguage = 'tr' | 'en'
@@ -45,8 +46,7 @@ export default function PublicPageLayout({ children }: PublicPageLayoutProps) {
           <Link to="/#turlar">{c.tours}</Link><Link to="/#hizmetler">{c.services}</Link><Link to="/sikca-sorulan-sorular">{c.faq}</Link><Link to="/iletisim">{c.contact}</Link>
         </nav>
         <div className="info-header__actions">
-          <Link to={user ? '/hesabim' : '/login'}><UserRound /> {c.account}</Link>
-          {user?.role === 'Admin' && <Link to="/admin/tickets">{c.admin}</Link>}
+          <AccountMenu language={language} />
           <div className="info-language"><Globe2 />{(['tr', 'en'] as PublicLanguage[]).map((item) => <button className={language === item ? 'active' : ''} type="button" key={item} onClick={() => setLanguage(item)}>{item.toUpperCase()}</button>)}</div>
           <button className="info-menu-button" type="button" aria-label={c.menu} onClick={() => setMenuOpen(true)}><Menu /></button>
         </div>

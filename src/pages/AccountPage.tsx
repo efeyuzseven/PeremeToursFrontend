@@ -7,20 +7,15 @@ import {
   UserRound,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { apiRequest, ApiError } from '../lib/api'
-import { setPageMetadata } from '../lib/site'
+import { setPageMetadata, siteScrollBehavior } from '../lib/site'
+import AccountSettings, { type AccountProfile } from '../components/AccountSettings'
 import { TicketQr } from '../components/TicketQr'
 import PublicPageLayout, { type PublicLanguage } from './PublicPageLayout'
 import './account.css'
 
-type Profile = {
-  firstName: string
-  lastName: string | null
-  email: string
-  createdAtUtc: string
-}
 type CancellationState = { cancellationStatus?: string | null }
 type Reservation = {
   id: string
@@ -80,12 +75,14 @@ const states: Record<PublicLanguage, Record<string, string>> = {
 
 function AccountContent({ language }: { language: PublicLanguage }) {
   const { session, logout } = useAuth()
+  const token = session?.accessToken
   const navigate = useNavigate()
+  const location = useLocation()
   const tr = language === 'tr'
   const emailStates: Record<string, string> = tr
     ? { Queued: 'Kuyrukta', Processing: 'Gönderiliyor', Sent: 'Gönderildi', Failed: 'Gönderilemedi', ReviewRequired: 'Gönderim kontrol edilmeli' }
     : { Queued: 'Queued', Processing: 'Sending', Sent: 'Sent', Failed: 'Delivery failed', ReviewRequired: 'Delivery review required' }
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile, setProfile] = useState<AccountProfile | null>(null)
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -94,15 +91,15 @@ function AccountContent({ language }: { language: PublicLanguage }) {
     const controller = new AbortController()
     setPageMetadata({ title: tr ? 'Hesabım' : 'My account', language, indexable: false })
     Promise.all([
-      apiRequest<Profile>('/api/v1/account/profile', {
-        token: session!.accessToken,
+      apiRequest<AccountProfile>('/api/v1/account/profile', {
+        token,
         cache: 'no-store',
         signal: controller.signal,
       }),
       apiRequest<(Reservation & CancellationState)[]>(
         '/api/v1/account/reservations',
         {
-          token: session!.accessToken,
+          token,
           cache: 'no-store',
           signal: controller.signal,
         },
@@ -141,7 +138,12 @@ function AccountContent({ language }: { language: PublicLanguage }) {
         if (!controller.signal.aborted) setLoading(false)
       })
     return () => controller.abort()
-  }, [session, reload, tr, language])
+  }, [token, reload, tr, language])
+  useEffect(() => {
+    if (loading || !['#kisisel-bilgilerim', '#rezervasyonlarim'].includes(location.hash)) return
+    const timer = requestAnimationFrame(() => document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: siteScrollBehavior(), block: 'start' }))
+    return () => cancelAnimationFrame(timer)
+  }, [location.hash, loading])
   const date = (value: string) =>
     new Intl.DateTimeFormat(tr ? 'tr-TR' : 'en-GB', {
       day: 'numeric',
@@ -189,7 +191,7 @@ function AccountContent({ language }: { language: PublicLanguage }) {
           {error}
         </p>
       )}
-      <section className="account-profile">
+      <section className="account-profile" id="kisisel-bilgilerim">
         <h2>
           <UserRound size={20} />{' '}
           {tr ? 'Kişisel bilgilerim' : 'Personal details'}
@@ -212,8 +214,9 @@ function AccountContent({ language }: { language: PublicLanguage }) {
             </div>
           </dl>
         )}
+        {profile && <AccountSettings profile={profile} language={language} onSaved={setProfile} />}
       </section>
-      <div className="account-section-heading">
+      <div className="account-section-heading" id="rezervasyonlarim">
         <h2>
           <Ticket size={21} /> {tr ? 'Rezervasyonlarım' : 'My bookings'}
         </h2>

@@ -34,6 +34,7 @@ import { normalizeHomepage, type HomepageContentDocument } from './content/homep
 import { apiBaseUrl, apiRequest } from './lib/api'
 import { INSTAGRAM_PROFILE_URL, setPageMetadata, siteScrollBehavior, SITE_NAME } from './lib/site'
 import { BookingDrawer } from './components/BookingDrawer'
+import AccountMenu from './components/AccountMenu'
 import { categoryPath, tourCategories, tourPath } from './content/tour-pages'
 
 type Language = 'tr' | 'en'
@@ -547,9 +548,7 @@ function App() {
           <Logo light={!scrolled} language={language} />
           <nav className="desktop-nav" aria-label={c.a11y.mainNav}>{c.nav.map(([label, href]) => <a key={href} href={href}>{label}</a>)}</nav>
           <div className="header__actions">
-            <Link className="account-link" to={user ? '/hesabim' : '/login'}>
-              <UserRound size={16} /> <span>{t('account', language === 'tr' ? 'Hesabım' : 'My account')}</span>
-            </Link>
+            <AccountMenu language={language} label={t('account', language === 'tr' ? 'Hesabım' : 'My account')} />
             <div className="language-picker" ref={languagePickerRef}>
               <button className="language" type="button" aria-label={c.a11y.language} aria-haspopup="menu" aria-expanded={languageMenu} onClick={() => setLanguageMenu((open) => !open)}>
                 <Globe2 size={17} /> {language.toUpperCase()} <ChevronDown size={14} />

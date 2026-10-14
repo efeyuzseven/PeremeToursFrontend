@@ -7,6 +7,12 @@ Sekme başlıkları, canonical ve paylaşım bilgileri `src/lib/site.ts` üzerin
 
 Giriş ekranındaki **Şifremi unuttum** bağlantısı `/sifremi-unuttum` sayfasını açar. TR/EN e-posta talebi ve `/sifre-sifirla` yeni şifre ekranı mevcuttur; yönetici yönlendirme notu gösterilmez, mevcut yönetici giriş yönlendirmesi korunur. E-posta bağlantısındaki tek kullanımlık kod URL fragment'inden alınır ve adres çubuğundan temizlenir; tarayıcı depolamasına yazılmaz. Şifre sıfırlandıktan sonra yerel oturum temizlenir ve yeni şifreyle yeniden giriş gerekir. Bu sayfalar `noindex, nofollow` kullanır.
 
+Oturum açıkken **Hesabım** menüsünde **Kişisel bilgilerim**, **Rezervasyonlarım** ve **Çıkış yap** bulunur. Admin rolünde **Yönetim Paneli** doğrudan yanında görünür; mobilde de erişilebilir. `/hesabim` ekranında kullanıcı kendi ad, soyad ve e-posta bilgilerini düzenleyebilir. E-posta değişikliği mevcut şifreyle doğrulanır; şifre değişikliği mevcut şifre ve yeni şifre tekrarı ister. E-posta/şifre değişince önceki oturumlar ve sıfırlama bağlantıları geçersiz olur, yeniden giriş gerekir. Şifre değerleri tarayıcı depolamasına yazılmaz.
+
+**Hesabımı sil** mevcut şifre, SİL / DELETE metni ve onay kutusu ister. Hesap profili anonimleştirilir ve giriş kalıcı kapatılır; rezervasyon, ödeme ve işlem kayıtları korunur. Bu işlem bilet iptali veya banka iadesi değildir. Silinen kullanıcı admin listesinden çıkar ve panelden yeniden etkinleştirilemez. Aynı e-postayla yeni hesap açılması eski rezervasyonları bağlamaz. Dağıtımın varsayılan yönetici hesabının e-postası ve silinmesi korunur; son aktif yönetici de silinemez. Bu hesapların ad/soyad ve şifre değişikliği açıktır. Hesap ekranının kodu yalnızca ilgili sayfada yüklenir.
+
+`npm run test:live-account` yayınlanmış arayüzü masaüstü/mobil olarak kontrol eder; tüm API istekleri sahte yanıtlarla engellenir. Gerçek profil, şifre, hesap, bilet veya mail üzerinde işlem yapmaz.
+
 ## Geliştirme
 
 ```bash

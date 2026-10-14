@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
     "test:e2e": "playwright test",
-    "test:live": "node scripts/check-live-booking.mjs"
+    "test:live": "node scripts/check-live-booking.mjs",
+    "test:live-account": "node scripts/check-live-account.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

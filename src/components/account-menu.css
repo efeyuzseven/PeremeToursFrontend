@@ -1,0 +1,32 @@
+.nav-account { display: flex; align-items: center; gap: 8px; color: inherit; }
+.nav-account__dropdown { position: relative; }
+.nav-account__trigger, .nav-account__admin { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 9px; border: 0; border-radius: 12px; background: transparent; color: inherit; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: none; white-space: nowrap; }
+.nav-account__admin { border: 1px solid currentColor; }
+.nav-account__trigger:hover, .nav-account__admin:hover { background: #6a9dd225; }
+.nav-account :is(a, button):focus-visible { outline: 2px solid #6a9dd2; outline-offset: 3px; }
+.nav-account__menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 90; width: 235px; max-width: calc(100vw - 32px); padding: 8px; border: 1px solid #dce8f5; border-radius: 16px; background: #fff; color: #071b35; box-shadow: 0 18px 50px #071b3526; }
+.nav-account__identity { padding: 10px 12px 13px; margin-bottom: 4px; border-bottom: 1px solid #e6edf7; font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
+.nav-account__menu a, .nav-account__menu button { display: flex; width: 100%; align-items: center; gap: 10px; min-height: 44px; padding: 11px 12px; border: 0; border-radius: 9px; background: #fff; color: #1f478c; font: inherit; font-size: 13px; text-align: left; cursor: pointer; text-decoration: none; }
+.nav-account__menu :is(a, button):hover { background: #edf3fc; }
+.nav-account__menu button { margin-top: 4px; border-top: 1px solid #e6edf7; border-radius: 0 0 9px 9px; }
+@media (max-width: 1050px) { .nav-account { gap: 5px; } .nav-account__trigger, .nav-account__admin { padding-inline: 7px; } }
+@media (max-width: 640px) {
+  .nav-account { gap: 5px; }
+  .nav-account__trigger, .nav-account__admin { padding-inline: 6px; font-size: 10px; gap: 4px; }
+  .nav-account__admin span { white-space: normal; max-width: 52px; line-height: 1.35; }
+  .nav-account__admin > svg { display: none; }
+  .info-header .info-header__inner { gap: 8px; }
+  .info-header .info-header__actions { gap: 5px; }
+  .info-header__actions .info-menu-button { position: static; transform: none; }
+  .info-header__inner .info-logo img { width: 96px; }
+  .site-header .header__actions { gap: 5px; }
+  .site-header .header__inner { gap: 8px; }
+  .site-header .logo img { height: 46px; }
+}
+@media (max-width: 360px) {
+  .info-header__inner .info-logo img { width: 84px; }
+  .nav-account__trigger > svg:first-child { display: none; }
+  .nav-account__admin span { max-width: 48px; }
+  .nav-account__admin { font-size: 9px; }
+  .site-header .logo img { height: 40px; }
+}

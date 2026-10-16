@@ -10,3 +10,7 @@
 .user-edit-note span { display: block; margin-top: 8px; font-weight: 700; }
 .user-edit-error { margin: 0; padding: 12px 15px; border: 1px solid #6a9dd2; border-radius: 10px; color: #071b35; font-size: 13px; line-height: 1.6; }
 .users-success { margin-bottom: 16px; padding: 13px 16px; border: 1px solid rgba(106,157,210,.3); border-radius: 10px; color: #1f478c; background: #fff; font-size: 13px; }
+.user-create-dialog { max-width: 640px; }
+.user-create-dialog .user-password-toggle { display: inline-flex; align-items: center; justify-content: flex-start; gap: 8px; min-height: 40px; padding: 0; border: 0; color: #1f478c; background: transparent; font-size: 12px; }
+.user-create-password-hint { margin: 0; color: #1f478c; font-size: 12px; line-height: 1.7; }
+.user-create-dialog :is(button, select):focus-visible { outline: 2px solid #6a9dd2; outline-offset: 3px; }

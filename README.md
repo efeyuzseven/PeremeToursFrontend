@@ -15,6 +15,8 @@ Oturum açıkken **Hesabım** menüsünde **Kişisel bilgilerim**, **Rezervasyon
 
 ## Panel rolleri
 
+Admin, **Kullanıcılar → Yeni kullanıcı oluştur** ile ad, soyad, e-posta, başlangıç şifresi ve beş rolden birini seçerek aktif hesap açabilir. Başlangıç şifresi tekrar doğrulanır; varsayılan seçim User'dır. Yeni hesap listede görünür, hesabı açan Admin'in oturumu değişmez. Şifre e-postayla gönderilmez ve tarayıcı depolamasına yazılmaz. Aynı e-posta varsa mevcut hesap/rol/şifre değiştirilmez. Belirsiz ağ sonucunda otomatik tekrar gönderilmez; **Listeyi kontrol et** yalnızca GET ile listeyi yeniler. Pencere iki dilde ve mobilde kullanılabilir; arka plan etkileşimleri engellenir ve klavye odağı pencerede kalır.
+
 Admin tüm panel ekranlarına erişir ve Kullanıcılar sayfasından rol atar. Editor (Editör) ve Advisor aynı içerik yetkilerine sahiptir: Site İçerikleri, Tur İçerikleri, Tur Sayfaları ve Sıkça Sorulan Sorular ekranlarını düzenleyebilir; görsel yükleyebilirler. Service yalnızca Geri Bildirimler, Tur Biletleri ve Bilet Hata Kayıtlarına erişir; müşteriye yanıt maili oluşturabilir, mevcut açık onay akışıyla rezervasyonun tam iptal/iadesini başlatabilir. Service manuel bilet oluşturamaz, bilet durumunu doğrudan değiştiremez, içerik veya kullanıcı yönetimine erişemez. User'ın panel erişimi yoktur.
 
 Menü ve doğrudan URL korumaları ortak rol haritasını kullanır; API ayrıca bağımsız yetkilendirme uygular. Girişten sonra Editor/Advisor Site İçerikleri'ne, Service Geri Bildirimler'e, Admin Tur Biletleri'ne yönlenir. Rol değişikliği eski oturumları geçersiz kılar ve yeniden giriş gerekir. Normal kayıt her zaman User oluşturur; istemciden ayrıcalıklı rol alınmaz. Bu güncelleme mevcut kullanıcıların rollerini değiştirmez.

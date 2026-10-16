@@ -1,4 +1,4 @@
-import { Pencil, Search, ShieldCheck, UserCheck, UserRound, UsersRound } from 'lucide-react'
+import { Pencil, Search, ShieldCheck, UserCheck, UserPlus, UserRound, UsersRound } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth, type UserRole } from '../auth/AuthContext'
@@ -7,6 +7,7 @@ import { apiRequest, ApiError } from '../lib/api'
 import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
 import UserEditDialog, { type ManagedUser, type ProfileUpdate } from './UserEditDialog'
+import UserCreateDialog from './UserCreateDialog'
 
 const copy = {
   tr: { eyebrow: 'HESAP YÖNETİMİ', title: 'Kullanıcılar', subtitle: 'Üyeleri görüntüleyin, erişimlerini yönetin ve yönetici rollerini düzenleyin.', total: 'Toplam kullanıcı', active: 'Aktif hesap', admins: 'Yöneticiler', search: 'İsim veya e-posta ara...', user: 'Kullanıcı', joined: 'Kayıt tarihi', role: 'Rol', status: 'Hesap durumu', admin: 'Yönetici', customer: 'Kullanıcı', enabled: 'Aktif', disabled: 'Kapalı', empty: 'Aramanızla eşleşen kullanıcı bulunamadı.', error: 'Kullanıcılar yüklenemedi.', self: 'Bu hesap' },
@@ -22,10 +23,13 @@ export default function UsersPage() {
   const [error, setError] = useState('')
   const [updatingId, setUpdatingId] = useState('')
   const [editing, setEditing] = useState<ManagedUser | null>(null)
+  const [creating, setCreating] = useState(false)
   const [success, setSuccess] = useState('')
   const updating = useRef(false)
   const editTrigger = useRef<HTMLButtonElement | null>(null)
+  const createTrigger = useRef<HTMLButtonElement | null>(null)
   const closeEditor = useCallback(() => setEditing(null), [])
+  const closeCreator = useCallback(() => setCreating(false), [])
   const c = copy[language]
 
   useEffect(() => {
@@ -47,7 +51,7 @@ export default function UsersPage() {
   }, [language, query, users])
 
   const updateUser = async (user: ManagedUser, change: { role?: UserRole; isActive?: boolean }) => {
-    if (updating.current || editing) return
+    if (updating.current || editing || creating) return
     updating.current = true
     setUpdatingId(user.id)
     setError('')
@@ -82,9 +86,19 @@ export default function UsersPage() {
   }
 
   const formatDate = (date: string) => new Intl.DateTimeFormat(language === 'tr' ? 'tr-TR' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(date))
+  const userCreated = (created: ManagedUser) => {
+    setUsers(items => [created, ...items.filter(item => item.id !== created.id)])
+    setQuery(''); setCreating(false); setError('')
+    setSuccess(language === 'tr' ? 'Kullanıcı oluşturuldu. Seçilen rol ile giriş yapabilir.' : 'The user was created and can sign in with the selected role.')
+  }
+  const checkCreatedList = async (email: string) => {
+    const result = await apiRequest<ManagedUser[]>('/api/v1/admin/users', { token: session!.accessToken, cache: 'no-store' })
+    setUsers(result); setQuery(email); setCreating(false)
+    setSuccess(language === 'tr' ? 'Liste yenilendi. Bu e-posta ile kayıt olup olmadığını kontrol edin.' : 'The list was refreshed. Check whether an account uses this email.')
+  }
 
   return <>
-    <div className="admin-page-heading"><div><span>{c.eyebrow}</span><h1>{c.title}</h1><p>{c.subtitle}</p></div></div>
+    <div className="admin-page-heading"><div><span>{c.eyebrow}</span><h1>{c.title}</h1><p>{c.subtitle}</p></div><button ref={createTrigger} type="button" className="admin-primary-button" disabled={loading || !!updatingId || !!editing || creating} onClick={() => { setError(''); setSuccess(''); setCreating(true) }}><UserPlus size={18} />{language === 'tr' ? 'Yeni kullanıcı oluştur' : 'Create a new user'}</button></div>
     <div className="admin-stat-grid admin-stat-grid--three">
       <article><span className="stat-icon stat-icon--blue"><UsersRound /></span><div><small>{c.total}</small><strong>{users.length}</strong></div></article>
       <article><span className="stat-icon stat-icon--green"><UserCheck /></span><div><small>{c.active}</small><strong>{users.filter((user) => user.isActive).length}</strong></div></article>
@@ -101,5 +115,6 @@ export default function UsersPage() {
       {!loading && visibleUsers.length === 0 && <div className="admin-empty"><UserRound /><p>{c.empty}</p></div>}
     </section>
     {editing && <UserEditDialog key={editing.id} user={editing} token={session!.accessToken} language={language} isSelf={editing.id === session!.user.id} returnFocus={editTrigger} onClose={closeEditor} onSaved={profileSaved} />}
+    {creating && <UserCreateDialog token={session!.accessToken} language={language} returnFocus={createTrigger} onClose={closeCreator} onCreated={userCreated} onCheckList={checkCreatedList} />}
   </>
 }

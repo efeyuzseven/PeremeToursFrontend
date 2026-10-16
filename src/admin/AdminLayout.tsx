@@ -2,6 +2,7 @@ import { ArrowUpRight, CircleAlert, CircleHelp, FilePenLine, Globe2, Images, Lay
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { allowedPanelSections, roleLabel, type PanelSection } from '../auth/roles'
 import './admin.css'
 
 export type AdminLanguage = 'tr' | 'en'
@@ -17,6 +18,17 @@ export default function AdminLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const c = copy[language]
+  const allowed = allowedPanelSections(user?.role)
+  const links = [
+    { section: 'tickets', icon: TicketCheck, label: c.tickets },
+    { section: 'ticket-errors', icon: CircleAlert, label: language === 'tr' ? 'Bilet Hata Kayıtları' : 'Ticket Error Logs' },
+    { section: 'tour-contents', icon: Images, label: c.tourContents },
+    { section: 'tour-pages', icon: FilePenLine, label: language === 'tr' ? 'Tur Sayfaları' : 'Tour Pages' },
+    { section: 'site-content', icon: FilePenLine, label: c.siteContent },
+    { section: 'faqs', icon: CircleHelp, label: c.faqs },
+    { section: 'feedback', icon: MessageSquare, label: language === 'tr' ? 'Geri Bildirimler' : 'Feedback' },
+    { section: 'users', icon: UsersRound, label: c.users },
+  ] satisfies { section: PanelSection; icon: typeof TicketCheck; label: string }[]
 
   useEffect(() => {
     document.documentElement.lang = language
@@ -40,14 +52,8 @@ export default function AdminLayout() {
         <div className="admin-workspace"><span><ShipWheel size={17} /></span><div><small>PEREME TOURS</small><strong>{c.workspace}</strong></div></div>
         <nav className="admin-nav">
           <span>MENU</span>
-          <NavLink to="/admin/tickets" onClick={() => setMenuOpen(false)}><TicketCheck /> {c.tickets}</NavLink>
-          <NavLink to="/admin/ticket-errors" onClick={() => setMenuOpen(false)}><CircleAlert /> {language === 'tr' ? 'Bilet Hata Kayıtları' : 'Ticket Error Logs'}</NavLink>
-          <NavLink to="/admin/tour-contents" onClick={() => setMenuOpen(false)}><Images /> {c.tourContents}</NavLink>
-          <NavLink to="/admin/tour-pages" onClick={() => setMenuOpen(false)}><FilePenLine /> {language === 'tr' ? 'Tur Sayfaları' : 'Tour Pages'}</NavLink>
-          <NavLink to="/admin/site-content" onClick={() => setMenuOpen(false)}><FilePenLine /> {c.siteContent}</NavLink>
-          <NavLink to="/admin/faqs" onClick={() => setMenuOpen(false)}><CircleHelp /> {c.faqs}</NavLink>
-          <NavLink to="/admin/feedback" onClick={() => setMenuOpen(false)}><MessageSquare /> {language === 'tr' ? 'Geri Bildirimler' : 'Feedback'}</NavLink>
-          <NavLink to="/admin/users" onClick={() => setMenuOpen(false)}><UsersRound /> {c.users}</NavLink>
+          {links.filter((link) => allowed.includes(link.section)).map(({ section, icon: Icon, label }) =>
+            <NavLink key={section} to={`/admin/${section}`} onClick={() => setMenuOpen(false)}><Icon /> {label}</NavLink>)}
         </nav>
         <div className="admin-sidebar__bottom">
           <Link to="/"><ArrowUpRight /> {c.home}</Link>
@@ -61,7 +67,7 @@ export default function AdminLayout() {
           <div><span><LayoutDashboard size={16} /></span><p>{c.panel}</p></div>
           <div className="admin-topbar__actions">
             <div className="admin-language"><Globe2 size={16} /><button className={language === 'tr' ? 'active' : ''} onClick={() => setLanguage('tr')}>TR</button><i>/</i><button className={language === 'en' ? 'active' : ''} onClick={() => setLanguage('en')}>EN</button></div>
-            <div className="admin-profile"><span>{user?.firstName.slice(0, 1)}{user?.lastName?.slice(0, 1)}</span><div><strong>{user?.firstName} {user?.lastName}</strong><small>{user?.email}</small></div></div>
+            <div className="admin-profile"><span>{user?.firstName.slice(0, 1)}{user?.lastName?.slice(0, 1)}</span><div><strong>{user?.firstName} {user?.lastName}{user && ` · ${roleLabel(user.role, language)}`}</strong><small>{user?.email}</small></div></div>
           </div>
         </header>
         <main className="admin-content"><Outlet context={{ language }} /></main>

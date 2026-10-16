@@ -146,6 +146,17 @@ test('role and active controls keep working independently of profile editing', a
   expect(patches.map((patch) => patch.body)).toEqual([{ role: 'Admin' }, { isActive: false }])
 })
 
+test('admin can assign Editor Advisor and Service without changing profile details', async ({ page }) => {
+  const { patches } = await setup(page)
+  for (const role of ['Editor', 'Advisor', 'Service']) {
+    await row(page).getByRole('combobox').selectOption(role)
+    await expect(row(page).getByRole('combobox')).toHaveValue(role)
+    await expect(row(page)).toContainText('Fixture Guest')
+    await expect(row(page).getByRole('button', { name: 'Aktif', exact: true })).toBeEnabled()
+  }
+  expect(patches.map(item => item.body)).toEqual([{ role: 'Editor' }, { role: 'Advisor' }, { role: 'Service' }])
+})
+
 test('a successful save with failed refresh is not reported as an unsaved profile', async ({ page }) => {
   const { patches } = await setup(page)
   const dialog = await open(page)

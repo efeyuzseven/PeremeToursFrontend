@@ -30,6 +30,7 @@ import {
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
+import { panelHome } from './auth/roles'
 import { normalizeHomepage, type HomepageContentDocument } from './content/homepage'
 import { apiBaseUrl, apiRequest } from './lib/api'
 import { INSTAGRAM_PROFILE_URL, setPageMetadata, siteScrollBehavior, SITE_NAME } from './lib/site'
@@ -569,7 +570,7 @@ function App() {
       <div className={`mobile-menu ${mobileMenu ? 'mobile-menu--open' : ''}`} aria-hidden={!mobileMenu}>
         <button className="mobile-menu__close" onClick={() => setMobileMenu(false)} aria-label={c.a11y.closeMenu}><X /></button>
         <Logo light language={language} />
-        <nav>{c.nav.map(([label, href]) => <a key={href} href={href} onClick={() => setMobileMenu(false)}>{label} <ArrowRight /></a>)}<Link to={user ? '/hesabim' : '/login'} onClick={() => setMobileMenu(false)}>{t('account', language === 'tr' ? 'Hesabım' : 'My account')} <UserRound /></Link>{user?.role === 'Admin' && <Link to="/admin/tickets" onClick={() => setMobileMenu(false)}>{language === 'tr' ? 'Yönetim paneli' : 'Admin panel'}</Link>}</nav>
+        <nav>{c.nav.map(([label, href]) => <a key={href} href={href} onClick={() => setMobileMenu(false)}>{label} <ArrowRight /></a>)}<Link to={user ? '/hesabim' : '/login'} onClick={() => setMobileMenu(false)}>{t('account', language === 'tr' ? 'Hesabım' : 'My account')} <UserRound /></Link>{panelHome(user?.role) && <Link to={panelHome(user?.role)!} onClick={() => setMobileMenu(false)}>{language === 'tr' ? 'Yönetim paneli' : 'Admin panel'}</Link>}</nav>
         <div className="mobile-languages" aria-label={c.a11y.language}>
           {(['tr', 'en'] as Language[]).map((item) => <button key={item} className={language === item ? 'active' : ''} type="button" onClick={() => changeLanguage(item)}>{item.toUpperCase()} <span>{copy[item].languageName}</span></button>)}
         </div>

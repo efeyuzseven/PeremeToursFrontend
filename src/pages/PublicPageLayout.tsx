@@ -2,6 +2,7 @@ import { ArrowRight, Globe2, Menu, UserRound, X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { panelHome } from '../auth/roles'
 import { SITE_NAME } from '../lib/site'
 import AccountMenu from '../components/AccountMenu'
 import './info-pages.css'
@@ -55,7 +56,7 @@ export default function PublicPageLayout({ children }: PublicPageLayoutProps) {
 
     <aside className={`info-mobile-menu ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
       <button type="button" aria-label={c.close} onClick={closeMenu}><X /></button>
-      <nav aria-label={c.account}><Link to={user ? '/hesabim' : '/login'} onClick={closeMenu}>{c.account}<UserRound /></Link>{user?.role === 'Admin' && <Link to="/admin/tickets" onClick={closeMenu}>{c.admin}<ArrowRight /></Link>}</nav>
+      <nav aria-label={c.account}><Link to={user ? '/hesabim' : '/login'} onClick={closeMenu}>{c.account}<UserRound /></Link>{panelHome(user?.role) && <Link to={panelHome(user?.role)!} onClick={closeMenu}>{c.admin}<ArrowRight /></Link>}</nav>
       <nav><Link to="/" onClick={closeMenu}>{c.home}<ArrowRight /></Link><Link to="/#turlar" onClick={closeMenu}>{c.tours}<ArrowRight /></Link><Link to="/#hizmetler" onClick={closeMenu}>{c.services}<ArrowRight /></Link><Link to="/sikca-sorulan-sorular" onClick={closeMenu}>{c.faq}<ArrowRight /></Link><Link to="/iletisim" onClick={closeMenu}>{c.contact}<ArrowRight /></Link></nav>
       <div>{(['tr', 'en'] as PublicLanguage[]).map((item) => <button className={language === item ? 'active' : ''} type="button" key={item} onClick={() => setLanguage(item)}>{item.toUpperCase()}</button>)}</div>
     </aside>

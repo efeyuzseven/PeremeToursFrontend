@@ -10,7 +10,7 @@ import TicketErrorsPage from './admin/TicketErrorsPage'
 import TourContentsPage from './admin/TourContentsPage'
 import UsersPage from './admin/UsersPage'
 import { AuthProvider } from './auth/AuthContext'
-import ProtectedAdminRoute from './auth/ProtectedAdminRoute'
+import ProtectedAdminRoute, { PanelHomeRedirect } from './auth/ProtectedAdminRoute'
 import ProtectedAccountRoute from './auth/ProtectedAccountRoute'
 import LoginPage from './pages/LoginPage'
 import ContactPage from './pages/ContactPage'
@@ -47,7 +47,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/kvkk" element={<KvkkPage />} />
           <Route element={<ProtectedAdminRoute />}>
             <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Navigate to="tickets" replace />} />
+              <Route index element={<PanelHomeRedirect />} />
               <Route path="tickets" element={<TicketsPage />} />
               <Route path="ticket-errors" element={<TicketErrorsPage />} />
               <Route path="tour-contents" element={<TourContentsPage />} />

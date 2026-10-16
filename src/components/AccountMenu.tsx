@@ -2,6 +2,7 @@ import { ChevronDown, LayoutDashboard, LogOut, Ticket, UserRound } from 'lucide-
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { panelHome } from '../auth/roles'
 import './account-menu.css'
 
 export default function AccountMenu({ language, label }: { language: 'tr' | 'en'; label?: string }) {
@@ -13,6 +14,7 @@ export default function AccountMenu({ language, label }: { language: 'tr' | 'en'
   const id = useId()
   const tr = language === 'tr'
   const account = label ?? (tr ? 'Hesabım' : 'My account')
+  const adminHome = panelHome(user?.role)
   useEffect(() => {
     if (!open) return
     const outside = (event: PointerEvent) => {
@@ -39,7 +41,7 @@ export default function AccountMenu({ language, label }: { language: 'tr' | 'en'
   return <div className="nav-account" ref={container} onKeyDown={keyboard} onBlur={(event) => {
     if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
   }}>
-    {user?.role === 'Admin' && <Link className="nav-account__admin" to="/admin/tickets">
+    {adminHome && <Link className="nav-account__admin" to={adminHome}>
       <LayoutDashboard size={16} /><span>{tr ? 'Yönetim Paneli' : 'Admin panel'}</span>
     </Link>}
     {user ? <div className="nav-account__dropdown">

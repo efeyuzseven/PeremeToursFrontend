@@ -1,7 +1,8 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 import { apiRequest } from '../lib/api'
+import type { UserRole } from './roles'
 
-export type UserRole = 'Admin' | 'User'
+export type { UserRole } from './roles'
 
 export type AuthUser = {
   id: string

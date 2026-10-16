@@ -9,6 +9,7 @@ import {
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { panelHome } from '../auth/roles'
 import { apiRequest, ApiError } from '../lib/api'
 import { setPageMetadata, siteScrollBehavior } from '../lib/site'
 import AccountSettings, { type AccountProfile } from '../components/AccountSettings'
@@ -179,9 +180,9 @@ function AccountContent({ language }: { language: PublicLanguage }) {
           <LogOut size={17} /> {tr ? 'Çıkış yap' : 'Sign out'}
         </button>
       </div>
-      {session?.user.role === 'Admin' && (
+      {panelHome(session?.user.role) && (
         <p>
-          <Link to="/admin/tickets">
+          <Link to={panelHome(session?.user.role)!}>
             {tr ? 'Yönetim paneline git →' : 'Open admin panel →'}
           </Link>
         </p>

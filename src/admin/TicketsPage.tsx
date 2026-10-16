@@ -56,6 +56,8 @@ const emailStatusCopy = {
 export default function TicketsPage() {
   const { language } = useOutletContext<{ language: AdminLanguage }>()
   const { session } = useAuth()
+  const canManageManualTickets = session?.user.role === 'Admin'
+  const canCancelTickets = session?.user.role === 'Admin' || session?.user.role === 'Service'
   const [tickets, setTickets] = useState<TourTicket[]>([])
   const [catalogTours, setCatalogTours] = useState<CatalogTour[]>([])
   const [loading, setLoading] = useState(true)
@@ -111,6 +113,7 @@ export default function TicketsPage() {
   const formatDate = (date: string) => new Intl.DateTimeFormat(language === 'tr' ? 'tr-TR' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${date}T12:00:00`))
 
   const changeStatus = async (ticket: TourTicket, status: TicketStatus) => {
+    if (!canManageManualTickets) return
     setError('')
     try {
       const updated = await apiRequest<TourTicket>(`/api/v1/admin/tickets/${ticket.id}`, { method: 'PATCH', token: session!.accessToken, body: { status } })
@@ -122,6 +125,7 @@ export default function TicketsPage() {
 
   const createTicket = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (!canManageManualTickets) return
     setSaving(true)
     setError('')
     const data = new FormData(event.currentTarget)
@@ -140,7 +144,7 @@ export default function TicketsPage() {
   }
 
   return <>
-    <div className="admin-page-heading"><div><span>{c.eyebrow}</span><h1>{c.title}</h1><p>{c.subtitle}</p></div><button className="admin-primary-button" onClick={() => setCreateOpen(true)}><Plus /> {c.create}</button></div>
+    <div className="admin-page-heading"><div><span>{c.eyebrow}</span><h1>{c.title}</h1><p>{c.subtitle}</p></div>{canManageManualTickets && <button className="admin-primary-button" onClick={() => setCreateOpen(true)}><Plus /> {c.create}</button>}</div>
     <div className="admin-stat-grid">
       <article><span className="stat-icon stat-icon--blue"><TicketCheck /></span><div><small>{c.total}</small><strong>{tickets.length}</strong></div></article>
       <article><span className="stat-icon stat-icon--green"><CircleDollarSign /></span><div><small>{c.revenue}</small><strong>{formatMoney(confirmedRevenue)}</strong></div></article>
@@ -171,19 +175,19 @@ export default function TicketsPage() {
               {(paymentStatus === 'ReviewRequired' || ticket.ticketingStatus === 'ReviewRequired') && <small className="admin-payment-warning">{language === 'tr' ? 'Yeni tahsilat yapmayın. Banka / EasyTicket kaydını sipariş koduyla kontrol edin.' : 'Do not charge again. Reconcile the bank / EasyTicket record using the order code.'}</small>}
             </div></td>
             <td><select className={`status-select status-${ticket.status.toLowerCase()}`} value={ticket.status}
-              disabled={!!ticket.cancellationStatus || (automatic && !(paymentStatus === 'Paid' && ticket.ticketingStatus === 'Issued'))}
+              disabled={!canManageManualTickets || !!ticket.cancellationStatus || (automatic && !(paymentStatus === 'Paid' && ticket.ticketingStatus === 'Issued'))}
               onChange={(event) => void changeStatus(ticket, event.target.value as TicketStatus)}>
               {(automatic ? [ticket.status, ...(ticket.status === 'Confirmed' ? ['Used' as const] : [])] : ['Pending', 'Confirmed', 'Cancelled', 'Used'] as TicketStatus[])
                 .map((status) => <option key={status} value={status}>{statusCopy[language][status]}</option>)}
-            </select>{(ticket.canCancel || ticket.canRetryCancellation) && <button type="button" className="admin-cancel-button" onClick={() => setCancelTicket(ticket)}>{ticket.canRetryCancellation ? (language === 'tr' ? 'İptal ve iadeyi yeniden dene' : 'Retry cancellation & refund') : (language === 'tr' ? 'Bileti iptal et' : 'Cancel booking')}</button>}</td>
+            </select>{canCancelTickets && (ticket.canCancel || ticket.canRetryCancellation) && <button type="button" className="admin-cancel-button" onClick={() => setCancelTicket(ticket)}>{ticket.canRetryCancellation ? (language === 'tr' ? 'İptal ve iadeyi yeniden dene' : 'Retry cancellation & refund') : (language === 'tr' ? 'Bileti iptal et' : 'Cancel booking')}</button>}</td>
           </tr>
         })}
       </tbody></table></div>
       {!loading && visibleTickets.length === 0 && <div className="admin-empty"><TicketCheck /><p>{c.empty}</p></div>}
     </section>
-    {cancelTicket && <CancelTicketDialog ticket={cancelTicket} token={session!.accessToken} language={language} onClose={() => setCancelTicket(null)} onChanged={refreshTickets} />}
+    {canCancelTickets && cancelTicket && <CancelTicketDialog ticket={cancelTicket} token={session!.accessToken} language={language} onClose={() => setCancelTicket(null)} onChanged={refreshTickets} />}
 
-    {createOpen && <div className="admin-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreateOpen(false) }}><section className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="ticket-modal-title"><button className="admin-modal__close" onClick={() => setCreateOpen(false)}><X /></button><div className="admin-modal__heading"><span><TicketCheck /></span><div><h2 id="ticket-modal-title">{c.modalTitle}</h2><p>{c.modalText}</p></div></div><form onSubmit={createTicket}>
+    {canManageManualTickets && createOpen && <div className="admin-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreateOpen(false) }}><section className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="ticket-modal-title"><button className="admin-modal__close" onClick={() => setCreateOpen(false)}><X /></button><div className="admin-modal__heading"><span><TicketCheck /></span><div><h2 id="ticket-modal-title">{c.modalTitle}</h2><p>{c.modalText}</p></div></div><form onSubmit={createTicket}>
       <label className="field-wide">{c.tourName}{catalogTours.length > 0 ? <select name="tourName" required defaultValue=""><option value="" disabled>—</option>{catalogTours.map((tour) => <option key={tour.externalTourId} value={tour.name}>{tour.categoryName} · {tour.name}</option>)}</select> : <input name="tourName" required maxLength={160} />}</label><label>{c.date}<input type="date" name="tourDate" required /></label><label>{c.time}<input type="time" name="departureTime" required /></label><label className="field-wide">{c.name}<input name="customerName" required maxLength={160} /></label><label className="field-wide">{c.email}<input type="email" name="customerEmail" required maxLength={320} /></label><label>{c.guestCount}<input type="number" name="guestCount" defaultValue={2} min={1} max={100} required /></label><label>{c.amount}<span className="money-input"><input type="number" name="amount" min="0.01" step="0.01" required /><i>₺</i></span></label><div className="admin-modal__actions field-wide"><button type="button" onClick={() => setCreateOpen(false)}>{c.cancel}</button><button className="admin-primary-button" disabled={saving} type="submit">{saving ? <span className="button-spinner" /> : <><CheckCircle2 /> {c.save}</>}</button></div>
     </form></section></div>}
   </>

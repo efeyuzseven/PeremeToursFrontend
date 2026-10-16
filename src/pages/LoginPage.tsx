@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, Globe2, LockKeyhole, Mail, S
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { canAccessPanelPath, panelHome } from '../auth/roles'
 import { ApiError, apiRequest } from '../lib/api'
 import { setPageMetadata } from '../lib/site'
 import './login.css'
@@ -84,7 +85,7 @@ export default function LoginPage({ initialMode = 'login' }: { initialMode?: Mod
   }, [language, mode, c])
 
   useEffect(() => {
-    if (session && !recovery) navigate(session.user.role === 'Admin' ? '/admin/tickets' : '/hesabim', { replace: true })
+    if (session && !recovery) navigate(panelHome(session.user.role) ?? '/hesabim', { replace: true })
   }, [navigate, session, recovery])
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -116,8 +117,8 @@ export default function LoginPage({ initialMode = 'login' }: { initialMode?: Mod
         ? await login(String(data.get('email')), String(data.get('password')))
         : await register({ email: String(data.get('email')), password: String(data.get('password')), firstName: String(data.get('firstName')), lastName: String(data.get('lastName') || '') })
       const requestedPath = (location.state as { from?: string } | null)?.from
-      const safeRequestedPath = requestedPath?.startsWith('/') && !requestedPath.startsWith('//') && (result.user.role === 'Admin' || !requestedPath.startsWith('/admin')) ? requestedPath : null
-      navigate(safeRequestedPath || (result.user.role === 'Admin' ? '/admin/tickets' : '/hesabim'), { replace: true })
+      const safeRequestedPath = requestedPath?.startsWith('/') && !requestedPath.startsWith('//') && (!requestedPath.startsWith('/admin') || canAccessPanelPath(result.user.role, requestedPath)) ? requestedPath : null
+      navigate(safeRequestedPath || panelHome(result.user.role) || '/hesabim', { replace: true })
     } catch (caught) {
       setError(caught instanceof ApiError && caught.status === 429 ? c.tooMany
         : mode === 'reset' && caught instanceof ApiError && caught.status === 400 ? c.invalid

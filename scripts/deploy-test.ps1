@@ -1,11 +1,14 @@
 param(
   [string]$BucketName = 'peremetours-test-890571110014-eu-central-1',
   [string]$DistributionId = 'E2CWRTSM9C24S6',
-  [string]$Region = 'eu-central-1'
+  [string]$Region = 'eu-central-1',
+  # Public reCAPTCHA v2 site key for pereme.com.tr; the matching secret lives in /peremetours/test/ZIRAAT_POS.
+  [string]$RecaptchaSiteKey = '6LciO_UtAAAAAIZYhH43uUmNyGAciKvGjVMPmI_E'
 )
 
 $ErrorActionPreference = 'Stop'
 
+$env:VITE_RECAPTCHA_SITE_KEY = $RecaptchaSiteKey
 npm run build
 if ($LASTEXITCODE -ne 0) { throw 'Production build failed.' }
 

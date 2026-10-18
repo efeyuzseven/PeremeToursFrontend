@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import { ApiError, apiBaseUrl, apiRequest } from '../lib/api'
 import { getPaymentRecovery, paymentRecoveryKey as recoveryKey, paymentTexts, type PaymentBooking, type PaymentCard, type PaymentStart, type PaymentStatus } from '../lib/payments'
 import { BookingPaymentFields } from './BookingPaymentFields'
+import { recaptchaSiteKey } from '../lib/recaptcha'
+import { RecaptchaWidget } from './RecaptchaWidget'
 import { TicketQr } from './TicketQr'
 
 export function BookingPayment({ booking, language, token, enabled, onLockChange, onBusyChange, onFinish }: {
@@ -21,6 +23,8 @@ export function BookingPayment({ booking, language, token, enabled, onLockChange
   const [status, setStatus] = useState<PaymentStatus | null>(null)
   const [uncertain, setUncertain] = useState(initialAttempt.recovered)
   const [checking, setChecking] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [captchaKey, setCaptchaKey] = useState(0)
   const attemptId = useRef(initialAttempt.id)
   const submitted = useRef(initialAttempt.recovered)
   const pollDeadline = useRef(initialAttempt.deadline)
@@ -87,6 +91,10 @@ export function BookingPayment({ booking, language, token, enabled, onLockChange
 
   const pay = async (card: PaymentCard) => {
     if (submitted.current || starting || !enabled || !booking) return
+    if (recaptchaSiteKey && !captchaToken) {
+      setError(language === 'tr' ? 'Lütfen güvenlik doğrulamasını tamamlayın.' : 'Please complete the security check.')
+      return
+    }
     submitted.current = true
     pollDeadline.current = Date.now() + 10 * 60_000
     // Recovery stores only an opaque attempt token, never card or passenger data.
@@ -102,11 +110,13 @@ export function BookingPayment({ booking, language, token, enabled, onLockChange
           passengers: booking.passengers, customerName: booking.contact.name.trim(), customerEmail: booking.contact.email.trim(),
           customerPhone: booking.contact.phone.trim(), language, expectedAmount: booking.quote.amount,
           attemptId: attemptId.current, privacyNoticeAccepted: booking.privacyNoticeAccepted, card,
+          recaptchaToken: captchaToken || undefined,
         },
       })
       if (active.current) { setPayment(result); setUncertain(false) }
     } catch (failure) {
       if (!active.current) return
+      setCaptchaToken(''); setCaptchaKey((key) => key + 1)
       if (failure instanceof ApiError && failure.status === 400) {
         submitted.current = false
         try { sessionStorage.removeItem(recoveryKey) } catch { /* Memory-only fallback. */ }
@@ -129,7 +139,8 @@ export function BookingPayment({ booking, language, token, enabled, onLockChange
           if (active.current) setStatus(existing)
         } catch (lookupFailure) {
           if (lookupFailure instanceof ApiError && lookupFailure.status === 404) {
-            submitted.current = false; setError(c.error)
+            // Our attempt limits answer 429 with a problem title; the bare per-IP limiter does not.
+            submitted.current = false; setError(failure.status === 429 && failure.code && language === 'tr' ? failure.message : c.error)
             try { sessionStorage.removeItem(recoveryKey) } catch { /* Memory-only fallback. */ }
           } else setUncertain(true)
         }
@@ -181,5 +192,5 @@ export function BookingPayment({ booking, language, token, enabled, onLockChange
     {failed ? <button type="button" className="button button--navy" onClick={retryFailed}>{c.retry}</button>
       : !issued && !cancelled && <><button type="button" className="reservation-back" disabled={checking} onClick={() => void readStatus()}><RefreshCw size={16} /> {checking ? c.confirming : c.check}</button><a className="reservation-back" href="mailto:merhaba@peremetours.com">{c.support}</a></>}
   </section>
-  return booking ? <>{error && <p className="reservation-error" role="alert">{error}</p>}{!requiresReview && <BookingPaymentFields language={language} enabled={enabled} unavailable={!enabled} busy={starting} amount={booking.quote.amount} onPay={pay} />}</> : null
+  return booking ? <>{error && <p className="reservation-error" role="alert">{error}</p>}{!requiresReview && enabled && <RecaptchaWidget key={captchaKey} language={language} onToken={setCaptchaToken} />}{!requiresReview && <BookingPaymentFields language={language} enabled={enabled} unavailable={!enabled} busy={starting} amount={booking.quote.amount} onPay={pay} />}</> : null
 }

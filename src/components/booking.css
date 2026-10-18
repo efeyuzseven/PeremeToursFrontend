@@ -78,6 +78,7 @@
 .reservation-status button, .reservation-back { padding: 10px 0; display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; color: var(--blue); background: #fff; font-size: 13px; font-weight: 700; }
 .reservation-spinner { animation: reservation-spin 1s linear infinite; }
 .reservation-error { padding: 13px; border: 1px solid var(--blue); border-radius: 10px; color: var(--blue); font-size: 12px; line-height: 1.6; }
+.reservation-recaptcha { min-height: 78px; margin: 4px 0 14px; }
 .reservation-review { padding-top: 24px; outline: 0; }
 .reservation-verified { display: flex; align-items: center; gap: 6px; color: var(--blue); font-size: 12px; font-weight: 700; }
 .reservation-itinerary { display: grid; gap: 12px; padding: 20px 0; border-bottom: 1px solid var(--line); }

@@ -35,7 +35,7 @@
 .tour-detail-body, .tour-detail-text p { margin: 0; color: var(--navy); font-size: 14px; line-height: 1.8; white-space: pre-line; overflow-wrap: anywhere; }
 .tour-detail-text p.is-clamped { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; }
 .tour-detail-text button { padding: 0; margin-top: 8px; border: 0; border-bottom: 2px solid currentColor; color: var(--navy); background: transparent; font-size: 13px; font-weight: 800; }
-.tour-detail-body + ul, .tour-detail-text + ul, .tour-detail-text + div, .tour-detail-body + div { margin-top: 16px; }
+.tour-detail-row > div > * + * { margin-top: 14px; }
 .tour-detail-bullets { display: grid; gap: 6px; padding-left: 20px; margin: 0; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
 .tour-detail-included { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; font-size: 14px; line-height: 1.55; }
 .tour-detail-included li { display: flex; align-items: flex-start; gap: 10px; overflow-wrap: anywhere; }

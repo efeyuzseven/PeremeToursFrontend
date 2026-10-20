@@ -1,6 +1,7 @@
 import { ArrowRight, Check, Waves, X } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
-import { bookingNotesFor, categoryImages, resolvePageImage, type TourLanguage, type TourPageItem, type TourPageSection } from '../content/tour-pages'
+import { bookingNotesFor, categoryImages, parseTourDetails, resolvePageImage, tourDetailsFor, type TourDetailRow, type TourLanguage, type TourPageItem,
+  type TourPageSection } from '../content/tour-pages'
 import '../pages/tour-pages.css'
 import { TourBookingCard } from './TourBookingCard'
 
@@ -18,22 +19,23 @@ function ExpandableText({ text, language }: { text: string; language: TourLangua
   </div>
 }
 
-// Tour detail pages list each section as a row: heading on the left, content on the right.
-function DetailSection({ section, language }: { section: TourPageSection; language: TourLanguage }) {
-  const content = section[language]
-  const items = content.items.filter(item => item.trim())
-  const excluded = (content.excludedItems ?? []).filter(item => item.trim())
+// Tour detail pages list each row with its heading on the left and content on the right.
+function DetailRow({ row, language }: { row: TourDetailRow; language: TourLanguage }) {
+  return <section className="tour-detail-row">
+    <h2>{row.title}</h2>
+    <div>{row.blocks.map((block, index) => block.kind === 'text' ? <ExpandableText key={index} text={block.text} language={language} />
+      : block.kind === 'bullets' ? <ul key={index} className="tour-detail-bullets">{block.items.map((item, i) => <li key={i}>{item}</li>)}</ul>
+      : <ul key={index} className="tour-detail-included">{block.items.map((item, i) => <li key={i} className={item.included ? '' : 'is-excluded'}>
+        {item.included ? <Check size={18} aria-label={language === 'tr' ? 'Dahil' : 'Included'} /> : <X size={18} aria-label={language === 'tr' ? 'Dahil değil' : 'Not included'} />}
+        <span>{item.text}</span></li>)}</ul>)}</div>
+  </section>
+}
+
+function GalleryRow({ section, language }: { section: TourPageSection; language: TourLanguage }) {
+  const title = section[language].title
   return <section className="tour-detail-row" data-section-id={section.id}>
-    <h2>{content.title}</h2>
-    <div>
-      {content.body && (section.type === 'text' ? <ExpandableText text={content.body} language={language} /> : <p className="tour-detail-body">{content.body}</p>)}
-      {section.type === 'highlights' && items.length > 0 && <ul className="tour-detail-bullets">{items.map((item, index) => <li key={index}>{item}</li>)}</ul>}
-      {section.type === 'included' && <ul className="tour-detail-included">
-        {items.map((item, index) => <li key={`in-${index}`}><Check size={18} aria-label={language === 'tr' ? 'Dahil' : 'Included'} /><span>{item}</span></li>)}
-        {excluded.map((item, index) => <li key={`out-${index}`} className="is-excluded"><X size={18} aria-label={language === 'tr' ? 'Dahil değil' : 'Not included'} /><span>{item}</span></li>)}
-      </ul>}
-      {section.type === 'gallery' && <div className="tour-detail-gallery">{section.imageUrls.map((url, index) => <img key={`${url}-${index}`} src={resolvePageImage(url)} alt={`${content.title} ${index + 1}`} loading="lazy" />)}</div>}
-    </div>
+    <h2>{title}</h2>
+    <div className="tour-detail-gallery">{section.imageUrls.map((url, index) => <img key={`${url}-${index}`} src={resolvePageImage(url)} alt={`${title} ${index + 1}`} loading="lazy" />)}</div>
   </section>
 }
 
@@ -54,7 +56,10 @@ export function TourPageContent({ page, language, fallbackImage, onBook, booking
       </div></div>
     </section>
     {page.externalTourId ? <div className="shell tour-detail">
-      <div className="tour-detail__rows">{sections.map(section => <DetailSection key={section.id} section={section} language={language} />)}</div>
+      <div className="tour-detail__rows">
+        {parseTourDetails(tourDetailsFor(page.document, language)).map((row, index) => <DetailRow key={index} row={row} language={language} />)}
+        {sections.filter(section => section.type === 'gallery' && section.imageUrls.length > 0).map(section => <GalleryRow key={section.id} section={section} language={language} />)}
+      </div>
       <div className="tour-detail__aside">
         <TourBookingCard tourId={preview ? null : page.externalTourId} language={language} bookingLabel={c.bookingLabel}
           notes={bookingNotesFor(c, language)} disabled={bookingDisabled} onBook={onBook} />

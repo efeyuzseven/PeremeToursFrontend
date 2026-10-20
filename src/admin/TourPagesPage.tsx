@@ -3,7 +3,8 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { TourPageContent } from '../components/TourPageContent'
-import { bookingNotesFor, categoryImages, categoryLabels, pagePath, resolvePageImage, type TourLanguage, type TourPageBookingNote, type TourPageDocument, type TourPageItem, type TourPageSection } from '../content/tour-pages'
+import { bookingNotesFor, categoryImages, categoryLabels, pagePath, resolvePageImage, tourDetailsFor, tourDetailsTemplate, type TourLanguage, type TourPageBookingNote,
+  type TourPageDocument, type TourPageItem, type TourPageSection } from '../content/tour-pages'
 import { ApiError, apiRequest, apiUpload } from '../lib/api'
 import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
@@ -24,7 +25,10 @@ const copy = {
     items: 'Maddeler (her satıra bir madde)', includedItems: 'Dahil olanlar (her satıra bir madde, yeşil ✓)', excludedItems: 'Dahil olmayanlar (her satıra bir madde, kırmızı ✕)', galleryHint: 'En fazla 6 görsel. Yüklenen görseller kaydedince yayınlanır.', addImage: 'Galeriye görsel ekle',
     removeImage: 'Görseli kaldır', uploadError: 'Görsel yüklenemedi.', invalidImage: 'JPG, PNG veya WebP seçin; dosya en fazla 8 MB olmalıdır.',
     previewHint: 'Kaydedilmemiş taslağın önizlemesidir. Rezervasyon butonu önizlemede kapalıdır.',
-    detailHint: 'Tur detay sayfasında bölümler solda başlık, sağda içerik olarak alt alta listelenir; sağ tarafta sabit rezervasyon kartı bulunur. Örnek: “İlgi çekici noktalar” (Madde listesi), “Tam açıklama” (Metin), “Dahil olanlar” (Dahil olanlar / olmayanlar), “Kimler için uygun değil” (Madde listesi).',
+    details: 'Tur detayları', detailsLabel: 'Sayfa içeriği (düz yazı)', guideTitle: 'Nasıl yazılır?',
+    guide: [['## Başlık', 'Soldaki başlık (örn. ## Dahil olanlar)'], ['- madde', 'Madde işaretli satır'], ['+ madde', 'Yeşil ✓ (dahil olan)'], ['x madde', 'Kırmızı ✕ (dahil olmayan)']] as [string, string][],
+    guideNote: 'Diğer satırlar düz metin olarak görünür; boş satır yeni paragraf başlatır. Uzun metinlerde “Daha fazlasını gör” otomatik eklenir. Sonucu “Canlı önizleme” sekmesinden görebilirsiniz.',
+    template: 'Örnek şablonu ekle', galleries: 'Fotoğraf galerisi', galleryHintTour: 'İsterseniz detayların altına fotoğraf galerisi ekleyebilirsiniz.',
     notes: 'Rezervasyon kartı', notesHint: 'Sağdaki sabit kartta fiyatın ve rezervasyon butonunun altında görünen kısa bilgiler (en fazla 4). Başlangıç fiyatı ve tarihler EasyTicket’tan canlı gelir.',
     noteTitle: 'Başlık', noteText: 'Açıklama', addNote: 'Not ekle', removeNote: 'Notu kaldır',
   },
@@ -42,7 +46,10 @@ const copy = {
     items: 'Items (one per line)', includedItems: 'Included (one per line, green ✓)', excludedItems: 'Not included (one per line, red ✕)', galleryHint: 'Up to 6 images. Uploaded images are published when you save.', addImage: 'Add gallery image',
     removeImage: 'Remove image', uploadError: 'Image upload failed.', invalidImage: 'Choose JPG, PNG or WebP, maximum 8 MB.',
     previewHint: 'This is a preview of your unsaved draft. Booking is disabled in preview.',
-    detailHint: 'On tour detail pages, sections are listed as rows with the heading on the left and content on the right, next to a sticky booking card. Example: “Highlights” (Bullet list), “Full description” (Text), “Includes” (Included / not included), “Not suitable for” (Bullet list).',
+    details: 'Tour details', detailsLabel: 'Page content (plain text)', guideTitle: 'How to write',
+    guide: [['## Heading', 'Heading on the left (e.g. ## Includes)'], ['- item', 'Bullet point'], ['+ item', 'Green ✓ (included)'], ['x item', 'Red ✕ (not included)']] as [string, string][],
+    guideNote: 'Other lines appear as plain text; a blank line starts a new paragraph. Long text gets “See more” automatically. Check the result in the “Live preview” tab.',
+    template: 'Insert example template', galleries: 'Photo gallery', galleryHintTour: 'Optionally add a photo gallery below the details.',
     notes: 'Booking card', notesHint: 'Short notes shown under the price and booking button in the sticky card (up to 4). The starting price and dates load live from EasyTicket.',
     noteTitle: 'Title', noteText: 'Description', addNote: 'Add note', removeNote: 'Remove note',
   },
@@ -106,6 +113,8 @@ export default function TourPagesPage() {
     en: type === 'included' ? { title: 'Includes', body: '', items: [], excludedItems: [] } : { title: 'New section', body: '', items: [] },
   }] }))
   const notes = document ? bookingNotesFor(document[editLanguage], editLanguage) : []
+  const isTourPage = !!selected?.externalTourId
+  const details = document ? tourDetailsFor(document, editLanguage) : ''
   const changeNotes = (update: (current: TourPageBookingNote[]) => TourPageBookingNote[]) =>
     change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], bookingNotes: update(bookingNotesFor(current[editLanguage], editLanguage)) } }))
   const upload = async (event: ChangeEvent<HTMLInputElement>, sectionId?: string) => {
@@ -173,8 +182,18 @@ export default function TourPagesPage() {
           </div>)}
           {notes.length < 4 && <button type="button" className="tour-page-editor-note-add" onClick={() => changeNotes(items => [...items, { title: '', text: null }])}><Plus size={16} />{c.addNote}</button>}
         </section>}
-        <div className="tour-page-editor-section-heading"><h2>{c.sections}</h2><p>{c.sectionHint}</p>{selected.externalTourId && <p>{c.detailHint}</p>}</div>
-        {document.sections.map((section, index) => <section className="tour-page-editor-section" key={section.id} data-editor-section={section.id}>
+        {isTourPage && <section className="tour-page-editor-section" data-editor-section="details"><header><strong>{c.details}</strong></header>
+          <div className="tour-page-editor-details">
+            <label>{c.detailsLabel}<textarea rows={24} maxLength={20000} spellCheck value={details} placeholder={tourDetailsTemplate[editLanguage]}
+              onChange={event => { const value = event.target.value; change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], details: value } })) }} /></label>
+            <aside><strong>{c.guideTitle}</strong><dl>{c.guide.map(([syntax, meaning]) => <div key={syntax}><dt><code>{syntax}</code></dt><dd>{meaning}</dd></div>)}</dl>
+              <p>{c.guideNote}</p>
+              {!details.trim() && <button type="button" onClick={() => change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], details: tourDetailsTemplate[editLanguage] } }))}><Plus size={16} />{c.template}</button>}
+            </aside>
+          </div>
+        </section>}
+        <div className="tour-page-editor-section-heading"><h2>{isTourPage ? c.galleries : c.sections}</h2><p>{isTourPage ? c.galleryHintTour : c.sectionHint}</p></div>
+        {document.sections.map((section, index) => isTourPage && section.type !== 'gallery' ? null : <section className="tour-page-editor-section" key={section.id} data-editor-section={section.id}>
           <header><strong>{String(index + 1).padStart(2, '0')} · {c[section.type]}</strong><div>
             <button type="button" aria-label={c.up} disabled={busy || index === 0} onClick={() => moveSection(index, -1)}><ArrowUp size={16} /></button>
             <button type="button" aria-label={c.down} disabled={busy || index === document.sections.length - 1} onClick={() => moveSection(index, 1)}><ArrowDown size={16} /></button>
@@ -192,7 +211,7 @@ export default function TourPagesPage() {
             {section.imageUrls.length < 6 && <label className="tour-page-upload"><ImagePlus size={16} />{c.addImage}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void upload(event, section.id)} /></label>}
           </div>}
         </section>)}
-        {document.sections.length < 8 && <div className="tour-page-editor-add">{(['text', 'highlights', 'included', 'gallery'] as const).map(type => <button type="button" key={type} onClick={() => addSection(type)}><Plus size={16} />{c.add}: {c[type]}</button>)}</div>}
+        {document.sections.length < 8 && <div className="tour-page-editor-add">{(isTourPage ? ['gallery'] as const : ['text', 'highlights', 'gallery'] as const).map(type => <button type="button" key={type} onClick={() => addSection(type)}><Plus size={16} />{c.add}: {c[type]}</button>)}</div>}
       </fieldset>}
     </>}
   </>

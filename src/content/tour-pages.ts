@@ -7,6 +7,8 @@ export type TourPageLanguageContent = {
   eyebrow: string; title: string; intro: string; bookingLabel: string; toursHeading: string; seoDescription: string
   // null = never edited, so the default notes are shown; [] hides the notes.
   bookingNotes?: TourPageBookingNote[] | null
+  // Tour detail pages are written as one plain text; see parseTourDetails.
+  details?: string | null
 }
 export type TourPageSectionLanguageContent = { title: string; body: string | null; items: string[]; excludedItems?: string[] | null }
 export type TourPageSection = {
@@ -42,6 +44,55 @@ export const defaultBookingNotes: Record<TourLanguage, TourPageBookingNote[]> = 
     { title: 'Instant confirmation', text: 'Your ticket is emailed to you right after payment.' }],
 }
 export const bookingNotesFor = (content: TourPageLanguageContent, language: TourLanguage) => content.bookingNotes ?? defaultBookingNotes[language]
+
+export type TourDetailBlock =
+  | { kind: 'text'; text: string }
+  | { kind: 'bullets'; items: string[] }
+  | { kind: 'checks'; items: { included: boolean; text: string }[] }
+export type TourDetailRow = { title: string; blocks: TourDetailBlock[] }
+
+// "## Heading" starts a row; "- item" is a bullet; "+ item" is included (✓); "x item" is not included (✕).
+// Any other line is text, and a blank line starts a new paragraph. The result is rendered as text, never as HTML.
+export function parseTourDetails(source: string): TourDetailRow[] {
+  const rows: TourDetailRow[] = []
+  let row: TourDetailRow | null = null
+  let paragraphBreak = false
+  for (const raw of source.split(/\r?\n/)) {
+    const line = raw.trim()
+    const heading = /^#+\s*(.*)$/.exec(line)
+    if (heading) { row = { title: heading[1], blocks: [] }; rows.push(row); paragraphBreak = false; continue }
+    if (!line) { paragraphBreak = true; continue }
+    if (!row) { row = { title: '', blocks: [] }; rows.push(row) }
+    const last = row.blocks[row.blocks.length - 1]
+    const bullet = /^(?:[-*]\s+|•\s*)(.+)$/.exec(line)
+    const check = /^(?:[+✓✔]\s*|[xX✕✗×]\s+)(.+)$/.exec(line)
+    if (bullet) {
+      if (last?.kind === 'bullets') last.items.push(bullet[1]); else row.blocks.push({ kind: 'bullets', items: [bullet[1]] })
+    } else if (check) {
+      const item = { included: /^[+✓✔]/.test(line), text: check[1] }
+      if (last?.kind === 'checks') last.items.push(item); else row.blocks.push({ kind: 'checks', items: [item] })
+    } else if (last?.kind === 'text' && !paragraphBreak) last.text += `\n${line}`
+    else row.blocks.push({ kind: 'text', text: line })
+    paragraphBreak = false
+  }
+  return rows.filter(item => item.title || item.blocks.length)
+}
+
+// Pages saved before the free-text editor keep their content: their sections are converted to the same text format.
+export function sectionsToDetails(sections: TourPageSection[], language: TourLanguage) {
+  return sections.filter(section => section.type !== 'gallery' && section.isVisible).map(section => {
+    const content = section[language]
+    const items = content.items.filter(item => item.trim()).map(item => `${section.type === 'included' ? '+' : '-'} ${item.trim()}`)
+    const excluded = (content.excludedItems ?? []).filter(item => item.trim()).map(item => `x ${item.trim()}`)
+    return [`## ${content.title}`, content.body?.trim(), [...items, ...excluded].join('\n')].filter(Boolean).join('\n')
+  }).join('\n\n')
+}
+export const tourDetailsFor = (document: TourPageDocument, language: TourLanguage) =>
+  document[language].details ?? sectionsToDetails(document.sections, language)
+export const tourDetailsTemplate: Record<TourLanguage, string> = {
+  tr: '## İlgi çekici noktalar\n- Birinci madde\n- İkinci madde\n\n## Tam açıklama\nTurun açıklamasını buraya yazın.\n\n## Dahil olanlar\n+ Dahil olan bir şey\nx Dahil olmayan bir şey\n\n## Kimler için uygun değil\n- Tekerlekli sandalye kullananlar',
+  en: '## Highlights\n- First item\n- Second item\n\n## Full description\nWrite the tour description here.\n\n## Includes\n+ Something included\nx Something not included\n\n## Not suitable for\n- Wheelchair users',
+}
 export const categoryPath = (category: TourCategory) => `/turlar/${categorySlugs[category]}`
 export const tourPath = (id: number) => `/tur/${id}`
 export const pagePath = (page: Pick<TourPageItem, 'externalTourId' | 'categoryKey'>) => page.externalTourId ? tourPath(page.externalTourId) : categoryPath(page.categoryKey)

@@ -26,7 +26,7 @@ function TourHtml({ html }: { html: string }) {
 }
 
 // Matches .tour-detail-collapsible.is-collapsed max-height in tour-pages.css.
-const COLLAPSED_HEIGHT = 210
+const COLLAPSED_HEIGHT = 440
 
 // One "See more" per row, shown only when the content is actually taller than the collapsed height.
 function Collapsible({ language, children }: { language: TourLanguage; children: ReactNode }) {

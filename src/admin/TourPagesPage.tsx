@@ -1,9 +1,9 @@
-import { ArrowUpLeft, ExternalLink, Eye, ImagePlus, LayoutTemplate, Plus, Save, Trash2 } from 'lucide-react'
+import { ArrowUpLeft, ExternalLink, Eye, ImagePlus, LayoutTemplate, MapPin, Plus, Save, Trash2 } from 'lucide-react'
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { TourPageContent } from '../components/TourPageContent'
-import { bookingNotesFor, categoryImages, categoryLabels, pagePath, resolvePageImage, tourDetailsTemplate, withTextDetails, type TourLanguage,
+import { bookingNotesFor, categoryImages, categoryLabels, extractMapEmbedUrl, isGoogleMapEmbed, pagePath, resolvePageImage, tourDetailsTemplate, withTextDetails, type TourLanguage,
   type TourPageBookingNote, type TourPageDocument, type TourPageItem, type TourPageSection } from '../content/tour-pages'
 import { ApiError, apiRequest, apiUpload } from '../lib/api'
 import { setPageMetadata } from '../lib/site'
@@ -28,6 +28,11 @@ const copy = {
     gallery: 'Galeri', addGallery: 'Galeri ekle', galleryLimit: 'En fazla 6 görsel. Daha fazlası için yeni bir galeri ekleyin.', visible: 'Galeriyi göster',
     remove: 'Galeriyi kaldır', removeConfirm: 'Bu galeri taslaktan kaldırılsın mı?', addImage: 'Görsel ekle', removeImage: 'Görseli kaldır', first: 'Başa al',
     uploadError: 'Görsel yüklenemedi.', invalidImage: 'JPG, PNG veya WebP seçin; dosya en fazla 8 MB olmalıdır.',
+    maps: 'Harita', mapsHint: 'Haritalar sayfada içeriğin en altında görünür. Her haritanın kendi başlığı ve açıklaması olabilir.',
+    map: 'Harita', addMap: 'Harita ekle', removeMap: 'Haritayı kaldır', removeMapConfirm: 'Bu harita taslaktan kaldırılsın mı?', mapVisible: 'Haritayı göster',
+    mapTitle: 'Başlık', mapDescription: 'Açıklama', mapCode: 'Google Haritalar yerleştirme kodu',
+    mapHelp: 'Google Haritalar’da yeri açın → Paylaş → Haritayı yerleştir → HTML’yi kopyala. Kopyaladığınız kodu buraya yapıştırın.',
+    mapReady: 'Harita hazır. Aşağıda önizlemesini görebilirsiniz.',
     previewHint: 'Kaydedilmemiş taslağın önizlemesidir. Rezervasyon butonu önizlemede kapalıdır.',
     notes: 'Rezervasyon kartı', notesHint: 'Sağdaki sabit kartta fiyatın ve rezervasyon butonunun altında görünen kısa bilgiler (en fazla 4). Başlangıç fiyatı ve tarihler EasyTicket’tan canlı gelir.',
     noteTitle: 'Başlık', noteText: 'Açıklama', addNote: 'Not ekle', removeNote: 'Notu kaldır',
@@ -49,6 +54,11 @@ const copy = {
     gallery: 'Gallery', addGallery: 'Add gallery', galleryLimit: 'Up to 6 images. Add another gallery for more.', visible: 'Show gallery',
     remove: 'Remove gallery', removeConfirm: 'Remove this gallery from the draft?', addImage: 'Add image', removeImage: 'Remove image', first: 'Move to first',
     uploadError: 'Image upload failed.', invalidImage: 'Choose JPG, PNG or WebP, maximum 8 MB.',
+    maps: 'Map', mapsHint: 'Maps appear at the bottom of the page content. Each map can have its own title and description.',
+    map: 'Map', addMap: 'Add map', removeMap: 'Remove map', removeMapConfirm: 'Remove this map from the draft?', mapVisible: 'Show map',
+    mapTitle: 'Title', mapDescription: 'Description', mapCode: 'Google Maps embed code',
+    mapHelp: 'Open the place in Google Maps → Share → Embed a map → Copy HTML, then paste the code here.',
+    mapReady: 'Map ready. See the preview below.',
     previewHint: 'This is a preview of your unsaved draft. Booking is disabled in preview.',
     notes: 'Booking card', notesHint: 'Short notes shown under the price and booking button in the sticky card (up to 4). The starting price and dates load live from EasyTicket.',
     noteTitle: 'Title', noteText: 'Description', addNote: 'Add note', removeNote: 'Remove note',
@@ -105,6 +115,10 @@ export default function TourPagesPage() {
   const addGallery = () => change(current => ({ ...current, sections: [...current.sections, {
     id: crypto.randomUUID(), type: 'gallery', background: 'white', isVisible: true, imageUrls: [],
     tr: { title: 'Galeri', body: null, items: [] }, en: { title: 'Gallery', body: null, items: [] },
+  }] }))
+  const addMap = () => change(current => ({ ...current, sections: [...current.sections, {
+    id: crypto.randomUUID(), type: 'map', background: 'white', isVisible: true, imageUrls: [], mapUrl: '',
+    tr: { title: 'Harita', body: null, items: [] }, en: { title: 'Map', body: null, items: [] },
   }] }))
   const setContent = (value: string) => change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], details: value } }))
   const notes = document ? bookingNotesFor(document[editLanguage], editLanguage) : []
@@ -186,7 +200,7 @@ export default function TourPagesPage() {
           </div>
         </section>
         <div className="tour-page-editor-section-heading"><h2>{c.galleries}</h2><p>{c.galleryHint}</p></div>
-        {document.sections.map((section, index) => <section className="tour-page-editor-section" key={section.id} data-editor-section={section.id}>
+        {document.sections.filter(section => section.type === 'gallery').map((section, index) => <section className="tour-page-editor-section" key={section.id} data-editor-section={section.id}>
           <header><strong>{c.gallery} {index + 1}</strong><div>
             <button type="button" aria-label={c.remove} onClick={() => { if (window.confirm(c.removeConfirm)) change(current => ({ ...current, sections: current.sections.filter(item => item.id !== section.id) })) }}><Trash2 size={16} /></button>
           </div></header>
@@ -198,6 +212,25 @@ export default function TourPagesPage() {
           </div>
         </section>)}
         {document.sections.length < 8 && <div className="tour-page-editor-add"><button type="button" onClick={addGallery}><Plus size={16} />{c.addGallery}</button></div>}
+        <div className="tour-page-editor-section-heading"><h2>{c.maps}</h2><p>{c.mapsHint}</p></div>
+        {document.sections.filter(section => section.type === 'map').map((section, index) => {
+          const valid = isGoogleMapEmbed(section.mapUrl)
+          return <section className="tour-page-editor-section" key={section.id} data-editor-section={section.id}>
+            <header><strong>{c.map} {index + 1}</strong><div>
+              <button type="button" aria-label={c.removeMap} onClick={() => { if (window.confirm(c.removeMapConfirm)) change(current => ({ ...current, sections: current.sections.filter(item => item.id !== section.id) })) }}><Trash2 size={16} /></button>
+            </div></header>
+            <div className="tour-page-editor-grid">
+              <label className="tour-page-editor-checkbox field-wide"><input type="checkbox" checked={section.isVisible} onChange={event => updateSection(section.id, item => ({ ...item, isVisible: event.target.checked }))} />{c.mapVisible}</label>
+              <label className="field-wide">{c.mapTitle}<input maxLength={200} value={section[editLanguage].title} onChange={event => { const value = event.target.value; updateSection(section.id, item => ({ ...item, [editLanguage]: { ...item[editLanguage], title: value } })) }} /></label>
+              <label className="field-wide">{c.mapDescription}<textarea rows={3} maxLength={6000} value={section[editLanguage].body ?? ''} onChange={event => { const value = event.target.value; updateSection(section.id, item => ({ ...item, [editLanguage]: { ...item[editLanguage], body: value || null } })) }} /></label>
+              <label className="field-wide">{c.mapCode}<textarea rows={3} maxLength={4000} value={section.mapUrl ?? ''} placeholder='<iframe src="https://www.google.com/maps/embed?pb=..." ...></iframe>'
+                onChange={event => { const value = event.target.value; updateSection(section.id, item => ({ ...item, mapUrl: extractMapEmbedUrl(value) ?? value })) }} /></label>
+            </div>
+            <p className={!valid && section.mapUrl ? 'tour-page-editor-hint tour-page-editor-hint--error' : 'tour-page-editor-hint'}>{valid ? c.mapReady : c.mapHelp}</p>
+            {valid && <iframe className="tour-page-editor-map" src={section.mapUrl!} title={section[editLanguage].title || c.map} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />}
+          </section>
+        })}
+        {document.sections.length < 8 && <div className="tour-page-editor-add"><button type="button" onClick={addMap}><MapPin size={16} />{c.addMap}</button></div>}
       </fieldset>}
     </>}
   </>

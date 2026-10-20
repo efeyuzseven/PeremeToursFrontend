@@ -72,3 +72,5 @@
 .tour-page-editor-details aside p { margin: 0 0 14px; color: var(--blue); line-height: 1.7; }
 .tour-page-editor-details aside button { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px dashed var(--sea); border-radius: 10px; color: var(--blue); background: #fff; font-size: 11px; }
 @media (max-width: 900px) { .tour-page-editor-details { grid-template-columns: 1fr; } }
+.tour-page-editor-hint--error { color: #b42318; font-weight: 700; }
+.tour-page-editor-map { display: block; width: 100%; height: 300px; border: 0; border-radius: 12px; }

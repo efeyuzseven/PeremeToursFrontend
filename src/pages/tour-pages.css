@@ -28,6 +28,8 @@
 .tour-detail-text p.is-clamped { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; }
 .tour-detail-text button { padding: 0; margin-top: 8px; border: 0; border-bottom: 2px solid currentColor; color: var(--navy); background: transparent; font-size: 13px; font-weight: 800; }
 .tour-detail-row > div > * + * { margin-top: 14px; }
+.tour-detail-map iframe { display: block; width: 100%; height: 380px; border: 0; border-radius: 14px; background: rgba(106,157,210,.12); }
+.tour-html + .tour-detail-map { margin-top: 30px; border-top: 1px solid rgba(31,71,140,.12); }
 .tour-detail-bullets { display: grid; gap: 6px; padding-left: 20px; margin: 0; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
 .tour-detail-included { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; font-size: 14px; line-height: 1.55; }
 .tour-detail-included li { display: flex; align-items: flex-start; gap: 10px; overflow-wrap: anywhere; }
@@ -130,6 +132,7 @@
   .tour-page-related__heading p { max-width: none; }
   .tour-page-tour-grid { grid-template-columns: 1fr; }
   .tour-detail-row { grid-template-columns: 1fr; gap: 12px; padding: 24px 0; }
+  .tour-detail-map iframe { height: 280px; }
   .tour-gallery { display: block; height: 260px; }
   .tour-gallery > button:not(:first-child):not(.tour-gallery__all) { display: none; }
   .tour-gallery > button:first-child { width: 100%; height: 100%; }

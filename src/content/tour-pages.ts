@@ -12,8 +12,25 @@ export type TourPageLanguageContent = {
 }
 export type TourPageSectionLanguageContent = { title: string; body: string | null; items: string[]; excludedItems?: string[] | null }
 export type TourPageSection = {
-  id: string; type: 'text' | 'highlights' | 'included' | 'gallery'; background: 'white' | 'blue'; isVisible: boolean
+  id: string; type: 'text' | 'highlights' | 'included' | 'gallery' | 'map'; background: 'white' | 'blue'; isVisible: boolean
   imageUrls: string[]; tr: TourPageSectionLanguageContent; en: TourPageSectionLanguageContent
+  mapUrl?: string | null
+}
+
+// Only Google Maps embed URLs may be framed; the backend enforces the same rule.
+export function isGoogleMapEmbed(value: string | null | undefined): value is string {
+  if (!value || value.length > 2000 || /["\\\s]/.test(value)) return false
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' && url.hostname === 'www.google.com' && !url.port && !url.username && url.pathname.startsWith('/maps/embed')
+  } catch { return false }
+}
+// Accepts Google Maps' "Embed a map" HTML (the iframe) or its src URL.
+export function extractMapEmbedUrl(input: string) {
+  const value = input.trim()
+  const src = /<iframe[^>]*\ssrc=["']([^"']+)["']/i.exec(value)?.[1] ?? value
+  const url = src.replaceAll('&amp;', '&')
+  return isGoogleMapEmbed(url) ? url : null
 }
 export type TourPageDocument = {
   heroLayout: 'cover' | 'split'; heroImageUrl: string | null
@@ -80,7 +97,7 @@ export function parseTourDetails(source: string): TourDetailRow[] {
 
 // Pages saved before the free-text editor keep their content: their sections are converted to the same text format.
 export function sectionsToDetails(sections: TourPageSection[], language: TourLanguage) {
-  return sections.filter(section => section.type !== 'gallery' && section.isVisible).map(section => {
+  return sections.filter(section => section.type !== 'gallery' && section.type !== 'map' && section.isVisible).map(section => {
     const content = section[language]
     const items = content.items.filter(item => item.trim()).map(item => `${section.type === 'included' ? '+' : '-'} ${item.trim()}`)
     const excluded = (content.excludedItems ?? []).filter(item => item.trim()).map(item => `x ${item.trim()}`)
@@ -91,12 +108,12 @@ export const tourDetailsFor = (document: TourPageDocument, language: TourLanguag
   document[language].details ?? sectionsToDetails(document.sections, language)
 // Content that starts with a tag is admin-written HTML (sanitized when rendered); anything else uses the line markers above.
 export const isHtmlDetails = (details: string) => /^\s*</.test(details)
-// The editor works on text only: old text/list sections move into the details text and only galleries stay as sections.
+// The editor works on text only: old text/list sections move into the details text; galleries and maps stay as sections.
 export const withTextDetails = (document: TourPageDocument): TourPageDocument => ({
   ...document,
   tr: { ...document.tr, details: tourDetailsFor(document, 'tr') },
   en: { ...document.en, details: tourDetailsFor(document, 'en') },
-  sections: document.sections.filter(section => section.type === 'gallery'),
+  sections: document.sections.filter(section => section.type === 'gallery' || section.type === 'map'),
 })
 export const tourDetailsTemplate: Record<TourLanguage, string> = {
   tr: '## İlgi çekici noktalar\n- Birinci madde\n- İkinci madde\n\n## Tam açıklama\nTurun açıklamasını buraya yazın.\n\n## Dahil olanlar\n+ Dahil olan bir şey\nx Dahil olmayan bir şey\n\n## Kimler için uygun değil\n- Tekerlekli sandalye kullananlar',

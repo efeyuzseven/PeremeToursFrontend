@@ -1,7 +1,7 @@
 import DOMPurify from 'dompurify'
 import { ArrowRight, Check, Waves, X } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
-import { bookingNotesFor, categoryImages, isHtmlDetails, parseTourDetails, resolvePageImage, tourDetailsFor, type TourDetailRow, type TourLanguage,
+import { bookingNotesFor, categoryImages, isGoogleMapEmbed, isHtmlDetails, parseTourDetails, resolvePageImage, tourDetailsFor, type TourDetailRow, type TourLanguage,
   type TourPageItem } from '../content/tour-pages'
 import '../pages/tour-pages.css'
 import { TourBookingCard } from './TourBookingCard'
@@ -54,6 +54,8 @@ export function TourPageContent({ page, language, fallbackImage, onBook, booking
   const image = resolvePageImage(page.document.heroImageUrl || fallbackImage || categoryImages[page.categoryKey])
   const gallery = page.document.sections.filter(section => section.type === 'gallery' && section.isVisible).flatMap(section => section.imageUrls)
   const details = tourDetailsFor(page.document, language)
+  // Maps always come last, after the content.
+  const maps = page.document.sections.filter(section => section.type === 'map' && section.isVisible && isGoogleMapEmbed(section.mapUrl))
   return <div className="tour-page-content">
     <section className={`tour-page-hero tour-page-hero--${page.document.heroLayout}`}>
       <img className="tour-page-hero__image" src={image} alt="" />
@@ -69,6 +71,12 @@ export function TourPageContent({ page, language, fallbackImage, onBook, booking
         <TourGallery images={gallery} title={c.title} language={language} />
         {isHtmlDetails(details) ? <TourHtml html={details} />
           : parseTourDetails(details).map((row, index) => <DetailRow key={index} row={row} language={language} />)}
+        {maps.map(section => <section className="tour-detail-row tour-detail-map" key={section.id} data-section-id={section.id}>
+          <h2>{section[language].title}</h2>
+          <div>{section[language].body && <p className="tour-detail-body">{section[language].body}</p>}
+            <iframe src={section.mapUrl!} title={section[language].title || (language === 'tr' ? 'Harita' : 'Map')} loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade" allowFullScreen /></div>
+        </section>)}
       </div>
       {page.externalTourId && <div className="tour-detail__aside">
         <TourBookingCard tourId={preview ? null : page.externalTourId} language={language} bookingLabel={c.bookingLabel}

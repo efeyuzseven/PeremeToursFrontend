@@ -1,9 +1,10 @@
 import { ArrowRight, Check, Waves, X } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
-import { bookingNotesFor, categoryImages, parseTourDetails, resolvePageImage, tourDetailsFor, type TourDetailRow, type TourLanguage, type TourPageItem,
-  type TourPageSection } from '../content/tour-pages'
+import { bookingNotesFor, categoryImages, parseTourDetails, resolvePageImage, tourDetailsFor, type TourDetailRow, type TourLanguage,
+  type TourPageItem } from '../content/tour-pages'
 import '../pages/tour-pages.css'
 import { TourBookingCard } from './TourBookingCard'
+import { TourGallery } from './TourGallery'
 
 const copy = {
   tr: { more: 'Daha fazlasını gör', less: 'Daha az göster' },
@@ -31,14 +32,6 @@ function DetailRow({ row, language }: { row: TourDetailRow; language: TourLangua
   </section>
 }
 
-function GalleryRow({ section, language }: { section: TourPageSection; language: TourLanguage }) {
-  const title = section[language].title
-  return <section className="tour-detail-row" data-section-id={section.id}>
-    <h2>{title}</h2>
-    <div className="tour-detail-gallery">{section.imageUrls.map((url, index) => <img key={`${url}-${index}`} src={resolvePageImage(url)} alt={`${title} ${index + 1}`} loading="lazy" />)}</div>
-  </section>
-}
-
 export function TourPageContent({ page, language, fallbackImage, onBook, bookingDisabled = false, preview = false, children }: {
   page: TourPageItem; language: TourLanguage; fallbackImage?: string; onBook: (date?: string, guests?: number) => void
   bookingDisabled?: boolean; preview?: boolean; children?: ReactNode
@@ -57,8 +50,9 @@ export function TourPageContent({ page, language, fallbackImage, onBook, booking
     </section>
     {page.externalTourId ? <div className="shell tour-detail">
       <div className="tour-detail__rows">
+        {/* All gallery sections are shown together as one mosaic above the details. */}
+        <TourGallery images={sections.filter(section => section.type === 'gallery').flatMap(section => section.imageUrls)} title={c.title} language={language} />
         {parseTourDetails(tourDetailsFor(page.document, language)).map((row, index) => <DetailRow key={index} row={row} language={language} />)}
-        {sections.filter(section => section.type === 'gallery' && section.imageUrls.length > 0).map(section => <GalleryRow key={section.id} section={section} language={language} />)}
       </div>
       <div className="tour-detail__aside">
         <TourBookingCard tourId={preview ? null : page.externalTourId} language={language} bookingLabel={c.bookingLabel}

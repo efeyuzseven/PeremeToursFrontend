@@ -41,8 +41,23 @@
 .tour-detail-included li { display: flex; align-items: flex-start; gap: 10px; overflow-wrap: anywhere; }
 .tour-detail-included svg { flex: 0 0 auto; margin-top: 2px; color: #16803c; }
 .tour-detail-included li.is-excluded svg { color: #d1323a; }
-.tour-detail-gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.tour-detail-gallery img { width: 100%; aspect-ratio: 4 / 3; border-radius: 12px; object-fit: cover; background: rgba(106,157,210,.12); }
+.tour-gallery { position: relative; display: grid; gap: 8px; height: 400px; margin-bottom: 8px; }
+.tour-gallery--2 { grid-template-columns: 2fr 1fr; }
+.tour-gallery--3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; }
+.tour-gallery--4 { grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.tour-gallery--3 > button:first-child, .tour-gallery--4 > button:first-child, .tour-gallery--4 > button:nth-child(2) { grid-row: 1 / 3; }
+.tour-gallery > button:not(.tour-gallery__all) { overflow: hidden; padding: 0; border: 0; border-radius: 14px; background: rgba(106,157,210,.12); cursor: zoom-in; }
+.tour-gallery img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .3s ease; }
+.tour-gallery > button:hover img { transform: scale(1.03); }
+.tour-gallery__all { position: absolute; right: 14px; bottom: 14px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border: 0; border-radius: 22px; color: var(--navy); background: #fff; box-shadow: 0 6px 18px rgba(7,27,53,.18); font-size: 13px; font-weight: 800; }
+.tour-lightbox { position: fixed; z-index: 200; inset: 0; display: flex; align-items: center; justify-content: center; padding: 60px 80px; background: rgba(7,27,53,.94); }
+.tour-lightbox img { max-width: 100%; max-height: 100%; border-radius: 10px; object-fit: contain; }
+.tour-lightbox button { display: grid; place-items: center; border: 0; border-radius: 50%; color: var(--navy); background: #fff; }
+.tour-lightbox__close { position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; }
+.tour-lightbox__nav { position: absolute; top: 50%; width: 52px; height: 52px; transform: translateY(-50%); }
+.tour-lightbox__nav--prev { left: 16px; }
+.tour-lightbox__nav--next { right: 16px; }
+.tour-lightbox__count { position: absolute; bottom: 18px; left: 50%; color: #fff; font-size: 13px; font-weight: 700; transform: translateX(-50%); }
 .tour-detail__aside { position: sticky; top: 108px; }
 .tour-booking-card { padding: 22px; border: 1px solid rgba(31,71,140,.16); border-radius: 18px; background: #fff; box-shadow: 0 18px 45px rgba(7,27,53,.08); }
 .tour-booking-card__price { min-height: 52px; margin-bottom: 14px; }
@@ -92,8 +107,11 @@
 .service-card__body > div > a svg { width: 15px; }
 @media (max-width: 900px) {
   .tour-page-tour-grid, .tour-page-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .tour-detail { grid-template-columns: 1fr; gap: 32px; padding-top: 28px; }
-  .tour-detail__aside { position: static; order: -1; }
+  /* Small screens: gallery first, then the booking card, then the details. */
+  .tour-detail { grid-template-columns: 1fr; gap: 0; padding-top: 28px; }
+  .tour-detail__rows { display: contents; }
+  .tour-gallery { order: -2; }
+  .tour-detail__aside { position: static; order: -1; margin: 16px 0 24px; }
   .tour-page-highlights { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
@@ -109,6 +127,10 @@
   .tour-page-tour-grid { grid-template-columns: 1fr; }
   .tour-page-gallery { gap: 10px; }
   .tour-detail-row { grid-template-columns: 1fr; gap: 12px; padding: 24px 0; }
-  .tour-detail-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tour-gallery { display: block; height: 260px; }
+  .tour-gallery > button:not(:first-child):not(.tour-gallery__all) { display: none; }
+  .tour-gallery > button:first-child { width: 100%; height: 100%; }
+  .tour-lightbox { padding: 70px 12px; }
+  .tour-lightbox__nav { top: auto; bottom: 10px; width: 44px; height: 44px; transform: none; }
 }
-@media (prefers-reduced-motion: reduce) { .tour-page-tour-card img { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .tour-page-tour-card img, .tour-gallery img { transition: none; } }

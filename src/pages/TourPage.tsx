@@ -28,6 +28,7 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
   const [catalogError, setCatalogError] = useState(false)
   const [reload, setReload] = useState(0)
   const [selected, setSelected] = useState<PublicTourItem | null>(null)
+  const [bookingStart, setBookingStart] = useState({ date: istanbulToday(), guests: 1 })
   const c = copy[language]
   useEffect(() => {
     const controller = new AbortController()
@@ -63,8 +64,9 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
   const ownTour = tours.find(tour => tour.externalTourId === page.externalTourId)
   const related = tours.filter(tour => tour.categoryKey === page.categoryKey && tour.externalTourId !== page.externalTourId)
     .sort((a, b) => a.sortOrder - b.sortOrder || a.externalTourId - b.externalTourId)
-  const openBooking = () => {
-    if (page.externalTourId && ownTour) setSelected(ownTour)
+  const openTour = (tour: PublicTourItem, date = istanbulToday(), guests = 1) => { setBookingStart({ date, guests }); setSelected(tour) }
+  const openBooking = (date?: string, guests?: number) => {
+    if (page.externalTourId && ownTour) openTour(ownTour, date, guests)
     else document.getElementById('related-tours')?.scrollIntoView({ behavior: siteScrollBehavior() })
   }
   return <>
@@ -80,12 +82,12 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
           : related.length === 0 ? <p>{page.externalTourId ? c.relatedEmpty : c.empty}</p> : <div className="tour-page-tour-grid">{related.map(tour => <article className="tour-page-tour-card" key={tour.externalTourId}>
             <Link to={tourPath(tour.externalTourId)} aria-label={`${c.details}: ${tourTitle(tour, language)}`}><img src={resolvePageImage(tour.imageUrl || categoryImages[tour.categoryKey])} alt="" loading="lazy" /></Link>
             <div><h3><Link to={tourPath(tour.externalTourId)}>{tourTitle(tour, language)}</Link></h3><p>{(language === 'tr' ? tour.descriptionTr : tour.descriptionEn) || c.live}</p>
-              <div className="tour-page-tour-card__actions"><Link to={tourPath(tour.externalTourId)}>{c.details}<ArrowRight size={16} /></Link><button type="button" onClick={() => setSelected(tour)}>{c.booking}<Ticket size={16} /></button></div>
+              <div className="tour-page-tour-card__actions"><Link to={tourPath(tour.externalTourId)}>{c.details}<ArrowRight size={16} /></Link><button type="button" onClick={() => openTour(tour)}>{c.booking}<Ticket size={16} /></button></div>
             </div>
           </article>)}</div>}
       </div></section>
     </TourPageContent>
-    {selected && <BookingDrawer key={selected.externalTourId} tour={bookingTour(selected)} language={language} initialDate={istanbulToday()} initialGuests={1} onClose={() => setSelected(null)} />}
+    {selected && <BookingDrawer key={selected.externalTourId} tour={bookingTour(selected)} language={language} initialDate={bookingStart.date} initialGuests={bookingStart.guests} onClose={() => setSelected(null)} />}
   </>
 }
 

@@ -23,6 +23,8 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: 88px;
   overflow-x: hidden;
+  /* clip, unlike hidden, does not turn html/body into scroll containers, so position: sticky keeps working. */
+  overflow-x: clip;
 }
 
 body {
@@ -30,6 +32,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overflow-x: hidden;
+  overflow-x: clip;
   background: var(--cream);
 }
 

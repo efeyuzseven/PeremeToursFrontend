@@ -2,10 +2,15 @@ import { apiBaseUrl } from '../lib/api'
 
 export type TourLanguage = 'tr' | 'en'
 export type TourCategory = 'turkish-night' | 'sunset' | 'daytime' | 'bosphorus'
-export type TourPageLanguageContent = { eyebrow: string; title: string; intro: string; bookingLabel: string; toursHeading: string; seoDescription: string }
-export type TourPageSectionLanguageContent = { title: string; body: string | null; items: string[] }
+export type TourPageBookingNote = { title: string; text: string | null }
+export type TourPageLanguageContent = {
+  eyebrow: string; title: string; intro: string; bookingLabel: string; toursHeading: string; seoDescription: string
+  // null = never edited, so the default notes are shown; [] hides the notes.
+  bookingNotes?: TourPageBookingNote[] | null
+}
+export type TourPageSectionLanguageContent = { title: string; body: string | null; items: string[]; excludedItems?: string[] | null }
 export type TourPageSection = {
-  id: string; type: 'text' | 'highlights' | 'gallery'; background: 'white' | 'blue'; isVisible: boolean
+  id: string; type: 'text' | 'highlights' | 'included' | 'gallery'; background: 'white' | 'blue'; isVisible: boolean
   imageUrls: string[]; tr: TourPageSectionLanguageContent; en: TourPageSectionLanguageContent
 }
 export type TourPageDocument = {
@@ -30,6 +35,13 @@ export const categoryImages: Record<TourCategory, string> = {
   'turkish-night': '/assets/tour-dinner.webp', sunset: '/assets/tour-sunset.webp',
   daytime: '/assets/hero-bosphorus.webp', bosphorus: '/assets/hero-bosphorus.webp',
 }
+export const defaultBookingNotes: Record<TourLanguage, TourPageBookingNote[]> = {
+  tr: [{ title: 'Ücretsiz iptal', text: 'Turdan 24 saat öncesine kadar ücretsiz iptal kolaylığı.' },
+    { title: 'Anında onay', text: 'Ödemenin ardından biletin e-posta adresine gönderilir.' }],
+  en: [{ title: 'Free cancellation', text: 'Cancel free of charge up to 24 hours before the tour.' },
+    { title: 'Instant confirmation', text: 'Your ticket is emailed to you right after payment.' }],
+}
+export const bookingNotesFor = (content: TourPageLanguageContent, language: TourLanguage) => content.bookingNotes ?? defaultBookingNotes[language]
 export const categoryPath = (category: TourCategory) => `/turlar/${categorySlugs[category]}`
 export const tourPath = (id: number) => `/tur/${id}`
 export const pagePath = (page: Pick<TourPageItem, 'externalTourId' | 'categoryKey'>) => page.externalTourId ? tourPath(page.externalTourId) : categoryPath(page.categoryKey)

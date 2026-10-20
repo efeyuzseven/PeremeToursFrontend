@@ -3,7 +3,7 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { TourPageContent } from '../components/TourPageContent'
-import { categoryImages, categoryLabels, pagePath, resolvePageImage, type TourLanguage, type TourPageDocument, type TourPageItem, type TourPageSection } from '../content/tour-pages'
+import { bookingNotesFor, categoryImages, categoryLabels, pagePath, resolvePageImage, type TourLanguage, type TourPageBookingNote, type TourPageDocument, type TourPageItem, type TourPageSection } from '../content/tour-pages'
 import { ApiError, apiRequest, apiUpload } from '../lib/api'
 import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
@@ -19,11 +19,14 @@ const copy = {
     choose: 'Görsel yükle', imageHint: 'JPG, PNG veya WebP · en fazla 8 MB', url: 'Görsel bağlantısı', default: 'Varsayılan görsel',
     eyebrow: 'Üst etiket', heading: 'Başlık', intro: 'Giriş açıklaması', booking: 'Rezervasyon butonu', related: 'İlgili turlar başlığı', seo: 'Arama motoru açıklaması',
     sections: 'İçerik bölümleri', sectionHint: 'Bölümleri ekleyin, sıralayın veya gizleyin. Görseller ve düzen iki dilde ortaktır; metinler ayrı saklanır.',
-    text: 'Metin', highlights: 'Öne çıkanlar', gallery: 'Galeri', add: 'Bölüm ekle', remove: 'Bölümü kaldır', removeConfirm: 'Bu bölüm taslaktan kaldırılsın mı?',
+    text: 'Metin', highlights: 'Madde listesi', included: 'Dahil olanlar / olmayanlar', gallery: 'Galeri', add: 'Bölüm ekle', remove: 'Bölümü kaldır', removeConfirm: 'Bu bölüm taslaktan kaldırılsın mı?',
     up: 'Yukarı taşı', down: 'Aşağı taşı', visible: 'Bölümü göster', background: 'Arka plan', white: 'Beyaz', blue: 'Açık mavi', body: 'Açıklama',
-    items: 'Öne çıkan maddeler (her satıra bir madde)', galleryHint: 'En fazla 6 görsel. Yüklenen görseller kaydedince yayınlanır.', addImage: 'Galeriye görsel ekle',
+    items: 'Maddeler (her satıra bir madde)', includedItems: 'Dahil olanlar (her satıra bir madde, yeşil ✓)', excludedItems: 'Dahil olmayanlar (her satıra bir madde, kırmızı ✕)', galleryHint: 'En fazla 6 görsel. Yüklenen görseller kaydedince yayınlanır.', addImage: 'Galeriye görsel ekle',
     removeImage: 'Görseli kaldır', uploadError: 'Görsel yüklenemedi.', invalidImage: 'JPG, PNG veya WebP seçin; dosya en fazla 8 MB olmalıdır.',
     previewHint: 'Kaydedilmemiş taslağın önizlemesidir. Rezervasyon butonu önizlemede kapalıdır.',
+    detailHint: 'Tur detay sayfasında bölümler solda başlık, sağda içerik olarak alt alta listelenir; sağ tarafta sabit rezervasyon kartı bulunur. Örnek: “İlgi çekici noktalar” (Madde listesi), “Tam açıklama” (Metin), “Dahil olanlar” (Dahil olanlar / olmayanlar), “Kimler için uygun değil” (Madde listesi).',
+    notes: 'Rezervasyon kartı', notesHint: 'Sağdaki sabit kartta fiyatın ve rezervasyon butonunun altında görünen kısa bilgiler (en fazla 4). Başlangıç fiyatı ve tarihler EasyTicket’tan canlı gelir.',
+    noteTitle: 'Başlık', noteText: 'Açıklama', addNote: 'Not ekle', removeNote: 'Notu kaldır',
   },
   en: {
     title: 'Tour Pages', subtitle: 'Edit service and tour detail pages in Turkish / English. Prices and departures remain supplied by EasyTicket.',
@@ -34,11 +37,14 @@ const copy = {
     choose: 'Upload image', imageHint: 'JPG, PNG or WebP · maximum 8 MB', url: 'Image URL', default: 'Default image',
     eyebrow: 'Eyebrow', heading: 'Title', intro: 'Introduction', booking: 'Booking button', related: 'Related tours heading', seo: 'Search engine description',
     sections: 'Content sections', sectionHint: 'Add, reorder or hide sections. Images and layout are shared; each language has its own text.',
-    text: 'Text', highlights: 'Highlights', gallery: 'Gallery', add: 'Add section', remove: 'Remove section', removeConfirm: 'Remove this section from the draft?',
+    text: 'Text', highlights: 'Bullet list', included: 'Included / not included', gallery: 'Gallery', add: 'Add section', remove: 'Remove section', removeConfirm: 'Remove this section from the draft?',
     up: 'Move up', down: 'Move down', visible: 'Show section', background: 'Background', white: 'White', blue: 'Light blue', body: 'Description',
-    items: 'Highlights (one item per line)', galleryHint: 'Up to 6 images. Uploaded images are published when you save.', addImage: 'Add gallery image',
+    items: 'Items (one per line)', includedItems: 'Included (one per line, green ✓)', excludedItems: 'Not included (one per line, red ✕)', galleryHint: 'Up to 6 images. Uploaded images are published when you save.', addImage: 'Add gallery image',
     removeImage: 'Remove image', uploadError: 'Image upload failed.', invalidImage: 'Choose JPG, PNG or WebP, maximum 8 MB.',
     previewHint: 'This is a preview of your unsaved draft. Booking is disabled in preview.',
+    detailHint: 'On tour detail pages, sections are listed as rows with the heading on the left and content on the right, next to a sticky booking card. Example: “Highlights” (Bullet list), “Full description” (Text), “Includes” (Included / not included), “Not suitable for” (Bullet list).',
+    notes: 'Booking card', notesHint: 'Short notes shown under the price and booking button in the sticky card (up to 4). The starting price and dates load live from EasyTicket.',
+    noteTitle: 'Title', noteText: 'Description', addNote: 'Add note', removeNote: 'Remove note',
   },
 }
 
@@ -96,8 +102,12 @@ export default function TourPagesPage() {
   })
   const addSection = (type: TourPageSection['type']) => change(current => ({ ...current, sections: [...current.sections, {
     id: crypto.randomUUID(), type, background: 'white', isVisible: true, imageUrls: [],
-    tr: { title: 'Yeni bölüm', body: '', items: [] }, en: { title: 'New section', body: '', items: [] },
+    tr: type === 'included' ? { title: 'Dahil olanlar', body: '', items: [], excludedItems: [] } : { title: 'Yeni bölüm', body: '', items: [] },
+    en: type === 'included' ? { title: 'Includes', body: '', items: [], excludedItems: [] } : { title: 'New section', body: '', items: [] },
   }] }))
+  const notes = document ? bookingNotesFor(document[editLanguage], editLanguage) : []
+  const changeNotes = (update: (current: TourPageBookingNote[]) => TourPageBookingNote[]) =>
+    change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], bookingNotes: update(bookingNotesFor(current[editLanguage], editLanguage)) } }))
   const upload = async (event: ChangeEvent<HTMLInputElement>, sectionId?: string) => {
     const file = event.target.files?.[0]
     event.target.value = ''
@@ -141,7 +151,7 @@ export default function TourPagesPage() {
         <div>{(['editor', 'preview'] as const).map(item => <button key={item} type="button" className={mode === item ? 'active' : ''} onClick={() => setMode(item)}>{item === 'editor' ? <LayoutTemplate size={15} /> : <Eye size={15} />}{c[item]}</button>)}</div>
         {dirty && <small>{c.unsaved}</small>}
       </div>
-      {mode === 'preview' ? <div className="tour-page-editor-preview"><p>{c.previewHint} · {editLanguage.toUpperCase()}</p><TourPageContent page={{ ...selected, document }} language={editLanguage} onBook={() => undefined} bookingDisabled /></div> : <fieldset className="tour-page-editor-fields" disabled={busy}>
+      {mode === 'preview' ? <div className="tour-page-editor-preview"><p>{c.previewHint} · {editLanguage.toUpperCase()}</p><TourPageContent page={{ ...selected, document }} language={editLanguage} onBook={() => undefined} bookingDisabled preview /></div> : <fieldset className="tour-page-editor-fields" disabled={busy}>
         <section className="tour-page-editor-section"><header><LayoutTemplate size={20} /><h2>{c.hero}</h2></header>
           <div className="tour-page-editor-grid"><label>{c.layout}<select value={document.heroLayout} onChange={event => change(current => ({ ...current, heroLayout: event.target.value as TourPageDocument['heroLayout'] }))}><option value="cover">{c.cover}</option><option value="split">{c.split}</option></select></label>
             <label>{c.eyebrow}<input maxLength={100} value={document[editLanguage].eyebrow} onChange={event => change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], eyebrow: event.target.value } }))} /></label>
@@ -154,7 +164,16 @@ export default function TourPagesPage() {
           <div className="tour-page-editor-image"><img src={resolvePageImage(document.heroImageUrl || categoryImages[selected.categoryKey])} alt="" /><div><strong>{c.image}</strong><small>{c.imageHint}</small><label className="tour-page-upload"><ImagePlus size={16} />{uploading ? c.saving : c.choose}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void upload(event)} /></label><button type="button" onClick={() => change(current => ({ ...current, heroImageUrl: null }))}>{c.default}</button></div></div>
           <label className="tour-page-editor-url">{c.url}<input value={document.heroImageUrl ?? ''} maxLength={2000} onChange={event => change(current => ({ ...current, heroImageUrl: event.target.value || null }))} /></label>
         </section>
-        <div className="tour-page-editor-section-heading"><h2>{c.sections}</h2><p>{c.sectionHint}</p></div>
+        {selected.externalTourId && <section className="tour-page-editor-section" data-editor-section="booking-notes"><header><strong>{c.notes}</strong></header>
+          <p className="tour-page-editor-hint">{c.notesHint}</p>
+          {notes.map((note, index) => <div className="tour-page-editor-note" key={index}>
+            <label>{c.noteTitle}<input maxLength={80} required value={note.title} onChange={event => { const value = event.target.value; changeNotes(items => items.map((item, i) => i === index ? { ...item, title: value } : item)) }} /></label>
+            <label>{c.noteText}<input maxLength={300} value={note.text ?? ''} onChange={event => { const value = event.target.value; changeNotes(items => items.map((item, i) => i === index ? { ...item, text: value || null } : item)) }} /></label>
+            <button type="button" aria-label={c.removeNote} onClick={() => changeNotes(items => items.filter((_, i) => i !== index))}><Trash2 size={16} /></button>
+          </div>)}
+          {notes.length < 4 && <button type="button" className="tour-page-editor-note-add" onClick={() => changeNotes(items => [...items, { title: '', text: null }])}><Plus size={16} />{c.addNote}</button>}
+        </section>}
+        <div className="tour-page-editor-section-heading"><h2>{c.sections}</h2><p>{c.sectionHint}</p>{selected.externalTourId && <p>{c.detailHint}</p>}</div>
         {document.sections.map((section, index) => <section className="tour-page-editor-section" key={section.id} data-editor-section={section.id}>
           <header><strong>{String(index + 1).padStart(2, '0')} · {c[section.type]}</strong><div>
             <button type="button" aria-label={c.up} disabled={busy || index === 0} onClick={() => moveSection(index, -1)}><ArrowUp size={16} /></button>
@@ -166,13 +185,14 @@ export default function TourPagesPage() {
             <label className="tour-page-editor-checkbox"><input type="checkbox" checked={section.isVisible} onChange={event => updateSection(section.id, item => ({ ...item, isVisible: event.target.checked }))} />{c.visible}</label>
             <label className="field-wide">{c.heading}<input maxLength={200} value={section[editLanguage].title} onChange={event => updateSection(section.id, item => ({ ...item, [editLanguage]: { ...item[editLanguage], title: event.target.value } }))} /></label>
             <label className="field-wide">{c.body}<textarea rows={4} maxLength={6000} value={section[editLanguage].body ?? ''} onChange={event => updateSection(section.id, item => ({ ...item, [editLanguage]: { ...item[editLanguage], body: event.target.value } }))} /></label>
-            {section.type === 'highlights' && <label className="field-wide">{c.items}<textarea rows={5} maxLength={4812} value={section[editLanguage].items.join('\n')} onChange={event => updateSection(section.id, item => ({ ...item, [editLanguage]: { ...item[editLanguage], items: event.target.value.split('\n') } }))} /></label>}
+            {(section.type === 'highlights' || section.type === 'included') && <label className="field-wide">{section.type === 'included' ? c.includedItems : c.items}<textarea rows={5} maxLength={4812} value={section[editLanguage].items.join('\n')} onChange={event => updateSection(section.id, item => ({ ...item, [editLanguage]: { ...item[editLanguage], items: event.target.value.split('\n') } }))} /></label>}
+            {section.type === 'included' && <label className="field-wide">{c.excludedItems}<textarea rows={4} maxLength={4812} value={(section[editLanguage].excludedItems ?? []).join('\n')} onChange={event => updateSection(section.id, item => ({ ...item, [editLanguage]: { ...item[editLanguage], excludedItems: event.target.value.split('\n') } }))} /></label>}
           </div>
           {section.type === 'gallery' && <div className="tour-page-editor-gallery"><p>{c.galleryHint}</p><div>{section.imageUrls.map((url, imageIndex) => <figure key={`${url}-${imageIndex}`}><img src={resolvePageImage(url)} alt="" /><button type="button" aria-label={c.removeImage} onClick={() => updateSection(section.id, item => ({ ...item, imageUrls: item.imageUrls.filter((_, i) => i !== imageIndex) }))}><Trash2 size={16} /></button></figure>)}</div>
             {section.imageUrls.length < 6 && <label className="tour-page-upload"><ImagePlus size={16} />{c.addImage}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void upload(event, section.id)} /></label>}
           </div>}
         </section>)}
-        {document.sections.length < 8 && <div className="tour-page-editor-add">{(['text', 'highlights', 'gallery'] as const).map(type => <button type="button" key={type} onClick={() => addSection(type)}><Plus size={16} />{c.add}: {c[type]}</button>)}</div>}
+        {document.sections.length < 8 && <div className="tour-page-editor-add">{(['text', 'highlights', 'included', 'gallery'] as const).map(type => <button type="button" key={type} onClick={() => addSection(type)}><Plus size={16} />{c.add}: {c[type]}</button>)}</div>}
       </fieldset>}
     </>}
   </>

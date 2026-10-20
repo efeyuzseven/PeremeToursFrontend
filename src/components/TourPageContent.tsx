@@ -1,6 +1,6 @@
 import DOMPurify from 'dompurify'
 import { ArrowRight, Check, Waves, X } from 'lucide-react'
-import { useMemo, useState, type ReactNode } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { bookingNotesFor, categoryImages, isGoogleMapEmbed, isHtmlDetails, parseTourDetails, resolvePageImage, tourDetailsFor, type TourDetailRow, type TourLanguage,
   type TourPageItem } from '../content/tour-pages'
 import '../pages/tour-pages.css'
@@ -25,24 +25,40 @@ function TourHtml({ html }: { html: string }) {
   return <div className="tour-html" dangerouslySetInnerHTML={{ __html: clean }} />
 }
 
-function ExpandableText({ text, language }: { text: string; language: TourLanguage }) {
+// Matches .tour-detail-collapsible.is-collapsed max-height in tour-pages.css.
+const COLLAPSED_HEIGHT = 210
+
+// One "See more" per row, shown only when the content is actually taller than the collapsed height.
+function Collapsible({ language, children }: { language: TourLanguage; children: ReactNode }) {
+  const content = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
-  const long = text.length > 320 || text.split('\n').length > 4
-  return <div className="tour-detail-text">
-    <p className={long && !open ? 'is-clamped' : ''}>{text}</p>
-    {long && <button type="button" aria-expanded={open} onClick={() => setOpen(value => !value)}>{open ? copy[language].less : copy[language].more}</button>}
-  </div>
+  const [overflowing, setOverflowing] = useState(false)
+  useLayoutEffect(() => {
+    const element = content.current
+    if (!element) return
+    const measure = () => setOverflowing(element.scrollHeight > COLLAPSED_HEIGHT + 8)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  return <>
+    <div ref={content} className={`tour-detail-collapsible${overflowing && !open ? ' is-collapsed' : ''}`}>{children}</div>
+    {overflowing && <button className="tour-detail-more" type="button" aria-expanded={open} onClick={() => setOpen(value => !value)}>{open ? copy[language].less : copy[language].more}</button>}
+  </>
 }
 
 // Text content is listed as rows with the heading on the left and content on the right.
 function DetailRow({ row, language }: { row: TourDetailRow; language: TourLanguage }) {
+  const blocks = row.blocks.map((block, index) => block.kind === 'text' ? <p key={index} className="tour-detail-body">{block.text}</p>
+    : block.kind === 'bullets' ? <ul key={index} className="tour-detail-bullets">{block.items.map((item, i) => <li key={i}>{item}</li>)}</ul>
+    : <ul key={index} className="tour-detail-included">{block.items.map((item, i) => <li key={i} className={item.included ? '' : 'is-excluded'}>
+      {item.included ? <Check size={18} aria-label={language === 'tr' ? 'Dahil' : 'Included'} /> : <X size={18} aria-label={language === 'tr' ? 'Dahil değil' : 'Not included'} />}
+      <span>{item.text}</span></li>)}</ul>)
+  // Only rows with running text collapse; lists such as "Includes" stay fully visible.
   return <section className="tour-detail-row">
     <h2>{row.title}</h2>
-    <div>{row.blocks.map((block, index) => block.kind === 'text' ? <ExpandableText key={index} text={block.text} language={language} />
-      : block.kind === 'bullets' ? <ul key={index} className="tour-detail-bullets">{block.items.map((item, i) => <li key={i}>{item}</li>)}</ul>
-      : <ul key={index} className="tour-detail-included">{block.items.map((item, i) => <li key={i} className={item.included ? '' : 'is-excluded'}>
-        {item.included ? <Check size={18} aria-label={language === 'tr' ? 'Dahil' : 'Included'} /> : <X size={18} aria-label={language === 'tr' ? 'Dahil değil' : 'Not included'} />}
-        <span>{item.text}</span></li>)}</ul>)}</div>
+    <div>{row.blocks.some(block => block.kind === 'text') ? <Collapsible language={language}>{blocks}</Collapsible> : blocks}</div>
   </section>
 }
 

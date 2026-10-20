@@ -1,6 +1,7 @@
+import DOMPurify from 'dompurify'
 import { ArrowRight, Check, Waves, X } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
-import { bookingNotesFor, categoryImages, parseTourDetails, resolvePageImage, tourDetailsFor, type TourDetailRow, type TourLanguage,
+import { useMemo, useState, type ReactNode } from 'react'
+import { bookingNotesFor, categoryImages, isHtmlDetails, parseTourDetails, resolvePageImage, tourDetailsFor, type TourDetailRow, type TourLanguage,
   type TourPageItem } from '../content/tour-pages'
 import '../pages/tour-pages.css'
 import { TourBookingCard } from './TourBookingCard'
@@ -9,6 +10,19 @@ import { TourGallery } from './TourGallery'
 const copy = {
   tr: { more: 'Daha fazlasını gör', less: 'Daha az göster' },
   en: { more: 'See more', less: 'See less' },
+}
+
+// Links that open a new tab must not get access to this page.
+DOMPurify.addHook('afterSanitizeAttributes', node => {
+  if (node.tagName === 'A' && node.getAttribute('target') === '_blank') node.setAttribute('rel', 'noopener noreferrer')
+})
+
+// Admin-written HTML is sanitized before rendering: no scripts, event handlers, forms, frames or page-wide <style> blocks.
+function TourHtml({ html }: { html: string }) {
+  const clean = useMemo(() => DOMPurify.sanitize(html, {
+    FORBID_TAGS: ['style', 'form', 'input', 'button', 'textarea', 'select', 'iframe', 'object', 'embed'], ADD_ATTR: ['target'],
+  }), [html])
+  return <div className="tour-html" dangerouslySetInnerHTML={{ __html: clean }} />
 }
 
 function ExpandableText({ text, language }: { text: string; language: TourLanguage }) {
@@ -20,7 +34,7 @@ function ExpandableText({ text, language }: { text: string; language: TourLangua
   </div>
 }
 
-// Tour detail pages list each row with its heading on the left and content on the right.
+// Text content is listed as rows with the heading on the left and content on the right.
 function DetailRow({ row, language }: { row: TourDetailRow; language: TourLanguage }) {
   return <section className="tour-detail-row">
     <h2>{row.title}</h2>
@@ -38,7 +52,8 @@ export function TourPageContent({ page, language, fallbackImage, onBook, booking
 }) {
   const c = page.document[language]
   const image = resolvePageImage(page.document.heroImageUrl || fallbackImage || categoryImages[page.categoryKey])
-  const sections = page.document.sections.filter(section => section.isVisible)
+  const gallery = page.document.sections.filter(section => section.type === 'gallery' && section.isVisible).flatMap(section => section.imageUrls)
+  const details = tourDetailsFor(page.document, language)
   return <div className="tour-page-content">
     <section className={`tour-page-hero tour-page-hero--${page.document.heroLayout}`}>
       <img className="tour-page-hero__image" src={image} alt="" />
@@ -48,26 +63,18 @@ export function TourPageContent({ page, language, fallbackImage, onBook, booking
         <button className="tour-page-button" type="button" disabled={bookingDisabled} onClick={() => onBook()}>{c.bookingLabel}<ArrowRight size={18} /></button>
       </div></div>
     </section>
-    {page.externalTourId ? <div className="shell tour-detail">
+    {/* Service pages are not a single tour, so only tour detail pages get the booking card. */}
+    <div className={`shell tour-detail${page.externalTourId ? '' : ' tour-detail--wide'}`}>
       <div className="tour-detail__rows">
-        {/* All gallery sections are shown together as one mosaic above the details. */}
-        <TourGallery images={sections.filter(section => section.type === 'gallery').flatMap(section => section.imageUrls)} title={c.title} language={language} />
-        {parseTourDetails(tourDetailsFor(page.document, language)).map((row, index) => <DetailRow key={index} row={row} language={language} />)}
+        <TourGallery images={gallery} title={c.title} language={language} />
+        {isHtmlDetails(details) ? <TourHtml html={details} />
+          : parseTourDetails(details).map((row, index) => <DetailRow key={index} row={row} language={language} />)}
       </div>
-      <div className="tour-detail__aside">
+      {page.externalTourId && <div className="tour-detail__aside">
         <TourBookingCard tourId={preview ? null : page.externalTourId} language={language} bookingLabel={c.bookingLabel}
           notes={bookingNotesFor(c, language)} disabled={bookingDisabled} onBook={onBook} />
-      </div>
-    </div> : <div className="tour-page-sections">{sections.map(section => {
-      const content = section[language]
-      return <section className={`tour-page-section tour-page-section--${section.background}`} key={section.id} data-section-id={section.id}>
-        <div className="shell"><header><span className="tour-page-eyebrow">DENTUR · PEREME</span><h2>{content.title}</h2></header>
-          {content.body && <p className="tour-page-body">{content.body}</p>}
-          {(section.type === 'highlights' || section.type === 'included') && <ul className="tour-page-highlights">{content.items.map((item, index) => <li key={index}><Check size={19} /><span>{item}</span></li>)}</ul>}
-          {section.type === 'gallery' && <div className="tour-page-gallery">{section.imageUrls.map((url, index) => <img key={`${url}-${index}`} src={resolvePageImage(url)} alt={`${content.title} ${index + 1}`} loading="lazy" />)}</div>}
-        </div>
-      </section>
-    })}</div>}
+      </div>}
+    </div>
     {children}
   </div>
 }

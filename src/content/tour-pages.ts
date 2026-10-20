@@ -89,6 +89,15 @@ export function sectionsToDetails(sections: TourPageSection[], language: TourLan
 }
 export const tourDetailsFor = (document: TourPageDocument, language: TourLanguage) =>
   document[language].details ?? sectionsToDetails(document.sections, language)
+// Content that starts with a tag is admin-written HTML (sanitized when rendered); anything else uses the line markers above.
+export const isHtmlDetails = (details: string) => /^\s*</.test(details)
+// The editor works on text only: old text/list sections move into the details text and only galleries stay as sections.
+export const withTextDetails = (document: TourPageDocument): TourPageDocument => ({
+  ...document,
+  tr: { ...document.tr, details: tourDetailsFor(document, 'tr') },
+  en: { ...document.en, details: tourDetailsFor(document, 'en') },
+  sections: document.sections.filter(section => section.type === 'gallery'),
+})
 export const tourDetailsTemplate: Record<TourLanguage, string> = {
   tr: '## İlgi çekici noktalar\n- Birinci madde\n- İkinci madde\n\n## Tam açıklama\nTurun açıklamasını buraya yazın.\n\n## Dahil olanlar\n+ Dahil olan bir şey\nx Dahil olmayan bir şey\n\n## Kimler için uygun değil\n- Tekerlekli sandalye kullananlar',
   en: '## Highlights\n- First item\n- Second item\n\n## Full description\nWrite the tour description here.\n\n## Includes\n+ Something included\nx Something not included\n\n## Not suitable for\n- Wheelchair users',

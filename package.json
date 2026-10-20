@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
+    "dompurify": "3.4.16",
     "lucide-react": "latest",
     "qrcode.react": "^4.2.0",
     "react": "latest",

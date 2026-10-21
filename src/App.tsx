@@ -396,6 +396,8 @@ function App() {
   const [filter, setFilter] = useState<CategoryFilter>('all')
   const [tours, setTours] = useState<Tour[]>(() => orderTours(fallbackTours))
   const [homepageContent, setHomepageContent] = useState<HomepageContentDocument | null>(null)
+  // Until the admin-managed content has loaded, images stay empty so the built-in defaults never flash before the real ones.
+  const [homepageReady, setHomepageReady] = useState(false)
   const [date, setDate] = useState(tomorrow())
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const value = parseIsoDate(tomorrow())
@@ -417,9 +419,12 @@ function App() {
   const t = (key: string, fallback: string) => page?.texts?.[key] ?? fallback
   const hidden = (key: string) => homepageContent?.hiddenSections?.includes(key) ?? false
   const image = (key: string, fallback: string) => {
+    if (!homepageReady) return undefined
     const url = homepageContent?.images?.[key] || fallback
     return url.startsWith('/api/') ? `${apiBaseUrl}${url}` : url
   }
+  const heroImage = image('hero', '/assets/ad2ca4f6-d888-4621-b0c1-b3db5903f0ac.webp')
+  const finalImage = image('final', '/assets/ad2ca4f6-d888-4621-b0c1-b3db5903f0ac.webp')
   const position = (key: string) => homepageContent?.imagePositions?.[key]
   const c = { ...base,
     nav: base.nav.map(([label, href], index) => [t(`nav.${index}`, label), href]).filter(([, href]) =>
@@ -450,6 +455,8 @@ function App() {
     apiRequest<HomepageContentDocument>('/api/v1/site-content/homepage', { signal: controller.signal, cache: 'no-store' })
       .then(result => setHomepageContent(normalizeHomepage(result)))
       .catch(() => undefined)
+      // If the content cannot be loaded, fall back to the built-in images.
+      .finally(() => { if (!controller.signal.aborted) setHomepageReady(true) })
     return () => controller.abort()
   }, [])
 
@@ -577,7 +584,7 @@ function App() {
       </div>
 
       <section className="hero" aria-labelledby="hero-title">
-        <div className="hero__image" style={{ backgroundImage: `url("${image('hero', '/assets/ad2ca4f6-d888-4621-b0c1-b3db5903f0ac.webp')}")`, ...(position('hero') ? { backgroundPosition: position('hero') } : {}) }} /><div className="hero__shade" /><div className="hero__orb hero__orb--one" /><div className="hero__orb hero__orb--two" />
+        <div className={`hero__image${heroImage ? ' is-ready' : ''}`} style={{ ...(heroImage ? { backgroundImage: `url("${heroImage}")` } : {}), ...(position('hero') ? { backgroundPosition: position('hero') } : {}) }} /><div className="hero__shade" /><div className="hero__orb hero__orb--one" /><div className="hero__orb hero__orb--two" />
         <svg className="hero__route-map" viewBox="0 0 700 360" aria-hidden="true">
           <path d="M20 290C135 238 177 300 281 231C374 169 440 233 520 143C571 86 622 94 680 54" />
           <circle cx="281" cy="231" r="5" /><circle cx="520" cy="143" r="5" /><circle cx="680" cy="54" r="5" />
@@ -690,7 +697,7 @@ function App() {
         </div>
       </section>}
 
-      {!hidden('final') && <section className="final-cta"><div className="final-cta__image" style={{ backgroundImage: `linear-gradient(rgba(7,27,53,.48), rgba(7,27,53,.72)), url("${image('final', '/assets/ad2ca4f6-d888-4621-b0c1-b3db5903f0ac.webp')}")`, ...(position('final') ? { backgroundPosition: position('final') } : {}) }} /><div className="final-cta__rings" aria-hidden="true"><span /><span /><span /></div><div className="shell final-cta__content"><p>{page?.final.pre ?? c.final.pre}</p><h2>{page?.final.title ?? c.final.title}</h2><button className="button button--coral" type="button" onClick={() => openBooking()}>{page?.final.action ?? c.final.action} <ArrowRight size={19} /></button></div></section>}
+      {!hidden('final') && <section className="final-cta"><div className="final-cta__image" style={{ backgroundImage: `linear-gradient(rgba(7,27,53,.48), rgba(7,27,53,.72))${finalImage ? `, url("${finalImage}")` : ''}`,...(position('final') ? { backgroundPosition: position('final') } : {}) }} /><div className="final-cta__rings" aria-hidden="true"><span /><span /><span /></div><div className="shell final-cta__content"><p>{page?.final.pre ?? c.final.pre}</p><h2>{page?.final.title ?? c.final.title}</h2><button className="button button--coral" type="button" onClick={() => openBooking()}>{page?.final.action ?? c.final.action} <ArrowRight size={19} /></button></div></section>}
 
       <footer>
         <div className="shell footer__top">

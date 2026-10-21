@@ -96,6 +96,7 @@ export const homepageTextFields = [
   ['footer', 'footer.1.4', 'İletişim bağlantısı', 'Contact link', 'İletişim', 'Contact'],
   ['footer', 'footer.2.0', 'Yardım sütun başlığı', 'Support column title', 'Yardım', 'Support'],
   ['footer', 'footer.2.1', 'KVKK bağlantısı', 'KVKK link', 'KVKK Aydınlatma Metni', 'KVKK Notice'],
+  ['footer', 'footer.2.2', 'Mesafeli satış sözleşmesi bağlantısı', 'Distance sales agreement link', 'Mesafeli Satış Sözleşmesi', 'Distance Sales Agreement'],
 ] as const
 
 export const homepageImages = [

@@ -21,7 +21,7 @@ const texts = {
     types: 'Bilet tipini seç', typeHint: 'Her bilet tipinden istediğin adedi seçebilirsin.', each: 'kişi başı', guests: 'misafir',
     decrease: 'Bilet azalt', increase: 'Bilet artır', max: 'Bir rezervasyonda en fazla 12 misafir seçilebilir.',
     contact: 'İletişim bilgileri', contactHint: 'Rezervasyonu yapacak kişinin bilgilerini gir.', name: 'Ad soyad', email: 'E-posta', phone: 'Telefon',
-    consent: 'KVKK Aydınlatma Metni’ni okudum.', total: 'Toplam', live: 'Güncel API fiyatı', continue: 'Bilgileri Kontrol et ve Ödemeye geç', checking: 'Fiyat kontrol ediliyor…',
+    consent: ['', 'Mesafeli Satış Sözleşmesi', '’ni kabul ediyorum, ', 'KVKK Aydınlatma Metni', '’ni okudum.'], total: 'Toplam', live: 'Güncel API fiyatı', continue: 'Bilgileri Kontrol et ve Ödemeye geç', checking: 'Fiyat kontrol ediliyor…',
     passengerScroll: 'Diğer yolcuları görmek için bu alanı kaydırabilirsin.',
     notice: 'Şu anda ödeme ve bilet kesimi kapalıdır. Bu adım rezervasyon oluşturmaz ve yer ayırmaz.',
     review: 'Rezervasyon önizlemesi', checked: 'Fiyat yeniden kontrol edildi', edit: 'Bilgileri düzenle',
@@ -37,7 +37,7 @@ const texts = {
     types: 'Choose your tickets', typeHint: 'Choose the quantity for each ticket type.', each: 'per person', guests: 'guests',
     decrease: 'Remove ticket', increase: 'Add ticket', max: 'Up to 12 guests per booking.',
     contact: 'Contact details', contactHint: 'Enter the booking contact’s details.', name: 'Full name', email: 'Email', phone: 'Phone',
-    consent: 'I have read the KVKK Information Notice.', total: 'Total', live: 'Current API price', continue: 'Review details and proceed to payment', checking: 'Checking prices…',
+    consent: ['I accept the ', 'Distance Sales Agreement', ' and have read the ', 'KVKK Information Notice', '.'], total: 'Total', live: 'Current API price', continue: 'Review details and proceed to payment', checking: 'Checking prices…',
     passengerScroll: 'Scroll within this area to view the other passengers.',
     notice: 'Payments and ticket issuance are currently disabled. This step does not create a booking or hold any places.',
     review: 'Booking preview', checked: 'Prices checked again', edit: 'Edit details',
@@ -267,7 +267,7 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
               </div>
             </section>
             <div className="reservation-contact">
-              <label className="reservation-consent"><input type="checkbox" required checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span><Link to="/kvkk-aydinlatma-metni" target="_blank" rel="noopener noreferrer">{c.consent}</Link></span></label>
+              <label className="reservation-consent"><input type="checkbox" required checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>{c.consent[0]}<Link to="/mesafeli-satis-sozlesmesi" target="_blank" rel="noopener noreferrer">{c.consent[1]}</Link>{c.consent[2]}<Link to="/kvkk-aydinlatma-metni" target="_blank" rel="noopener noreferrer">{c.consent[3]}</Link>{c.consent[4]}</span></label>
               <small className="reservation-helper">{c.privacy}</small>
             </div>
           </fieldset>

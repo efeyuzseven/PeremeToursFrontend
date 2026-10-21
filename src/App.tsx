@@ -256,7 +256,7 @@ const copy = {
       columns: [
         ['Keşfet', 'Tüm turlar', 'Boğaz Turu', 'Türk Gecesi', 'DayTime'],
         ['Pereme', 'Hakkımızda', 'Hikâyeler', 'Sıkça sorulanlar', 'İletişim'],
-        ['Yardım', 'KVKK Aydınlatma Metni'],
+        ['Yardım', 'KVKK Aydınlatma Metni', 'Mesafeli Satış Sözleşmesi'],
       ],
       copyright: `© 2026 ${SITE_NAME}`,
     },
@@ -334,7 +334,7 @@ const copy = {
       columns: [
         ['Explore', 'All tours', 'Bosphorus Cruise', 'Turkish Night', 'Daytime'],
         ['Pereme', 'About us', 'Stories', 'Frequently asked', 'Contact'],
-        ['Support', 'KVKK Notice'],
+        ['Support', 'KVKK Notice', 'Distance Sales Agreement'],
       ],
       copyright: `© 2026 ${SITE_NAME}`,
     },
@@ -707,7 +707,7 @@ function App() {
               ? ['/#turlar', categoryPath('bosphorus'), categoryPath('turkish-night'), categoryPath('daytime')][index]
               : columnIndex === 1
                 ? ['/#neden-biz', '/#hikayeler', '/sikca-sorulan-sorular', '/iletisim'][index]
-                : '/kvkk-aydinlatma-metni'
+                : ['/kvkk-aydinlatma-metni', '/mesafeli-satis-sozlesmesi'][index]
             if (columnIndex === 1 && (index === 0 && hidden('why') || index === 1 && hidden('stories'))) return null
             return <Link key={index} to={to}>{link}</Link>
           })}</div>)}</div>

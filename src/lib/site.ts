@@ -18,6 +18,7 @@ const canonicalPaths: Record<string, string> = {
   '/contact': '/iletisim',
   '/faq': '/sikca-sorulan-sorular',
   '/kvkk': '/kvkk-aydinlatma-metni',
+  '/distance-sales-agreement': '/mesafeli-satis-sozlesmesi',
   '/account': '/hesabim',
 }
 

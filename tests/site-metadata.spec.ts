@@ -52,6 +52,8 @@ test('public pages use branded titles and canonical URLs for route aliases', asy
     ['/faq', '/sikca-sorulan-sorular', 'Sıkça Sorulan Sorular'],
     ['/kvkk-aydinlatma-metni', '/kvkk-aydinlatma-metni', 'KVKK Aydınlatma Metni'],
     ['/kvkk', '/kvkk-aydinlatma-metni', 'KVKK Aydınlatma Metni'],
+    ['/mesafeli-satis-sozlesmesi', '/mesafeli-satis-sozlesmesi', 'Mesafeli Satış Sözleşmesi'],
+    ['/distance-sales-agreement', '/mesafeli-satis-sozlesmesi', 'Mesafeli Satış Sözleşmesi'],
   ]) {
     await page.goto(`${route}?utm_source=metadata-test`)
     await expectMetadata(page, `${title} — ${brand}`, canonical)

@@ -26,6 +26,8 @@ import './styles.css'
 const FeedbackPage = lazy(() => import('./admin/FeedbackPage'))
 // eslint-disable-next-line react-refresh/only-export-components
 const AccountPage = lazy(() => import('./pages/AccountPage'))
+// eslint-disable-next-line react-refresh/only-export-components
+const ContractPage = lazy(() => import('./pages/ContractPage'))
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -45,6 +47,8 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/faq" element={<FaqPage />} />
           <Route path="/kvkk-aydinlatma-metni" element={<KvkkPage />} />
           <Route path="/kvkk" element={<KvkkPage />} />
+          <Route path="/mesafeli-satis-sozlesmesi" element={<Suspense fallback={<div className="site-content-loading"><span className="button-spinner" /></div>}><ContractPage /></Suspense>} />
+          <Route path="/distance-sales-agreement" element={<Suspense fallback={<div className="site-content-loading"><span className="button-spinner" /></div>}><ContractPage /></Suspense>} />
           <Route element={<ProtectedAdminRoute />}>
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<PanelHomeRedirect />} />

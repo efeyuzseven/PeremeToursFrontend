@@ -1,10 +1,10 @@
-import { ArrowUpLeft, ExternalLink, Eye, ImagePlus, LayoutTemplate, MapPin, Plus, Save, Trash2 } from 'lucide-react'
-import { useEffect, useState, type ChangeEvent } from 'react'
+import { ArrowDown, ArrowUp, ArrowUpLeft, ExternalLink, Eye, ImagePlus, LayoutTemplate, MapPin, Plus, Save, Trash2 } from 'lucide-react'
+import { lazy, Suspense, useEffect, useState, type ChangeEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { TourPageContent } from '../components/TourPageContent'
-import { bookingNotesFor, categoryImages, categoryLabels, extractMapEmbedUrl, isGoogleMapEmbed, mapSlots, pagePath, resolvePageImage, tourDetailsTemplate, withTextDetails, type TourLanguage,
-  type TourPageBookingNote, type TourPageDocument, type TourPageItem, type TourPageSection } from '../content/tour-pages'
+import { bookingNotesFor, categoryImages, categoryLabels, mapSlots, pagePath, parseCoordinates, resolvePageImage, tourDetailsTemplate, withTextDetails, type TourLanguage,
+  type TourPageBookingNote, type TourPageDocument, type TourPageItem, type TourPageMapPoint, type TourPageSection } from '../content/tour-pages'
 import { ApiError, apiRequest, apiUpload } from '../lib/api'
 import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
@@ -30,9 +30,11 @@ const copy = {
     uploadError: 'Görsel yüklenemedi.', invalidImage: 'JPG, PNG veya WebP seçin; dosya en fazla 8 MB olmalıdır.',
     maps: 'Haritalar', mapsHint: 'Doldurduğunuz haritalar sayfada içeriğin en altında bu sırayla görünür: Buluşma noktası, Güzergah, Servis noktası. Boş bıraktıklarınız görünmez.',
     removeMap: 'Haritayı kaldır', removeMapConfirm: 'Bu harita ve açıklaması taslaktan kaldırılsın mı?', mapVisible: 'Haritayı göster',
-    mapDescription: 'Açıklama (isteğe bağlı)', mapCode: 'Google Haritalar yerleştirme kodu',
-    mapHelp: 'Google Haritalar’da yeri açın → Paylaş → Haritayı yerleştir → HTML’yi kopyala. Kopyaladığınız kodu buraya yapıştırın.',
-    mapReady: 'Harita hazır. Aşağıda önizlemesini görebilirsiniz.',
+    mapDescription: 'Açıklama (isteğe bağlı)', points: 'Noktalar', pointName: 'Ad', pointNote: 'Kısa not (örn. Gezi)', pointLocation: 'Konum',
+    addPoint: 'Nokta ekle', addPointLabel: 'Koordinat veya Google Haritalar bağlantısı yapıştırın', invalidLocation: 'Konum anlaşılamadı. Örnek: 41.0335, 29.0066',
+    mapHelp: 'Önizleme haritasına tıklayarak nokta ekleyin ya da Google Haritalar’da yere sağ tıklayıp en üstteki koordinatlara tıklayın (kopyalanır) ve aşağıya yapıştırın.',
+    routeHelp: 'Güzergahta noktalar bu sırayla çizgiyle birleştirilir; ilk nokta başlangıçtır.',
+    up: 'Yukarı taşı', down: 'Aşağı taşı', removePoint: 'Noktayı sil', newPoint: (index: number) => `Nokta ${index}`,
     previewHint: 'Kaydedilmemiş taslağın önizlemesidir. Rezervasyon butonu önizlemede kapalıdır.',
     notes: 'Rezervasyon kartı', notesHint: 'Sağdaki sabit kartta fiyatın ve rezervasyon butonunun altında görünen kısa bilgiler (en fazla 4). Başlangıç fiyatı ve tarihler EasyTicket’tan canlı gelir.',
     noteTitle: 'Başlık', noteText: 'Açıklama', addNote: 'Not ekle', removeNote: 'Notu kaldır',
@@ -56,13 +58,90 @@ const copy = {
     uploadError: 'Image upload failed.', invalidImage: 'Choose JPG, PNG or WebP, maximum 8 MB.',
     maps: 'Maps', mapsHint: 'Filled-in maps appear at the bottom of the page content in this order: meeting point, route, shuttle point. Empty ones are not shown.',
     removeMap: 'Remove map', removeMapConfirm: 'Remove this map and its description from the draft?', mapVisible: 'Show map',
-    mapDescription: 'Description (optional)', mapCode: 'Google Maps embed code',
-    mapHelp: 'Open the place in Google Maps → Share → Embed a map → Copy HTML, then paste the code here.',
-    mapReady: 'Map ready. See the preview below.',
+    mapDescription: 'Description (optional)', points: 'Points', pointName: 'Name', pointNote: 'Short note (e.g. Visit)', pointLocation: 'Location',
+    addPoint: 'Add point', addPointLabel: 'Paste coordinates or a Google Maps link', invalidLocation: 'Location not recognised. Example: 41.0335, 29.0066',
+    mapHelp: 'Click the preview map to add a point, or right-click a place in Google Maps, click the coordinates at the top (they are copied) and paste them below.',
+    routeHelp: 'Route points are connected in this order; the first point is the start.',
+    up: 'Move up', down: 'Move down', removePoint: 'Remove point', newPoint: (index: number) => `Point ${index}`,
     previewHint: 'This is a preview of your unsaved draft. Booking is disabled in preview.',
     notes: 'Booking card', notesHint: 'Short notes shown under the price and booking button in the sticky card (up to 4). The starting price and dates load live from EasyTicket.',
     noteTitle: 'Title', noteText: 'Description', addNote: 'Add note', removeNote: 'Remove note',
   },
+}
+
+const TourMap = lazy(() => import('../components/TourMap'))
+type MapSlot = (typeof mapSlots)[number]
+type Copy = (typeof copy)[AdminLanguage]
+
+const formatCoordinates = (point: TourPageMapPoint) => `${point.latitude.toFixed(6)}, ${point.longitude.toFixed(6)}`
+
+// Coordinates are edited as text and only applied once they parse, so half-typed values are not lost.
+// The caller keys this by the saved coordinates, so a new location resets the draft.
+function PointLocation({ point, label, invalid, onChange }: { point: TourPageMapPoint; label: string; invalid: string; onChange: (value: { latitude: number; longitude: number }) => void }) {
+  const [draft, setDraft] = useState(() => formatCoordinates(point))
+  const [error, setError] = useState(false)
+  const apply = () => { const parsed = parseCoordinates(draft); if (parsed) onChange(parsed); else setError(true) }
+  return <label>{label}<input value={draft} onChange={event => { setDraft(event.target.value); setError(false) }} onBlur={apply}
+    onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); apply() } }} aria-invalid={error} />{error && <small className="tour-page-editor-hint--error">{invalid}</small>}</label>
+}
+
+function MapSlotEditor({ slot, section, language, editLanguage, update, remove }: {
+  slot: MapSlot; section?: TourPageSection; language: AdminLanguage; editLanguage: TourLanguage
+  update: (change: (current: TourPageSection) => TourPageSection) => void; remove: () => void
+}) {
+  const c: Copy = copy[language]
+  const [location, setLocation] = useState('')
+  const [locationError, setLocationError] = useState(false)
+  const points = section?.mapPoints ?? []
+  const setPoints = (change: (current: TourPageMapPoint[]) => TourPageMapPoint[]) => update(item => ({ ...item, mapPoints: change(item.mapPoints ?? []) }))
+  const addPoint = (latitude: number, longitude: number) => setPoints(current => [...current, { latitude, longitude, nameTr: c.newPoint(current.length + 1) }])
+  const editPoint = (index: number, change: Partial<TourPageMapPoint>) => setPoints(current => current.map((point, i) => i === index ? { ...point, ...change } : point))
+  const movePoint = (index: number, step: -1 | 1) => setPoints(current => {
+    const next = [...current]; [next[index], next[index + step]] = [next[index + step], next[index]]; return next
+  })
+  const pasteLocation = () => {
+    const parsed = parseCoordinates(location)
+    if (!parsed) { setLocationError(true); return }
+    addPoint(parsed.latitude, parsed.longitude); setLocation('')
+  }
+  const nameKey = editLanguage === 'tr' ? 'nameTr' : 'nameEn'
+  const noteKey = editLanguage === 'tr' ? 'noteTr' : 'noteEn'
+  return <section className="tour-page-editor-section" data-editor-section={slot.id}>
+    <header><strong><MapPin size={16} /> {slot[language]}</strong></header>
+    <div className="tour-page-editor-grid">
+      {points.length > 0 && <label className="tour-page-editor-checkbox field-wide"><input type="checkbox" checked={section!.isVisible} onChange={event => { const value = event.target.checked; update(item => ({ ...item, isVisible: value })) }} />{c.mapVisible}</label>}
+      <label className="field-wide">{c.mapDescription}<textarea rows={3} maxLength={6000} value={section?.[editLanguage].body ?? ''} onChange={event => { const value = event.target.value; update(item => ({ ...item, [editLanguage]: { ...item[editLanguage], body: value || null } })) }} /></label>
+    </div>
+    <p className="tour-page-editor-hint">{c.mapHelp}{slot.id === 'route' && <> {c.routeHelp}</>}</p>
+    <div className="tour-page-editor-map-layout">
+      <div>
+        {points.length > 0 && <ol className="tour-page-editor-points" aria-label={c.points}>{points.map((point, index) => <li key={index}>
+          <span className={`tour-map-pin${index === 0 ? ' is-first' : ''}`}>{index + 1}</span>
+          <div className="tour-page-editor-point-fields">
+            <label>{c.pointName}<input maxLength={120} value={(editLanguage === 'tr' ? point.nameTr : point.nameEn) ?? ''} placeholder={editLanguage === 'en' ? point.nameTr : undefined}
+              onChange={event => editPoint(index, { [nameKey]: event.target.value || (editLanguage === 'en' ? null : '') })} /></label>
+            <label>{c.pointNote}<input maxLength={200} value={point[noteKey] ?? ''} onChange={event => editPoint(index, { [noteKey]: event.target.value || null })} /></label>
+            <PointLocation key={formatCoordinates(point)} point={point} label={c.pointLocation} invalid={c.invalidLocation} onChange={value => editPoint(index, value)} />
+          </div>
+          <div className="tour-page-editor-point-actions">
+            <button type="button" aria-label={c.up} disabled={index === 0} onClick={() => movePoint(index, -1)}><ArrowUp size={15} /></button>
+            <button type="button" aria-label={c.down} disabled={index === points.length - 1} onClick={() => movePoint(index, 1)}><ArrowDown size={15} /></button>
+            <button type="button" aria-label={c.removePoint} onClick={() => setPoints(current => current.filter((_, i) => i !== index))}><Trash2 size={15} /></button>
+          </div>
+        </li>)}</ol>}
+        {points.length < 20 && <div className="tour-page-editor-point-add">
+          <label>{c.addPointLabel}<input value={location} placeholder="41.0335, 29.0066" aria-invalid={locationError}
+            onChange={event => { setLocation(event.target.value); setLocationError(false) }} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); pasteLocation() } }} /></label>
+          <button type="button" onClick={pasteLocation}><Plus size={16} />{c.addPoint}</button>
+          {locationError && <small className="tour-page-editor-hint--error">{c.invalidLocation}</small>}
+        </div>}
+      </div>
+      <Suspense fallback={<div className="tour-map" />}>
+        <TourMap points={points} route={slot.id === 'route'} language={editLanguage} onMapClick={points.length < 20 ? addPoint : undefined} className="tour-map--editor" />
+      </Suspense>
+    </div>
+    {section && <button type="button" className="tour-page-editor-note-add tour-page-editor-map-remove" onClick={remove}><Trash2 size={16} />{c.removeMap}</button>}
+  </section>
 }
 
 export default function TourPagesPage() {
@@ -146,7 +225,7 @@ export default function TourPagesPage() {
     if (!selected || !document) return
     setSaving(true); setError(''); setSuccess('')
     try {
-      const body = { ...document, sections: document.sections.filter(section => section.type !== 'map' || section.mapUrl?.trim()) }
+      const body = { ...document, sections: document.sections.filter(section => section.type !== 'map' || section.mapPoints?.length || section.mapUrl?.trim()) }
       const updated = await apiRequest<TourPageItem>(`/api/v1/admin/tour-pages/${selected.key}`, { method: 'PUT', token: session!.accessToken, body })
       setPages(current => current.map(page => page.key === updated.key ? updated : page))
       setDocument(withTextDetails(structuredClone(updated.document))); setDirty(false); setSuccess(c.saved)
@@ -218,22 +297,9 @@ export default function TourPagesPage() {
         </section>)}
         {document.sections.filter(section => section.type === 'gallery').length < 5 && <div className="tour-page-editor-add"><button type="button" onClick={addGallery}><Plus size={16} />{c.addGallery}</button></div>}
         <div className="tour-page-editor-section-heading"><h2>{c.maps}</h2><p>{c.mapsHint}</p></div>
-        {mapSlots.map(slot => {
-          const section = document.sections.find(item => item.type === 'map' && item.id === slot.id)
-          const valid = isGoogleMapEmbed(section?.mapUrl)
-          return <section className="tour-page-editor-section" key={slot.id} data-editor-section={slot.id}>
-            <header><strong><MapPin size={16} /> {slot[language]}</strong></header>
-            <div className="tour-page-editor-grid">
-              {valid && <label className="tour-page-editor-checkbox field-wide"><input type="checkbox" checked={section!.isVisible} onChange={event => { const value = event.target.checked; updateMap(slot.id, item => ({ ...item, isVisible: value })) }} />{c.mapVisible}</label>}
-              <label className="field-wide">{c.mapCode}<textarea rows={3} maxLength={4000} value={section?.mapUrl ?? ''} placeholder='<iframe src="https://www.google.com/maps/embed?pb=..." ...></iframe>'
-                onChange={event => { const value = event.target.value; updateMap(slot.id, item => ({ ...item, mapUrl: extractMapEmbedUrl(value) ?? value })) }} /></label>
-              <label className="field-wide">{c.mapDescription}<textarea rows={3} maxLength={6000} value={section?.[editLanguage].body ?? ''} onChange={event => { const value = event.target.value; updateMap(slot.id, item => ({ ...item, [editLanguage]: { ...item[editLanguage], body: value || null } })) }} /></label>
-            </div>
-            <p className={!valid && section?.mapUrl ? 'tour-page-editor-hint tour-page-editor-hint--error' : 'tour-page-editor-hint'}>{valid ? c.mapReady : c.mapHelp}</p>
-            {valid && <><iframe className="tour-page-editor-map" src={section!.mapUrl!} title={slot[language]} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
-              <button type="button" className="tour-page-editor-note-add tour-page-editor-map-remove" onClick={() => { if (window.confirm(c.removeMapConfirm)) change(current => ({ ...current, sections: current.sections.filter(item => !(item.type === 'map' && item.id === slot.id)) })) }}><Trash2 size={16} />{c.removeMap}</button></>}
-          </section>
-        })}
+        {mapSlots.map(slot => <MapSlotEditor key={slot.id} slot={slot} language={language} editLanguage={editLanguage}
+          section={document.sections.find(item => item.type === 'map' && item.id === slot.id)} update={update => updateMap(slot.id, update)}
+          remove={() => { if (window.confirm(c.removeMapConfirm)) change(current => ({ ...current, sections: current.sections.filter(item => !(item.type === 'map' && item.id === slot.id)) })) }} />)}
       </fieldset>}
     </>}
   </>

@@ -15,6 +15,22 @@ export type TourPageSection = {
   id: string; type: 'text' | 'highlights' | 'included' | 'gallery' | 'map'; background: 'white' | 'blue'; isVisible: boolean
   imageUrls: string[]; tr: TourPageSectionLanguageContent; en: TourPageSectionLanguageContent
   mapUrl?: string | null
+  mapPoints?: TourPageMapPoint[] | null
+}
+export type TourPageMapPoint = { latitude: number; longitude: number; nameTr: string; nameEn?: string | null; noteTr?: string | null; noteEn?: string | null }
+export const pointName = (point: TourPageMapPoint, language: TourLanguage) => (language === 'en' && point.nameEn) || point.nameTr
+export const pointNote = (point: TourPageMapPoint, language: TourLanguage) => (language === 'en' ? point.noteEn || point.noteTr : point.noteTr) || ''
+
+// Accepts "41.0335, 29.0066" (Google Maps copies this on right click) or a Google Maps link that contains coordinates.
+export function parseCoordinates(input: string): { latitude: number; longitude: number } | null {
+  const text = decodeURIComponent(input.trim())
+  const match = /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/.exec(text)
+    ?? /@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/.exec(text)
+    ?? /[?&](?:q|ll|query|destination)=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/.exec(text)
+    ?? /^(-?\d+(?:\.\d+)?)\s*[,;\s]\s*(-?\d+(?:\.\d+)?)$/.exec(text)
+  if (!match) return null
+  const latitude = Number(match[1]), longitude = Number(match[2])
+  return Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180 ? { latitude, longitude } : null
 }
 
 // A page has up to three maps, shown in this order; the section id says which one it is (the backend allows only these).

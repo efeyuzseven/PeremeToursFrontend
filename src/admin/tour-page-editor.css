@@ -76,3 +76,15 @@
 .tour-page-editor-map { display: block; width: 100%; height: 300px; border: 0; border-radius: 12px; }
 .tour-page-editor-section > header strong svg { vertical-align: -3px; color: var(--blue); }
 .tour-page-editor-map-remove { margin-top: 12px; }
+.tour-page-editor-map-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 20px; }
+.tour-map.tour-map--editor { height: 380px; cursor: crosshair; }
+.tour-page-editor-points { display: grid; gap: 12px; padding: 0; margin: 0 0 14px; list-style: none; }
+.tour-page-editor-points li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: start; gap: 10px; padding: 12px; border: 1px solid rgba(31,71,140,.13); border-radius: 10px; }
+.tour-page-editor-point-fields { display: grid; gap: 8px; }
+.tour-page-editor-point-actions { display: grid; gap: 6px; }
+.tour-page-editor-point-actions button { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid rgba(31,71,140,.13); border-radius: 7px; color: var(--blue); background: #fff; }
+.tour-page-editor-point-actions button:disabled { opacity: .4; }
+.tour-page-editor-point-add { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+.tour-page-editor-point-add > button { display: inline-flex; align-items: center; gap: 6px; min-height: 43px; padding: 0 14px; border: 1px dashed var(--sea); border-radius: 9px; color: var(--blue); background: #fff; font-size: 11px; font-weight: 700; }
+.tour-page-editor-point-add > small { grid-column: 1 / -1; }
+@media (max-width: 1100px) { .tour-page-editor-map-layout { grid-template-columns: 1fr; } }

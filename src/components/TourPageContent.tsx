@@ -1,8 +1,8 @@
 import DOMPurify from 'dompurify'
-import { ArrowRight, Check, Waves, X } from 'lucide-react'
-import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { bookingNotesFor, categoryImages, isGoogleMapEmbed, isHtmlDetails, mapSlots, parseTourDetails, resolvePageImage, tourDetailsFor, type TourDetailRow, type TourLanguage,
-  type TourPageItem } from '../content/tour-pages'
+import { ArrowRight, Check, MapPin, Waves, X } from 'lucide-react'
+import { lazy, Suspense, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { bookingNotesFor, categoryImages, isGoogleMapEmbed, isHtmlDetails, mapSlots, parseTourDetails, pointName, pointNote, resolvePageImage, tourDetailsFor,
+  type TourDetailRow, type TourLanguage, type TourPageItem, type TourPageSection } from '../content/tour-pages'
 import '../pages/tour-pages.css'
 import { TourBookingCard } from './TourBookingCard'
 import { TourGallery } from './TourGallery'
@@ -62,6 +62,30 @@ function DetailRow({ row, language }: { row: TourDetailRow; language: TourLangua
   </section>
 }
 
+// The map library is only downloaded on pages that have a map.
+const TourMap = lazy(() => import('./TourMap'))
+
+// The route lists its stops as a numbered timeline; the other maps list their points with pins.
+function MapRow({ section, title, language }: { section: TourPageSection; title: string; language: TourLanguage }) {
+  const points = section.mapPoints ?? []
+  const route = section.id === 'route'
+  return <section className="tour-detail-row tour-detail-map" data-section-id={section.id}>
+    <h2>{title}</h2>
+    <div className={points.length ? 'tour-detail-map__grid' : ''}>
+      <div>
+        {section[language].body && <p className="tour-detail-body">{section[language].body}</p>}
+        {points.length > 0 && <ol className={route ? 'tour-route' : 'tour-places'}>{points.map((point, index) => <li key={index}>
+          <span className={`tour-map-pin${index === 0 ? ' is-first' : ''}`} aria-hidden="true">{route ? index + 1 : <MapPin size={15} />}</span>
+          <div><strong>{pointName(point, language)}</strong>{pointNote(point, language) && <small>{pointNote(point, language)}</small>}</div>
+        </li>)}</ol>}
+      </div>
+      {points.length > 0
+        ? <Suspense fallback={<div className="tour-map" />}><TourMap points={points} route={route} language={language} /></Suspense>
+        : <iframe src={section.mapUrl!} title={title} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />}
+    </div>
+  </section>
+}
+
 export function TourPageContent({ page, language, fallbackImage, onBook, bookingDisabled = false, preview = false, children }: {
   page: TourPageItem; language: TourLanguage; fallbackImage?: string; onBook: (date?: string, guests?: number) => void
   bookingDisabled?: boolean; preview?: boolean; children?: ReactNode
@@ -72,7 +96,7 @@ export function TourPageContent({ page, language, fallbackImage, onBook, booking
   const details = tourDetailsFor(page.document, language)
   // Maps always come last, after the content: meeting point, route, then shuttle point.
   const maps = mapSlots.flatMap(slot => page.document.sections
-    .filter(section => section.type === 'map' && section.id === slot.id && section.isVisible && isGoogleMapEmbed(section.mapUrl))
+    .filter(section => section.type === 'map' && section.id === slot.id && section.isVisible && (section.mapPoints?.length || isGoogleMapEmbed(section.mapUrl)))
     .map(section => ({ section, title: slot[language] })))
   return <div className="tour-page-content">
     <section className={`tour-page-hero tour-page-hero--${page.document.heroLayout}`}>
@@ -89,11 +113,7 @@ export function TourPageContent({ page, language, fallbackImage, onBook, booking
         <TourGallery images={gallery} title={c.title} language={language} />
         {isHtmlDetails(details) ? <TourHtml html={details} />
           : parseTourDetails(details).map((row, index) => <DetailRow key={index} row={row} language={language} />)}
-        {maps.map(({ section, title }) => <section className="tour-detail-row tour-detail-map" key={section.id} data-section-id={section.id}>
-          <h2>{title}</h2>
-          <div>{section[language].body && <p className="tour-detail-body">{section[language].body}</p>}
-            <iframe src={section.mapUrl!} title={title} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen /></div>
-        </section>)}
+        {maps.map(({ section, title }) => <MapRow key={section.id} section={section} title={title} language={language} />)}
       </div>
       {page.externalTourId && <div className="tour-detail__aside">
         <TourBookingCard tourId={preview ? null : page.externalTourId} language={language} bookingLabel={c.bookingLabel}

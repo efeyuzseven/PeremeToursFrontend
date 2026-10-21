@@ -16,6 +16,7 @@
   "dependencies": {
     "@vitejs/plugin-react": "latest",
     "dompurify": "3.4.16",
+    "leaflet": "1.9.4",
     "lucide-react": "latest",
     "qrcode.react": "^4.2.0",
     "react": "latest",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@eslint/js": "latest",
     "@playwright/test": "^1.63.0",
+    "@types/leaflet": "1.9.22",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "eslint": "latest",

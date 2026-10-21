@@ -74,3 +74,5 @@
 @media (max-width: 900px) { .tour-page-editor-details { grid-template-columns: 1fr; } }
 .tour-page-editor-hint--error { color: #b42318; font-weight: 700; }
 .tour-page-editor-map { display: block; width: 100%; height: 300px; border: 0; border-radius: 12px; }
+.tour-page-editor-section > header strong svg { vertical-align: -3px; color: var(--blue); }
+.tour-page-editor-map-remove { margin-top: 12px; }

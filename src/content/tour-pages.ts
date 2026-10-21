@@ -17,6 +17,13 @@ export type TourPageSection = {
   mapUrl?: string | null
 }
 
+// A page has up to three maps, shown in this order; the section id says which one it is (the backend allows only these).
+export const mapSlots = [
+  { id: 'meeting-point', tr: 'Buluşma noktası', en: 'Meeting point' },
+  { id: 'route', tr: 'Güzergah', en: 'Route' },
+  { id: 'service-point', tr: 'Servis noktası', en: 'Shuttle point' },
+] as const
+
 // Only Google Maps embed URLs may be framed; the backend enforces the same rule.
 export function isGoogleMapEmbed(value: string | null | undefined): value is string {
   if (!value || value.length > 2000 || /["\\\s]/.test(value)) return false

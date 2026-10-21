@@ -3,7 +3,7 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { TourPageContent } from '../components/TourPageContent'
-import { bookingNotesFor, categoryImages, categoryLabels, extractMapEmbedUrl, isGoogleMapEmbed, pagePath, resolvePageImage, tourDetailsTemplate, withTextDetails, type TourLanguage,
+import { bookingNotesFor, categoryImages, categoryLabels, extractMapEmbedUrl, isGoogleMapEmbed, mapSlots, pagePath, resolvePageImage, tourDetailsTemplate, withTextDetails, type TourLanguage,
   type TourPageBookingNote, type TourPageDocument, type TourPageItem, type TourPageSection } from '../content/tour-pages'
 import { ApiError, apiRequest, apiUpload } from '../lib/api'
 import { setPageMetadata } from '../lib/site'
@@ -28,9 +28,9 @@ const copy = {
     gallery: 'Galeri', addGallery: 'Galeri ekle', galleryLimit: 'En fazla 6 görsel. Daha fazlası için yeni bir galeri ekleyin.', visible: 'Galeriyi göster',
     remove: 'Galeriyi kaldır', removeConfirm: 'Bu galeri taslaktan kaldırılsın mı?', addImage: 'Görsel ekle', removeImage: 'Görseli kaldır', first: 'Başa al',
     uploadError: 'Görsel yüklenemedi.', invalidImage: 'JPG, PNG veya WebP seçin; dosya en fazla 8 MB olmalıdır.',
-    maps: 'Harita', mapsHint: 'Haritalar sayfada içeriğin en altında görünür. Her haritanın kendi başlığı ve açıklaması olabilir.',
-    map: 'Harita', addMap: 'Harita ekle', removeMap: 'Haritayı kaldır', removeMapConfirm: 'Bu harita taslaktan kaldırılsın mı?', mapVisible: 'Haritayı göster',
-    mapTitle: 'Başlık', mapDescription: 'Açıklama', mapCode: 'Google Haritalar yerleştirme kodu',
+    maps: 'Haritalar', mapsHint: 'Doldurduğunuz haritalar sayfada içeriğin en altında bu sırayla görünür: Buluşma noktası, Güzergah, Servis noktası. Boş bıraktıklarınız görünmez.',
+    removeMap: 'Haritayı kaldır', removeMapConfirm: 'Bu harita ve açıklaması taslaktan kaldırılsın mı?', mapVisible: 'Haritayı göster',
+    mapDescription: 'Açıklama (isteğe bağlı)', mapCode: 'Google Haritalar yerleştirme kodu',
     mapHelp: 'Google Haritalar’da yeri açın → Paylaş → Haritayı yerleştir → HTML’yi kopyala. Kopyaladığınız kodu buraya yapıştırın.',
     mapReady: 'Harita hazır. Aşağıda önizlemesini görebilirsiniz.',
     previewHint: 'Kaydedilmemiş taslağın önizlemesidir. Rezervasyon butonu önizlemede kapalıdır.',
@@ -54,9 +54,9 @@ const copy = {
     gallery: 'Gallery', addGallery: 'Add gallery', galleryLimit: 'Up to 6 images. Add another gallery for more.', visible: 'Show gallery',
     remove: 'Remove gallery', removeConfirm: 'Remove this gallery from the draft?', addImage: 'Add image', removeImage: 'Remove image', first: 'Move to first',
     uploadError: 'Image upload failed.', invalidImage: 'Choose JPG, PNG or WebP, maximum 8 MB.',
-    maps: 'Map', mapsHint: 'Maps appear at the bottom of the page content. Each map can have its own title and description.',
-    map: 'Map', addMap: 'Add map', removeMap: 'Remove map', removeMapConfirm: 'Remove this map from the draft?', mapVisible: 'Show map',
-    mapTitle: 'Title', mapDescription: 'Description', mapCode: 'Google Maps embed code',
+    maps: 'Maps', mapsHint: 'Filled-in maps appear at the bottom of the page content in this order: meeting point, route, shuttle point. Empty ones are not shown.',
+    removeMap: 'Remove map', removeMapConfirm: 'Remove this map and its description from the draft?', mapVisible: 'Show map',
+    mapDescription: 'Description (optional)', mapCode: 'Google Maps embed code',
     mapHelp: 'Open the place in Google Maps → Share → Embed a map → Copy HTML, then paste the code here.',
     mapReady: 'Map ready. See the preview below.',
     previewHint: 'This is a preview of your unsaved draft. Booking is disabled in preview.',
@@ -116,10 +116,14 @@ export default function TourPagesPage() {
     id: crypto.randomUUID(), type: 'gallery', background: 'white', isVisible: true, imageUrls: [],
     tr: { title: 'Galeri', body: null, items: [] }, en: { title: 'Gallery', body: null, items: [] },
   }] }))
-  const addMap = () => change(current => ({ ...current, sections: [...current.sections, {
-    id: crypto.randomUUID(), type: 'map', background: 'white', isVisible: true, imageUrls: [], mapUrl: '',
-    tr: { title: 'Harita', body: null, items: [] }, en: { title: 'Map', body: null, items: [] },
-  }] }))
+  // Map slots exist in the draft as soon as something is typed into them; empty ones are dropped on save.
+  const updateMap = (slotId: (typeof mapSlots)[number]['id'], update: (current: TourPageSection) => TourPageSection) => change(current => {
+    const slot = mapSlots.find(item => item.id === slotId)!
+    const existing = current.sections.find(section => section.type === 'map' && section.id === slotId)
+    const section = existing ?? { id: slotId, type: 'map' as const, background: 'white' as const, isVisible: true, imageUrls: [], mapUrl: '',
+      tr: { title: slot.tr, body: null, items: [] }, en: { title: slot.en, body: null, items: [] } }
+    return { ...current, sections: existing ? current.sections.map(item => item === existing ? update(item) : item) : [...current.sections, update(section)] }
+  })
   const setContent = (value: string) => change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], details: value } }))
   const notes = document ? bookingNotesFor(document[editLanguage], editLanguage) : []
   const changeNotes = (update: (current: TourPageBookingNote[]) => TourPageBookingNote[]) =>
@@ -142,7 +146,8 @@ export default function TourPagesPage() {
     if (!selected || !document) return
     setSaving(true); setError(''); setSuccess('')
     try {
-      const updated = await apiRequest<TourPageItem>(`/api/v1/admin/tour-pages/${selected.key}`, { method: 'PUT', token: session!.accessToken, body: document })
+      const body = { ...document, sections: document.sections.filter(section => section.type !== 'map' || section.mapUrl?.trim()) }
+      const updated = await apiRequest<TourPageItem>(`/api/v1/admin/tour-pages/${selected.key}`, { method: 'PUT', token: session!.accessToken, body })
       setPages(current => current.map(page => page.key === updated.key ? updated : page))
       setDocument(withTextDetails(structuredClone(updated.document))); setDirty(false); setSuccess(c.saved)
     } catch (caught) { setError(caught instanceof ApiError ? caught.message : c.error) }
@@ -211,26 +216,24 @@ export default function TourPagesPage() {
             {section.imageUrls.length < 6 && <label className="tour-page-upload"><ImagePlus size={16} />{c.addImage}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void upload(event, section.id)} /></label>}
           </div>
         </section>)}
-        {document.sections.length < 8 && <div className="tour-page-editor-add"><button type="button" onClick={addGallery}><Plus size={16} />{c.addGallery}</button></div>}
+        {document.sections.filter(section => section.type === 'gallery').length < 5 && <div className="tour-page-editor-add"><button type="button" onClick={addGallery}><Plus size={16} />{c.addGallery}</button></div>}
         <div className="tour-page-editor-section-heading"><h2>{c.maps}</h2><p>{c.mapsHint}</p></div>
-        {document.sections.filter(section => section.type === 'map').map((section, index) => {
-          const valid = isGoogleMapEmbed(section.mapUrl)
-          return <section className="tour-page-editor-section" key={section.id} data-editor-section={section.id}>
-            <header><strong>{c.map} {index + 1}</strong><div>
-              <button type="button" aria-label={c.removeMap} onClick={() => { if (window.confirm(c.removeMapConfirm)) change(current => ({ ...current, sections: current.sections.filter(item => item.id !== section.id) })) }}><Trash2 size={16} /></button>
-            </div></header>
+        {mapSlots.map(slot => {
+          const section = document.sections.find(item => item.type === 'map' && item.id === slot.id)
+          const valid = isGoogleMapEmbed(section?.mapUrl)
+          return <section className="tour-page-editor-section" key={slot.id} data-editor-section={slot.id}>
+            <header><strong><MapPin size={16} /> {slot[language]}</strong></header>
             <div className="tour-page-editor-grid">
-              <label className="tour-page-editor-checkbox field-wide"><input type="checkbox" checked={section.isVisible} onChange={event => updateSection(section.id, item => ({ ...item, isVisible: event.target.checked }))} />{c.mapVisible}</label>
-              <label className="field-wide">{c.mapTitle}<input maxLength={200} value={section[editLanguage].title} onChange={event => { const value = event.target.value; updateSection(section.id, item => ({ ...item, [editLanguage]: { ...item[editLanguage], title: value } })) }} /></label>
-              <label className="field-wide">{c.mapDescription}<textarea rows={3} maxLength={6000} value={section[editLanguage].body ?? ''} onChange={event => { const value = event.target.value; updateSection(section.id, item => ({ ...item, [editLanguage]: { ...item[editLanguage], body: value || null } })) }} /></label>
-              <label className="field-wide">{c.mapCode}<textarea rows={3} maxLength={4000} value={section.mapUrl ?? ''} placeholder='<iframe src="https://www.google.com/maps/embed?pb=..." ...></iframe>'
-                onChange={event => { const value = event.target.value; updateSection(section.id, item => ({ ...item, mapUrl: extractMapEmbedUrl(value) ?? value })) }} /></label>
+              {valid && <label className="tour-page-editor-checkbox field-wide"><input type="checkbox" checked={section!.isVisible} onChange={event => { const value = event.target.checked; updateMap(slot.id, item => ({ ...item, isVisible: value })) }} />{c.mapVisible}</label>}
+              <label className="field-wide">{c.mapCode}<textarea rows={3} maxLength={4000} value={section?.mapUrl ?? ''} placeholder='<iframe src="https://www.google.com/maps/embed?pb=..." ...></iframe>'
+                onChange={event => { const value = event.target.value; updateMap(slot.id, item => ({ ...item, mapUrl: extractMapEmbedUrl(value) ?? value })) }} /></label>
+              <label className="field-wide">{c.mapDescription}<textarea rows={3} maxLength={6000} value={section?.[editLanguage].body ?? ''} onChange={event => { const value = event.target.value; updateMap(slot.id, item => ({ ...item, [editLanguage]: { ...item[editLanguage], body: value || null } })) }} /></label>
             </div>
-            <p className={!valid && section.mapUrl ? 'tour-page-editor-hint tour-page-editor-hint--error' : 'tour-page-editor-hint'}>{valid ? c.mapReady : c.mapHelp}</p>
-            {valid && <iframe className="tour-page-editor-map" src={section.mapUrl!} title={section[editLanguage].title || c.map} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />}
+            <p className={!valid && section?.mapUrl ? 'tour-page-editor-hint tour-page-editor-hint--error' : 'tour-page-editor-hint'}>{valid ? c.mapReady : c.mapHelp}</p>
+            {valid && <><iframe className="tour-page-editor-map" src={section!.mapUrl!} title={slot[language]} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+              <button type="button" className="tour-page-editor-note-add tour-page-editor-map-remove" onClick={() => { if (window.confirm(c.removeMapConfirm)) change(current => ({ ...current, sections: current.sections.filter(item => !(item.type === 'map' && item.id === slot.id)) })) }}><Trash2 size={16} />{c.removeMap}</button></>}
           </section>
         })}
-        {document.sections.length < 8 && <div className="tour-page-editor-add"><button type="button" onClick={addMap}><MapPin size={16} />{c.addMap}</button></div>}
       </fieldset>}
     </>}
   </>

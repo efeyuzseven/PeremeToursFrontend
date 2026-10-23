@@ -1164,20 +1164,8 @@ h2 em {
   overflow: hidden;
 }
 
-.section-watermark {
-  position: absolute;
-  top: 50px;
-  right: -18px;
-  color: transparent;
-  font-family: 'Manrope', sans-serif;
-  font-size: clamp(92px, 14vw, 205px);
-  font-weight: 700;
-  letter-spacing: -.07em;
-  line-height: 1;
-  opacity: .055;
-  -webkit-text-stroke: 1px var(--navy);
-  pointer-events: none;
-}
+/* Without a heading the cards start right below the booking bar. */
+.tours-section--compact { padding-top: 70px; }
 
 .section-heading {
   display: grid;
@@ -1418,19 +1406,6 @@ h2 em {
 }
 
 .tour-card__footer button:hover { background: var(--coral); }
-
-.show-more {
-  margin: 42px auto 0;
-  padding: 12px 20px;
-  border: 0;
-  border-bottom: 1px solid var(--navy);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--navy);
-  background: transparent;
-  font-weight: 700;
-}
 
 .services {
   position: relative;
@@ -2420,7 +2395,7 @@ footer {
   .search-button { min-width: 0; margin-top: 3px; }
   .marquee { margin-top: 0; }
   .tours-section { padding: 90px 0; }
-  .section-watermark { top: 58px; font-size: 85px; }
+  .tours-section--compact { padding-top: 56px; }
   .section-heading { grid-template-columns: 1fr; margin-bottom: 31px; }
   .section-heading h2,
   .why h2 { font-size: 49px; }
@@ -2508,7 +2483,7 @@ footer {
   .filters { scroll-snap-type: x proximity; }
   .filters button { min-height: 42px; scroll-snap-align: start; }
   .tours-section { padding: 76px 0; }
-  .section-watermark { font-size: 70px; }
+  .tours-section--compact { padding-top: 44px; }
   .section-heading h2,
   .why h2 { font-size: 43px; }
   .tour-card__media { height: 220px; }

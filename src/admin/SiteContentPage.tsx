@@ -129,9 +129,10 @@ export default function SiteContentPage() {
         <section><header><LayoutTemplate /><h2>{c.visibility}</h2></header><div className="homepage-visibility">{(['heroCard', 'marquee', 'services', 'why', 'stories', 'final'] as const).map(key => <label key={key}><input type="checkbox" checked={!content.hiddenSections?.includes(key)} onChange={event => { const visible = event.target.checked; change(draft => ({ ...draft, hiddenSections: visible ? draft.hiddenSections!.filter(item => item !== key) : [...draft.hiddenSections!, key] })) }} />{c.visible}: {c[key]}</label>)}</div></section>
         {(['hero', 'tours', 'services', 'why', 'stories', 'final'] as const).map(section => <section key={section} data-content-section={section}><header>{section === 'stories' ? <Camera /> : <LayoutTemplate />}<div><h2>{c[section]}</h2></div></header>
           <div className="site-content-fields">
-            {section !== 'hero' && section !== 'final' && textField(section, 'eyebrow', c.eyebrow)}
-            {section !== 'final' && <>{textField(section, 'lead', c.lead)}{textField(section, 'accent', c.accent)}</>}
-            {section !== 'why' && section !== 'final' && textField(section, 'description', c.description, true)}
+            {/* The tours section has no heading on the site any more; only the card button label is editable. */}
+            {section !== 'hero' && section !== 'final' && section !== 'tours' && textField(section, 'eyebrow', c.eyebrow)}
+            {section !== 'final' && section !== 'tours' && <>{textField(section, 'lead', c.lead)}{textField(section, 'accent', c.accent)}</>}
+            {section !== 'why' && section !== 'final' && section !== 'tours' && textField(section, 'description', c.description, true)}
             {section === 'why' && textField(section, 'reviews', c.reviews)}
             {section === 'stories' && <>{textField(section, 'quote', c.quote, true)}{textField(section, 'meta', c.meta)}</>}
             {section === 'final' && <>{textField(section, 'pre', c.pre)}{textField(section, 'title', c.titleLabel)}{textField(section, 'action', c.action)}</>}

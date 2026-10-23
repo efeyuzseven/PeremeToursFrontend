@@ -213,11 +213,8 @@ const copy = {
     categories: { all: 'Tümü', bosphorus: 'Boğaz Turu', 'turkish-night': 'Türk Gecesi', sunset: 'Sunset', daytime: 'DayTime' },
     marquee: ['Ücretsiz iptal', 'Anında onay', 'Yerel rota', 'En iyi fiyat', '7/24 destek'],
     tours: {
-      eyebrow: 'Rotanı seç', lead: 'Boğaz’da senin', accent: 'anın',
-      description: 'Boğaz Turu, Türk Gecesi, Sunset veya DayTime. İstanbul’a bakmanın en güzel halini seç.',
       spots: (count: number) => `Bu tarih için ${count} yer kaldı`, perPerson: 'Kişi başı', select: 'Rezervasyon Yap',
-      favouriteAdd: 'favorilere ekle', favouriteRemove: 'favorilerden çıkar', showLess: 'Daha az göster',
-      showAll: (count: number) => `Tüm ${count} turu gör`, watermark: 'BOSPHORUS',
+      favouriteAdd: 'favorilere ekle', favouriteRemove: 'favorilerden çıkar',
     },
     experience: {
       eyebrow: 'Bir turdan fazlası', lead: 'Şehir denizde', accent: 'başka konuşur.',
@@ -291,11 +288,8 @@ const copy = {
     categories: { all: 'All', bosphorus: 'Bosphorus Cruise', 'turkish-night': 'Turkish Night', sunset: 'Sunset', daytime: 'Daytime' },
     marquee: ['Free cancellation', 'Instant confirmation', 'Local routes', 'Best price', '24/7 support'],
     tours: {
-      eyebrow: 'Choose your route', lead: 'Find your moment', accent: 'on the Bosphorus',
-      description: 'Bosphorus Cruise, Turkish Night, Sunset or Daytime. Choose your favourite way to see Istanbul.',
       spots: (count: number) => `${count} spots left for this date`, perPerson: 'Per person', select: 'Book now',
-      favouriteAdd: 'add to favourites', favouriteRemove: 'remove from favourites', showLess: 'Show less',
-      showAll: (count: number) => `See all ${count} tours`, watermark: 'BOSPHORUS',
+      favouriteAdd: 'add to favourites', favouriteRemove: 'remove from favourites',
     },
     experience: {
       eyebrow: 'More than a tour', lead: 'The city speaks', accent: 'differently at sea.',
@@ -409,7 +403,6 @@ function App() {
   const [experienceMenuOpen, setExperienceMenuOpen] = useState(false)
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null)
   const [bookingOpen, setBookingOpen] = useState(false)
-  const [showAll, setShowAll] = useState(false)
   const [favorites, setFavorites] = useState<number[]>([])
   const languagePickerRef = useRef<HTMLDivElement>(null)
   const experiencePickerRef = useRef<HTMLDivElement>(null)
@@ -434,7 +427,7 @@ function App() {
     booking: { ...base.booking, experience: t('booking.experience', base.booking.experience), date: t('booking.date', base.booking.date), guest: t('booking.guest', base.booking.guest), search: t('booking.search', base.booking.search) },
     categories: { all: t('categories.all', base.categories.all), 'turkish-night': t('categories.turkishNight', base.categories['turkish-night']), sunset: t('categories.sunset', base.categories.sunset), daytime: t('categories.daytime', base.categories.daytime), bosphorus: t('categories.bosphorus', base.categories.bosphorus) },
     marquee: base.marquee.map((value, index) => t(`marquee.${index}`, value)),
-    tours: { ...base.tours, select: t('tours.select', base.tours.select), watermark: t('tours.watermark', base.tours.watermark), showLess: t('tours.showLess', base.tours.showLess), showAll: (count: number) => t('tours.showAll', base.tours.showAll(count)).replaceAll('{count}', String(count)) },
+    tours: { ...base.tours, select: t('tours.select', base.tours.select) },
     story: { ...base.story, note: t('story.note', base.story.note) },
     footer: { ...base.footer, tagline: t('footer.tagline', base.footer.tagline), copyright: t('footer.copyright', base.footer.copyright), columns: base.footer.columns.map((column, index) => column.map((value, entry) => t(`footer.${index}.${entry}`, value))) },
   }
@@ -502,7 +495,6 @@ function App() {
   }, [bookingOpen, mobileMenu])
 
   const filteredTours = useMemo(() => filter === 'all' ? tours : tours.filter((tour) => tour.category === filter), [filter, tours])
-  const displayedTours = showAll ? filteredTours : filteredTours.slice(0, 3)
   const selectedDate = parseIsoDate(date)
   const locale = language === 'tr' ? 'tr-TR' : 'en-US'
   const formattedDate = new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', year: 'numeric' }).format(selectedDate)
@@ -539,7 +531,6 @@ function App() {
 
   const findTours = () => {
     setFilter(experience)
-    setShowAll(true)
     document.getElementById('turlar')?.scrollIntoView({ behavior: siteScrollBehavior() })
   }
 
@@ -641,13 +632,12 @@ function App() {
         <div className="marquee__track">{[0, 1].map((item) => <div className="marquee__group" key={item} aria-hidden={item === 1}>{c.marquee.map((label, index) => <span className="marquee__item" key={index}><span>{label}</span><Sparkles /></span>)}</div>)}</div>
       </div>}
 
-      <section className="tours-section" id="turlar">
-        <span className="section-watermark" aria-hidden="true">{c.tours.watermark}</span>
+      {/* The tour cards open the section directly and all tours are always shown. */}
+      <section className="tours-section tours-section--compact" id="turlar" aria-label={c.a11y.tourCategories}>
         <div className="shell">
-          <div className="section-heading"><div><div className="eyebrow"><Waves size={18} /> {page?.tours.eyebrow ?? c.tours.eyebrow}</div><h2>{page?.tours.lead ?? c.tours.lead} <em>{page?.tours.accent ?? c.tours.accent}</em></h2></div><p>{page?.tours.description ?? c.tours.description}</p></div>
-          <div className="filters" role="group" aria-label={c.a11y.tourCategories}>{categoryKeys.map((category) => <button key={category} className={filter === category ? 'active' : ''} type="button" onClick={() => { setFilter(category); setShowAll(false) }}>{c.categories[category]}</button>)}</div>
+          <div className="filters" role="group" aria-label={c.a11y.tourCategories}>{categoryKeys.map((category) => <button key={category} className={filter === category ? 'active' : ''} type="button" onClick={() => setFilter(category)}>{c.categories[category]}</button>)}</div>
           <div className="tour-grid">
-            {displayedTours.map((tour, index) => (
+            {filteredTours.map((tour, index) => (
               <article className="tour-card" key={tour.id} style={{ '--card-delay': `${index * 80}ms` } as CSSProperties}>
                 <div className="tour-card__media">
                   <img src={tour.image} alt="" style={{ objectPosition: tour.imagePosition }} /><div className="tour-card__media-shade" /><span className="tour-card__badge">{tour.badge[language]}</span>
@@ -662,7 +652,6 @@ function App() {
               </article>
             ))}
           </div>
-          {filteredTours.length > 3 && <button className="show-more" type="button" onClick={() => setShowAll(!showAll)}>{showAll ? c.tours.showLess : c.tours.showAll(filteredTours.length)} <ArrowDown size={17} /></button>}
         </div>
       </section>
 

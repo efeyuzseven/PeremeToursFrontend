@@ -412,8 +412,6 @@ function App() {
     categories: { all: t('categories.all', base.categories.all), 'turkish-night': t('categories.turkishNight', base.categories['turkish-night']), sunset: t('categories.sunset', base.categories.sunset), daytime: t('categories.daytime', base.categories.daytime), bosphorus: t('categories.bosphorus', base.categories.bosphorus) },
     marquee: base.marquee.map((value, index) => t(`marquee.${index}`, value)),
     tours: { ...base.tours, select: t('tours.select', base.tours.select), info: t('tours.info', base.tours.info) },
-    announcements: { eyebrow: t('announcements.eyebrow', base.announcements.eyebrow), lead: t('announcements.lead', base.announcements.lead),
-      accent: t('announcements.accent', base.announcements.accent), more: t('announcements.more', base.announcements.more) },
     story: { ...base.story, note: t('story.note', base.story.note) },
     footer: { ...base.footer, tagline: t('footer.tagline', base.footer.tagline), copyright: t('footer.copyright', base.footer.copyright), columns: base.footer.columns.map((column, index) => column.map((value, entry) => t(`footer.${index}.${entry}`, value))) },
   }

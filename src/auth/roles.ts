@@ -1,10 +1,10 @@
 export const userRoles = ['User', 'Admin', 'Editor', 'Advisor', 'Service'] as const
 export type UserRole = typeof userRoles[number]
-export type PanelSection = 'tickets' | 'ticket-errors' | 'tour-contents' | 'tour-pages' | 'site-content' | 'faqs' | 'feedback' | 'users'
+export type PanelSection = 'tickets' | 'ticket-errors' | 'tour-contents' | 'tour-pages' | 'site-content' | 'announcements' | 'faqs' | 'feedback' | 'users'
 
-const contentSections: readonly PanelSection[] = ['site-content', 'tour-contents', 'tour-pages', 'faqs']
+const contentSections: readonly PanelSection[] = ['site-content', 'announcements', 'tour-contents', 'tour-pages', 'faqs']
 const serviceSections: readonly PanelSection[] = ['feedback', 'tickets', 'ticket-errors']
-const allSections: readonly PanelSection[] = ['tickets', 'ticket-errors', 'tour-contents', 'tour-pages', 'site-content', 'faqs', 'feedback', 'users']
+const allSections: readonly PanelSection[] = ['tickets', 'ticket-errors', 'tour-contents', 'tour-pages', 'site-content', 'announcements', 'faqs', 'feedback', 'users']
 
 export function allowedPanelSections(role?: string): readonly PanelSection[] {
   if (role === 'Admin') return allSections

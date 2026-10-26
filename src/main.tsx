@@ -25,6 +25,8 @@ import './styles.css'
 // eslint-disable-next-line react-refresh/only-export-components
 const FeedbackPage = lazy(() => import('./admin/FeedbackPage'))
 // eslint-disable-next-line react-refresh/only-export-components
+const AnnouncementsPage = lazy(() => import('./admin/AnnouncementsPage'))
+// eslint-disable-next-line react-refresh/only-export-components
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 // eslint-disable-next-line react-refresh/only-export-components
 const ContractPage = lazy(() => import('./pages/ContractPage'))
@@ -57,6 +59,7 @@ createRoot(document.getElementById('root')!).render(
               <Route path="tour-contents" element={<TourContentsPage />} />
               <Route path="tour-pages" element={<TourPagesPage />} />
               <Route path="site-content" element={<SiteContentPage />} />
+              <Route path="announcements" element={<Suspense fallback={<div className="site-content-loading"><span className="button-spinner" /></div>}><AnnouncementsPage /></Suspense>} />
               <Route path="faqs" element={<FrequentlyAskedQuestionsPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="feedback" element={<Suspense fallback={<div className="site-content-loading"><span className="button-spinner" /></div>}><FeedbackPage /></Suspense>} />

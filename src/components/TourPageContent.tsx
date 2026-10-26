@@ -1,8 +1,8 @@
-import DOMPurify from 'dompurify'
 import { ArrowRight, Check, MapPin, Waves, X } from 'lucide-react'
 import { lazy, Suspense, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { bookingNotesFor, categoryImages, isGoogleMapEmbed, isHtmlDetails, mapSlots, parseTourDetails, pointName, pointNote, resolvePageImage, tourDetailsFor,
   type TourDetailRow, type TourLanguage, type TourPageItem, type TourPageSection } from '../content/tour-pages'
+import { sanitizeHtml } from '../lib/html'
 import '../pages/tour-pages.css'
 import { TourBookingCard } from './TourBookingCard'
 import { TourGallery } from './TourGallery'
@@ -12,16 +12,9 @@ const copy = {
   en: { more: 'See more', less: 'See less' },
 }
 
-// Links that open a new tab must not get access to this page.
-DOMPurify.addHook('afterSanitizeAttributes', node => {
-  if (node.tagName === 'A' && node.getAttribute('target') === '_blank') node.setAttribute('rel', 'noopener noreferrer')
-})
-
 // Admin-written HTML is sanitized before rendering: no scripts, event handlers, forms, frames or page-wide <style> blocks.
 function TourHtml({ html }: { html: string }) {
-  const clean = useMemo(() => DOMPurify.sanitize(html, {
-    FORBID_TAGS: ['style', 'form', 'input', 'button', 'textarea', 'select', 'iframe', 'object', 'embed'], ADD_ATTR: ['target'],
-  }), [html])
+  const clean = useMemo(() => sanitizeHtml(html), [html])
   return <div className="tour-html" dangerouslySetInnerHTML={{ __html: clean }} />
 }
 

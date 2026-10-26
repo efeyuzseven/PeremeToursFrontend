@@ -1,0 +1,45 @@
+.content-admin-list td strong { color: var(--navy); font-size: 12px; }
+.content-admin-slug { color: #6a9dd2; font-family: ui-monospace, Consolas, monospace; font-size: 11px; }
+.content-admin-status { display: inline-flex; padding: 4px 9px; border-radius: 20px; font-size: 10px; font-weight: 800; }
+.content-admin-status--live { color: #1d7a3f; background: rgba(29,122,63,.1); }
+.content-admin-status--scheduled { color: #8a5a00; background: rgba(214,153,0,.14); }
+.content-admin-status--draft { color: #6a9dd2; background: rgba(106,157,210,.12); }
+.content-admin-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.content-admin-actions button { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 11px; border: 1px solid rgba(31,71,140,.15); border-radius: 8px; color: #1f478c; background: #fff; font-size: 11px; font-weight: 700; }
+.content-admin-actions button.danger { color: #b42318; }
+.content-admin-back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; padding: 0; border: 0; color: #6a9dd2; background: transparent; font-size: 11px; font-weight: 700; }
+.content-admin-heading-actions { display: flex; align-items: center; gap: 14px; }
+.content-admin-heading-actions a { display: inline-flex; align-items: center; gap: 6px; color: #1f478c; font-size: 12px; font-weight: 700; }
+.content-admin-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; align-items: start; gap: 20px; }
+.content-admin-main, .content-admin-side { display: grid; gap: 16px; }
+.content-admin-side { position: sticky; top: 96px; }
+.content-admin-help { margin: 0; color: #1f478c; font-size: 12px; }
+.content-admin-card { display: grid; gap: 16px; padding: 22px; border: 1px solid rgba(106,157,210,.16); border-radius: 14px; background: #fff; }
+.content-admin-card h2 { margin: 0; color: var(--navy); font: 700 15px/1.3 'Manrope', sans-serif; }
+.content-admin-card label { display: grid; gap: 7px; color: #1f478c; font-size: 11px; font-weight: 700; }
+.content-admin-card label em { color: #6a9dd2; font-style: normal; font-weight: 600; }
+.content-admin-card input:not([type=checkbox]):not([type=file]), .content-admin-card textarea { width: 100%; padding: 11px 13px; border: 1px solid rgba(31,71,140,.18); border-radius: 9px; color: var(--navy); background: #fff; font: 13px/1.5 'DM Sans', sans-serif; }
+.content-admin-card small { color: #6a9dd2; font-size: 11px; font-weight: 500; line-height: 1.5; }
+.content-admin-slug-input { display: flex; align-items: stretch; overflow: hidden; border: 1px solid rgba(31,71,140,.18); border-radius: 9px; }
+.content-admin-slug-input span { display: flex; align-items: center; padding: 0 10px; color: #6a9dd2; background: rgba(106,157,210,.08); font: 12px ui-monospace, Consolas, monospace; white-space: nowrap; }
+.content-admin-card .content-admin-slug-input input { border: 0; border-radius: 0; font-family: ui-monospace, Consolas, monospace; }
+.content-admin-body { display: grid; gap: 7px; }
+.content-admin-body__head { display: flex; align-items: center; justify-content: space-between; color: #1f478c; font-size: 11px; font-weight: 700; }
+.content-admin-body__head button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border: 1px solid rgba(31,71,140,.15); border-radius: 8px; color: #1f478c; background: #fff; font-size: 11px; font-weight: 700; }
+.content-admin-body textarea { min-height: 420px; font-family: ui-monospace, Consolas, monospace !important; font-size: 12.5px !important; resize: vertical; }
+.content-admin-preview { min-height: 420px; padding: 18px 20px; border: 1px dashed rgba(31,71,140,.25); border-radius: 9px; }
+.content-admin-google { display: grid; gap: 4px; padding: 16px; border-radius: 10px; background: rgba(106,157,210,.07); }
+.content-admin-google span { color: #3c4043; font-size: 12px; }
+.content-admin-google strong { color: #1a0dab; font: 400 18px/1.3 Arial, sans-serif; }
+.content-admin-google p { margin: 0; color: #4d5156; font: 13px/1.5 Arial, sans-serif; }
+.content-admin-check { display: flex !important; flex-direction: row; align-items: center; gap: 8px; }
+.content-admin-check input { width: 16px; height: 16px; accent-color: #1f478c; }
+.content-admin-cover { width: 100%; aspect-ratio: 16 / 10; border-radius: 10px; object-fit: cover; }
+.content-admin-link { justify-self: start; padding: 0; border: 0; color: #1f478c; background: transparent; font-size: 11px; text-decoration: underline; }
+@media (max-width: 1100px) { .content-admin-layout { grid-template-columns: 1fr; } .content-admin-side { position: static; } }
+/* Keep the invisible file input inside its button (it is absolutely positioned). */
+.content-admin-card .homepage-image-upload { position: relative; display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 40px; border-radius: 8px; color: #1f478c; background: #edf3fa; font-size: 12px; font-weight: 700; cursor: pointer; }
+/* The preview uses the public article typography, not the admin heading sizes. */
+.content-admin-preview.content-body { max-width: none; font-size: 15px; }
+.content-admin-preview.content-body h2 { margin: 28px 0 10px; font-size: 24px; }
+.content-admin-preview.content-body h3 { margin: 24px 0 10px; font-size: 20px; }

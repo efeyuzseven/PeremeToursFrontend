@@ -52,10 +52,6 @@ export type HomepageAnnouncement = {
 
 // Only presentation is editable here; routes, provider IDs and live prices are independent.
 export const homepageTextFields = [
-  ['navigation', 'nav.0', 'Menü: Turlar', 'Menu: Tours', 'Turlar', 'Tours'],
-  ['navigation', 'nav.announcements', 'Menü: Duyurular', 'Menu: Announcements', 'Duyurular', 'Announcements'],
-  ['navigation', 'nav.2', 'Menü: Neden Pereme?', 'Menu: Why Pereme?', 'Neden Pereme?', 'Why Pereme?'],
-  ['navigation', 'nav.3', 'Menü: Hikâyeler', 'Menu: Stories', 'Hikâyeler', 'Stories'],
   ['navigation', 'account', 'Hesabım butonu', 'Account button', 'Hesabım', 'My account'],
   ['hero', 'hero.eyebrow', 'Üst etiket', 'Eyebrow', 'İstanbul, suyun öteki tarafından', 'Istanbul, from the other side of the water'],
   ['hero', 'hero.toursLink', 'Turlar bağlantısı', 'Tours link', 'Turları incele', 'Explore tours'],

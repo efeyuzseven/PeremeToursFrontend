@@ -33,6 +33,8 @@ import { useAuth } from './auth/AuthContext'
 import { panelHome } from './auth/roles'
 import { normalizeHomepage, type HomepageContentDocument } from './content/homepage'
 import { apiBaseUrl, apiRequest } from './lib/api'
+import { pagePath as contentPagePath } from './lib/content-pages'
+import { mainNavigation, useFooterPages } from './lib/navigation'
 import { INSTAGRAM_PROFILE_URL, setPageMetadata, siteScrollBehavior, SITE_NAME } from './lib/site'
 import { BookingDrawer } from './components/BookingDrawer'
 import AccountMenu from './components/AccountMenu'
@@ -193,7 +195,6 @@ const mergeCatalogTours = (catalog: CatalogTour[]): Tour[] => {
 const copy = {
   tr: {
     languageName: 'Türkçe',
-    nav: [['Turlar', '#turlar'], ['Duyurular', '#duyurular'], ['Neden Pereme?', '#neden-biz'], ['Hikâyeler', '#hikayeler']],
     a11y: {
       mainNav: 'Ana menü', language: 'Dil seçimi', openMenu: 'Menüyü aç', closeMenu: 'Menüyü kapat', closeBooking: 'Rezervasyonu kapat',
       decrease: 'Misafir azalt', increase: 'Misafir artır', scrollTours: 'Turlara kaydır', tourCategories: 'Tur kategorileri',
@@ -259,7 +260,6 @@ const copy = {
   },
   en: {
     languageName: 'English',
-    nav: [['Tours', '#turlar'], ['Announcements', '#duyurular'], ['Why Pereme?', '#neden-biz'], ['Stories', '#hikayeler']],
     a11y: {
       mainNav: 'Main navigation', language: 'Choose language', openMenu: 'Open menu', closeMenu: 'Close menu', closeBooking: 'Close booking',
       decrease: 'Remove guest', increase: 'Add guest', scrollTours: 'Scroll to tours', tourCategories: 'Tour categories',
@@ -383,6 +383,7 @@ function App() {
   const base = copy[language]
   const t = (key: string, fallback: string) => page?.texts?.[key] ?? fallback
   const hidden = (key: string) => homepageContent?.hiddenSections?.includes(key) ?? false
+  const footerPages = useFooterPages(language)
   const announcements = hidden('announcements') ? [] : (homepageContent?.announcements ?? []).filter((item) => item.isVisible && item.tr.title.trim())
   const image = (key: string, fallback: string) => {
     if (!homepageReady) return undefined
@@ -393,9 +394,8 @@ function App() {
   const finalImage = image('final', '/assets/ad2ca4f6-d888-4621-b0c1-b3db5903f0ac.webp')
   const position = (key: string) => homepageContent?.imagePositions?.[key]
   const c = { ...base,
-    // The second item used to be "Our services" (nav.1); announcements use their own key so old saved labels are not reused.
-    nav: base.nav.map(([label, href], index) => [t(index === 1 ? 'nav.announcements' : `nav.${index}`, label), href]).filter(([, href]) =>
-      href === '#duyurular' ? announcements.length > 0 : !hidden(({ '#neden-biz': 'why', '#hikayeler': 'stories' } as Record<string, string>)[href])),
+    // Same menu as every other page (lib/navigation).
+    nav: mainNavigation(language, announcements.length > 0),
     hero: { ...base.hero, ...Object.fromEntries(Object.entries(base.hero).filter(([, value]) => typeof value === 'string').map(([key, value]) => [key, t(`hero.${key}`, value as string)])),
       cardTypes: base.hero.cardTypes.map((value, index) => t(`hero.cardTypes.${index}`, value)) },
     booking: { ...base.booking, experience: t('booking.experience', base.booking.experience), date: t('booking.date', base.booking.date), guest: t('booking.guest', base.booking.guest), search: t('booking.search', base.booking.search) },
@@ -520,7 +520,7 @@ function App() {
       <header className={`site-header ${scrolled ? 'site-header--scrolled' : ''}`}>
         <div className="shell header__inner">
           <Logo light={!scrolled} language={language} />
-          <nav className="desktop-nav" aria-label={c.a11y.mainNav}>{c.nav.map(([label, href]) => <a key={href} href={href}>{label}</a>)}</nav>
+          <nav className="desktop-nav" aria-label={c.a11y.mainNav}>{c.nav.map(({ label, href }) => href.startsWith('/#') ? <a key={href} href={href.slice(1)}>{label}</a> : <Link key={href} to={href}>{label}</Link>)}</nav>
           <div className="header__actions">
             <AccountMenu language={language} label={t('account', language === 'tr' ? 'Hesabım' : 'My account')} />
             <div className="language-picker" ref={languagePickerRef}>
@@ -543,7 +543,9 @@ function App() {
       <div className={`mobile-menu ${mobileMenu ? 'mobile-menu--open' : ''}`} aria-hidden={!mobileMenu}>
         <button className="mobile-menu__close" onClick={() => setMobileMenu(false)} aria-label={c.a11y.closeMenu}><X /></button>
         <Logo light language={language} />
-        <nav>{c.nav.map(([label, href]) => <a key={href} href={href} onClick={() => setMobileMenu(false)}>{label} <ArrowRight /></a>)}<Link to={user ? '/hesabim' : '/login'} onClick={() => setMobileMenu(false)}>{t('account', language === 'tr' ? 'Hesabım' : 'My account')} <UserRound /></Link>{panelHome(user?.role) && <Link to={panelHome(user?.role)!} onClick={() => setMobileMenu(false)}>{language === 'tr' ? 'Yönetim paneli' : 'Admin panel'}</Link>}</nav>
+        <nav>{c.nav.map(({ label, href }) => href.startsWith('/#')
+          ? <a key={href} href={href.slice(1)} onClick={() => setMobileMenu(false)}>{label} <ArrowRight /></a>
+          : <Link key={href} to={href} onClick={() => setMobileMenu(false)}>{label} <ArrowRight /></Link>)}<Link to={user ? '/hesabim' : '/login'} onClick={() => setMobileMenu(false)}>{t('account', language === 'tr' ? 'Hesabım' : 'My account')} <UserRound /></Link>{panelHome(user?.role) && <Link to={panelHome(user?.role)!} onClick={() => setMobileMenu(false)}>{language === 'tr' ? 'Yönetim paneli' : 'Admin panel'}</Link>}</nav>
         <div className="mobile-languages" aria-label={c.a11y.language}>
           {(['tr', 'en'] as Language[]).map((item) => <button key={item} className={language === item ? 'active' : ''} type="button" onClick={() => changeLanguage(item)}>{item.toUpperCase()} <span>{copy[item].languageName}</span></button>)}
         </div>
@@ -691,7 +693,8 @@ function App() {
                 : ['/kvkk-aydinlatma-metni', '/mesafeli-satis-sozlesmesi'][index]
             if (columnIndex === 1 && (index === 0 && hidden('why') || index === 1 && hidden('stories'))) return null
             return <Link key={index} to={to}>{link}</Link>
-          })}</div>)}</div>
+          })}{columnIndex === 1 && <><Link to={language === 'tr' ? '/blog' : '/en/blog'}>Blog</Link>
+            {footerPages.map((page) => <Link key={page.slug} to={contentPagePath(language, page.slug)}>{page.title}</Link>)}</>}</div>)}</div>
         </div>
         <div className="shell footer__bottom"><span>{c.footer.copyright}</span><a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><Camera size={17} /> Instagram</a></div>
       </footer>

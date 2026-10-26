@@ -29,6 +29,12 @@ aws s3 cp 'dist/favicon.svg' "s3://$BucketName/favicon.svg" `
   --cache-control 'public,max-age=86400'
 if ($LASTEXITCODE -ne 0) { throw 'Favicon upload failed.' }
 
+aws s3 cp 'dist/robots.txt' "s3://$BucketName/robots.txt" `
+  --region $Region `
+  --content-type 'text/plain; charset=utf-8' `
+  --cache-control 'public,max-age=3600'
+if ($LASTEXITCODE -ne 0) { throw 'robots.txt upload failed.' }
+
 aws cloudfront create-invalidation `
   --region 'us-east-1' `
   --distribution-id $DistributionId `

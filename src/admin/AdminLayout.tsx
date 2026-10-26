@@ -1,4 +1,4 @@
-import { ArrowUpRight, CircleAlert, CircleHelp, FilePenLine, Globe2, Images, LayoutDashboard, LogOut, Megaphone, Menu, MessageSquare, ShipWheel, TicketCheck, UsersRound, X } from 'lucide-react'
+import { ArrowUpRight, CircleAlert, CircleHelp, FilePenLine, FileText, Globe2, Images, LayoutDashboard, LogOut, Megaphone, Menu, MessageSquare, Newspaper, ShipWheel, TicketCheck, UsersRound, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
@@ -26,6 +26,8 @@ export default function AdminLayout() {
     { section: 'tour-pages', icon: FilePenLine, label: language === 'tr' ? 'Tur Sayfaları' : 'Tour Pages' },
     { section: 'site-content', icon: FilePenLine, label: c.siteContent },
     { section: 'announcements', icon: Megaphone, label: language === 'tr' ? 'Duyurular' : 'Announcements' },
+    { section: 'blog', icon: Newspaper, label: 'Blog' },
+    { section: 'pages', icon: FileText, label: language === 'tr' ? 'Sayfalar' : 'Pages' },
     { section: 'faqs', icon: CircleHelp, label: c.faqs },
     { section: 'feedback', icon: MessageSquare, label: language === 'tr' ? 'Geri Bildirimler' : 'Feedback' },
     { section: 'users', icon: UsersRound, label: c.users },

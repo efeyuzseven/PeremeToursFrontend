@@ -27,9 +27,18 @@ const FeedbackPage = lazy(() => import('./admin/FeedbackPage'))
 // eslint-disable-next-line react-refresh/only-export-components
 const AnnouncementsPage = lazy(() => import('./admin/AnnouncementsPage'))
 // eslint-disable-next-line react-refresh/only-export-components
+const ContentPagesAdminPage = lazy(() => import('./admin/ContentPagesAdminPage'))
+// eslint-disable-next-line react-refresh/only-export-components
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 // eslint-disable-next-line react-refresh/only-export-components
 const ContractPage = lazy(() => import('./pages/ContractPage'))
+// eslint-disable-next-line react-refresh/only-export-components
+const BlogListPage = lazy(() => import('./pages/BlogPages').then(module => ({ default: module.BlogListPage })))
+// eslint-disable-next-line react-refresh/only-export-components
+const BlogPostPage = lazy(() => import('./pages/BlogPages').then(module => ({ default: module.BlogPostPage })))
+// eslint-disable-next-line react-refresh/only-export-components
+const StandalonePage = lazy(() => import('./pages/BlogPages').then(module => ({ default: module.StandalonePage })))
+const pageFallback = <div className="site-content-loading"><span className="button-spinner" /></div>
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -60,11 +69,20 @@ createRoot(document.getElementById('root')!).render(
               <Route path="tour-pages" element={<TourPagesPage />} />
               <Route path="site-content" element={<SiteContentPage />} />
               <Route path="announcements" element={<Suspense fallback={<div className="site-content-loading"><span className="button-spinner" /></div>}><AnnouncementsPage /></Suspense>} />
+              <Route path="blog" element={<Suspense fallback={pageFallback}><ContentPagesAdminPage key="blog" kind="blog" /></Suspense>} />
+              <Route path="pages" element={<Suspense fallback={pageFallback}><ContentPagesAdminPage key="page" kind="page" /></Suspense>} />
               <Route path="faqs" element={<FrequentlyAskedQuestionsPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="feedback" element={<Suspense fallback={<div className="site-content-loading"><span className="button-spinner" /></div>}><FeedbackPage /></Suspense>} />
             </Route>
           </Route>
+          <Route path="/blog" element={<Suspense fallback={pageFallback}><BlogListPage /></Suspense>} />
+          <Route path="/blog/:slug" element={<Suspense fallback={pageFallback}><BlogPostPage /></Suspense>} />
+          <Route path="/en/blog" element={<Suspense fallback={pageFallback}><BlogListPage /></Suspense>} />
+          <Route path="/en/blog/:slug" element={<Suspense fallback={pageFallback}><BlogPostPage /></Suspense>} />
+          {/* Standalone pages created in the admin; fixed routes above always win over these. */}
+          <Route path="/en/:slug" element={<Suspense fallback={pageFallback}><StandalonePage /></Suspense>} />
+          <Route path="/:slug" element={<Suspense fallback={pageFallback}><StandalonePage /></Suspense>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <FloatingSupport />

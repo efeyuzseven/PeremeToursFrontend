@@ -19,9 +19,9 @@ import {
   Quote,
   Search,
   ShieldCheck,
+  Megaphone,
   Sparkles,
   Star,
-  Ticket,
   UserRound,
   Users,
   Waves,
@@ -193,7 +193,7 @@ const mergeCatalogTours = (catalog: CatalogTour[]): Tour[] => {
 const copy = {
   tr: {
     languageName: 'Türkçe',
-    nav: [['Turlar', '#turlar'], ['Hizmetlerimiz', '#hizmetler'], ['Neden Pereme?', '#neden-biz'], ['Hikâyeler', '#hikayeler']],
+    nav: [['Turlar', '#turlar'], ['Duyurular', '#duyurular'], ['Neden Pereme?', '#neden-biz'], ['Hikâyeler', '#hikayeler']],
     a11y: {
       mainNav: 'Ana menü', language: 'Dil seçimi', openMenu: 'Menüyü aç', closeMenu: 'Menüyü kapat', closeBooking: 'Rezervasyonu kapat',
       decrease: 'Misafir azalt', increase: 'Misafir artır', scrollTours: 'Turlara kaydır', tourCategories: 'Tur kategorileri',
@@ -202,7 +202,7 @@ const copy = {
     hero: {
       eyebrow: 'İstanbul, suyun öteki tarafından', lead: 'Şehri izleme.', accent: 'Onunla ak.',
       description: 'Boğaz’ın ritmini, gün batımının rengini ve İstanbul’un hiç acele etmeyen halini keşfet.',
-      watch: 'Hizmetlerimizi incele', scroll: 'Keşfet', cardLabel: 'İstanbul Boğazı’nda',
+      toursLink: 'Turları incele', scroll: 'Keşfet', cardLabel: 'İstanbul Boğazı’nda',
       cardCount: '4 deneyim', cardLead: 'Her saate', cardAccent: 'başka bir İstanbul.',
       cardTypes: ['Türk Gecesi', 'Sunset', 'DayTime', 'Boğaz Turu'], cardNote: 'Rotanı seç, İstanbul’u denizden keşfet.',
     },
@@ -213,7 +213,7 @@ const copy = {
     categories: { all: 'Tümü', bosphorus: 'Boğaz Turu', 'turkish-night': 'Türk Gecesi', sunset: 'Sunset', daytime: 'DayTime' },
     marquee: ['Ücretsiz iptal', 'Anında onay', 'Yerel rota', 'En iyi fiyat', '7/24 destek'],
     tours: {
-      spots: (count: number) => `Bu tarih için ${count} yer kaldı`, perPerson: 'Kişi başı', select: 'Rezervasyon Yap',
+      spots: (count: number) => `Bu tarih için ${count} yer kaldı`, perPerson: 'Kişi başı', select: 'Rezervasyon Yap', info: 'Tur bilgisi',
       favouriteAdd: 'favorilere ekle', favouriteRemove: 'favorilerden çıkar',
     },
     experience: {
@@ -221,16 +221,7 @@ const copy = {
       description: 'Kalabalığı kıyıda bırak. İstanbul’un sesini martılardan, ışığını suyun üstünden, hikâyesini yerel anlatıcılardan dinle.',
       features: [['Özenli rotalar', 'Turistik kalabalıktan uzak'], ['Gerçek İstanbul', 'Yerel hikâyeler ve tatlar'], ['Küçük gruplar', 'Daha kişisel bir deneyim']],
     },
-    services: {
-      eyebrow: 'Hizmetlerimiz', lead: 'İstanbul’u kendi', accent: 'ritminde yaşa.',
-      description: 'Geceden gün batımına, gündüz rotalarından klasik Boğaz turlarına uzanan deneyimini seç.',
-      items: [
-        ['turkish-night', 'Türk Gecesi', 'Akşam yemeği, canlı gösteriler ve Boğaz’ın gece ışıkları.', 'İlgili turları gör', 'Rezervasyon yap'],
-        ['sunset', 'Sunset', 'İstanbul siluetini altın saatin renkleriyle denizden izle.', 'İlgili turları gör', 'Rezervasyon yap'],
-        ['daytime', 'DayTime', 'Gün ışığında iki yaka, yalılar ve şehrin kıyı hikâyeleri.', 'İlgili turları gör', 'Rezervasyon yap'],
-        ['bosphorus', 'Boğaz Turu', 'İstanbul’un simge yapılarını denizden keşfeden klasik rota.', 'İlgili turları gör', 'Rezervasyon yap'],
-      ] as [Category, string, string, string, string][],
-    },
+    announcements: { eyebrow: 'Duyurular', lead: 'Pereme’den', accent: 'haberler', more: 'Detaylar' },
     why: {
       eyebrow: 'İçin rahat olsun', lead: 'Biletini al.', accent: 'Gerisini akışa bırak.', reviews: '840+ mutlu misafir',
       benefits: [
@@ -268,7 +259,7 @@ const copy = {
   },
   en: {
     languageName: 'English',
-    nav: [['Tours', '#turlar'], ['Our Services', '#hizmetler'], ['Why Pereme?', '#neden-biz'], ['Stories', '#hikayeler']],
+    nav: [['Tours', '#turlar'], ['Announcements', '#duyurular'], ['Why Pereme?', '#neden-biz'], ['Stories', '#hikayeler']],
     a11y: {
       mainNav: 'Main navigation', language: 'Choose language', openMenu: 'Open menu', closeMenu: 'Close menu', closeBooking: 'Close booking',
       decrease: 'Remove guest', increase: 'Add guest', scrollTours: 'Scroll to tours', tourCategories: 'Tour categories',
@@ -277,7 +268,7 @@ const copy = {
     hero: {
       eyebrow: 'Istanbul, from the other side of the water', lead: 'Don’t just watch.', accent: 'Flow with it.',
       description: 'Meet the rhythm of the Bosphorus, the colour of sunset and the unhurried side of Istanbul.',
-      watch: 'Explore our services', scroll: 'Explore', cardLabel: 'On the Bosphorus',
+      toursLink: 'Explore tours', scroll: 'Explore', cardLabel: 'On the Bosphorus',
       cardCount: '4 experiences', cardLead: 'A different Istanbul', cardAccent: 'for every moment.',
       cardTypes: ['Turkish Night', 'Sunset', 'DayTime', 'Bosphorus'], cardNote: 'Choose your route and discover Istanbul from the water.',
     },
@@ -288,7 +279,7 @@ const copy = {
     categories: { all: 'All', bosphorus: 'Bosphorus Cruise', 'turkish-night': 'Turkish Night', sunset: 'Sunset', daytime: 'Daytime' },
     marquee: ['Free cancellation', 'Instant confirmation', 'Local routes', 'Best price', '24/7 support'],
     tours: {
-      spots: (count: number) => `${count} spots left for this date`, perPerson: 'Per person', select: 'Book now',
+      spots: (count: number) => `${count} spots left for this date`, perPerson: 'Per person', select: 'Book now', info: 'Tour details',
       favouriteAdd: 'add to favourites', favouriteRemove: 'remove from favourites',
     },
     experience: {
@@ -296,16 +287,7 @@ const copy = {
       description: 'Leave the crowds ashore. Hear Istanbul through the gulls, see its light on the water and discover its stories with local hosts.',
       features: [['Thoughtful routes', 'Away from the tourist crowds'], ['The real Istanbul', 'Local stories and flavours'], ['Small groups', 'A more personal experience']],
     },
-    services: {
-      eyebrow: 'Our services', lead: 'Experience Istanbul', accent: 'at your own pace.',
-      description: 'Choose your experience from dinner shows and sunsets to daytime routes and classic Bosphorus cruises.',
-      items: [
-        ['turkish-night', 'Turkish Night', 'Dinner, live performances and the night lights of the Bosphorus.', 'View related tours', 'Book now'],
-        ['sunset', 'Sunset', 'Watch Istanbul’s skyline from the water during golden hour.', 'View related tours', 'Book now'],
-        ['daytime', 'DayTime', 'Two shores, waterfront mansions and local stories in daylight.', 'View related tours', 'Book now'],
-        ['bosphorus', 'Bosphorus Cruise', 'A classic route past Istanbul’s landmarks and waterfront history.', 'View related tours', 'Book now'],
-      ] as [Category, string, string, string, string][],
-    },
+    announcements: { eyebrow: 'Announcements', lead: 'News from', accent: 'Pereme', more: 'Details' },
     why: {
       eyebrow: 'You’re in good hands', lead: 'Book your ticket.', accent: 'Leave the rest to the flow.', reviews: '840+ happy guests',
       benefits: [
@@ -411,6 +393,7 @@ function App() {
   const base = copy[language]
   const t = (key: string, fallback: string) => page?.texts?.[key] ?? fallback
   const hidden = (key: string) => homepageContent?.hiddenSections?.includes(key) ?? false
+  const announcements = hidden('announcements') ? [] : (homepageContent?.announcements ?? []).filter((item) => item.isVisible && item.tr.title.trim())
   const image = (key: string, fallback: string) => {
     if (!homepageReady) return undefined
     const url = homepageContent?.images?.[key] || fallback
@@ -420,14 +403,17 @@ function App() {
   const finalImage = image('final', '/assets/ad2ca4f6-d888-4621-b0c1-b3db5903f0ac.webp')
   const position = (key: string) => homepageContent?.imagePositions?.[key]
   const c = { ...base,
-    nav: base.nav.map(([label, href], index) => [t(`nav.${index}`, label), href]).filter(([, href]) =>
-      !hidden(({ '#hizmetler': 'services', '#neden-biz': 'why', '#hikayeler': 'stories' } as Record<string, string>)[href])),
+    // The second item used to be "Our services" (nav.1); announcements use their own key so old saved labels are not reused.
+    nav: base.nav.map(([label, href], index) => [t(index === 1 ? 'nav.announcements' : `nav.${index}`, label), href]).filter(([, href]) =>
+      href === '#duyurular' ? announcements.length > 0 : !hidden(({ '#neden-biz': 'why', '#hikayeler': 'stories' } as Record<string, string>)[href])),
     hero: { ...base.hero, ...Object.fromEntries(Object.entries(base.hero).filter(([, value]) => typeof value === 'string').map(([key, value]) => [key, t(`hero.${key}`, value as string)])),
       cardTypes: base.hero.cardTypes.map((value, index) => t(`hero.cardTypes.${index}`, value)) },
     booking: { ...base.booking, experience: t('booking.experience', base.booking.experience), date: t('booking.date', base.booking.date), guest: t('booking.guest', base.booking.guest), search: t('booking.search', base.booking.search) },
     categories: { all: t('categories.all', base.categories.all), 'turkish-night': t('categories.turkishNight', base.categories['turkish-night']), sunset: t('categories.sunset', base.categories.sunset), daytime: t('categories.daytime', base.categories.daytime), bosphorus: t('categories.bosphorus', base.categories.bosphorus) },
     marquee: base.marquee.map((value, index) => t(`marquee.${index}`, value)),
-    tours: { ...base.tours, select: t('tours.select', base.tours.select) },
+    tours: { ...base.tours, select: t('tours.select', base.tours.select), info: t('tours.info', base.tours.info) },
+    announcements: { eyebrow: t('announcements.eyebrow', base.announcements.eyebrow), lead: t('announcements.lead', base.announcements.lead),
+      accent: t('announcements.accent', base.announcements.accent), more: t('announcements.more', base.announcements.more) },
     story: { ...base.story, note: t('story.note', base.story.note) },
     footer: { ...base.footer, tagline: t('footer.tagline', base.footer.tagline), copyright: t('footer.copyright', base.footer.copyright), columns: base.footer.columns.map((column, index) => column.map((value, entry) => t(`footer.${index}.${entry}`, value))) },
   }
@@ -534,8 +520,6 @@ function App() {
     document.getElementById('turlar')?.scrollIntoView({ behavior: siteScrollBehavior() })
   }
 
-  const serviceItems = page?.services.items
-    ?? c.services.items.map(([categoryKey, title, description, browseLabel, bookingLabel]) => ({ categoryKey, title, description, browseLabel, bookingLabel }))
   const benefits = page?.why.benefits
     ?? c.why.benefits.map(([title, description]) => ({ title, description }))
   const instagramUrls = homepageContent?.instagramUrls ?? []
@@ -585,9 +569,9 @@ function App() {
             <div className="eyebrow eyebrow--light"><span className="eyebrow__pulse" /> {c.hero.eyebrow}</div>
             <h1 id="hero-title">{page?.hero.lead ?? c.hero.lead}<br /><em>{page?.hero.accent ?? c.hero.accent}</em></h1>
             <p>{page?.hero.description ?? c.hero.description}</p>
-            {!hidden('services') && <div className="hero__buttons">
-              <a className="play-link" href="#hizmetler"><span><Play size={15} fill="currentColor" /></span> {c.hero.watch}</a>
-            </div>}
+            <div className="hero__buttons">
+              <a className="play-link" href="#turlar"><span><Play size={15} fill="currentColor" /></span> {c.hero.toursLink}</a>
+            </div>
           </div>
           {!hidden('heroCard') && <div className="hero__experience-card">
             <div className="experience-card__top"><span><Waves size={15} /> {c.hero.cardLabel}</span><i>{c.hero.cardCount}</i></div>
@@ -647,7 +631,10 @@ function App() {
                 <div className="tour-card__body">
                   <span className="tour-card__category">{c.categories[tour.category]}</span><h3>{tour.live ? <Link to={tourPath(tour.id)}>{tour.title[language]}</Link> : tour.title[language]}</h3><p>{tour.description[language]}</p>
                   <div className="tour-card__meta"><span><Clock3 size={16} /> {tour.duration[language]}</span><span><MapPin size={16} /> {tour.location[language]}</span></div>
-                  <div className="tour-card__footer"><button type="button" disabled={!tour.live} onClick={() => openBooking(tour)} aria-label={`${tour.title[language]} ${c.tours.select}`}>{c.tours.select} <ArrowRight size={18} /></button></div>
+                  <div className="tour-card__footer">
+                    {tour.live && <Link className="tour-card__info" to={tourPath(tour.id)} aria-label={`${tour.title[language]} ${c.tours.info}`}>{c.tours.info}</Link>}
+                    <button type="button" disabled={!tour.live} onClick={() => openBooking(tour)} aria-label={`${tour.title[language]} ${c.tours.select}`}>{c.tours.select} <ArrowRight size={18} /></button>
+                  </div>
                 </div>
               </article>
             ))}
@@ -655,15 +642,24 @@ function App() {
         </div>
       </section>
 
-      {!hidden('services') && <section className="services" id="hizmetler">
+      {announcements.length > 0 && <section className="services announcements" id="duyurular">
         <div className="shell">
-          <div className="section-heading section-heading--light"><div><div className="eyebrow eyebrow--light"><Sparkles size={17} /> {page?.services.eyebrow ?? c.services.eyebrow}</div><h2>{page?.services.lead ?? c.services.lead}<br /><em>{page?.services.accent ?? c.services.accent}</em></h2></div><p>{page?.services.description ?? c.services.description}</p></div>
-          <div className="service-grid">
-            {serviceItems.map((item, index) => {
-              const relatedTour = tours.find((tour) => tour.category === item.categoryKey)
-              return <article className="service-card" key={item.categoryKey}>
-                <div className="service-card__image"><img src={image(item.categoryKey, relatedTour?.image ?? fallbackTours.find((tour) => tour.category === item.categoryKey)!.image)} style={{ objectPosition: position(item.categoryKey) }} alt="" /><span>0{index + 1}</span></div>
-                <div className="service-card__body"><small>{c.categories[item.categoryKey]}</small><h3>{item.title}</h3><p>{item.description}</p><div><Link to={categoryPath(item.categoryKey)}>{item.browseLabel} <ArrowRight /></Link><button type="button" disabled={!relatedTour?.live} onClick={() => openBooking(relatedTour)}>{item.bookingLabel} <Ticket /></button></div></div>
+          <div className="section-heading section-heading--light"><div><div className="eyebrow eyebrow--light"><Megaphone size={17} /> {c.announcements.eyebrow}</div><h2>{c.announcements.lead} <em>{c.announcements.accent}</em></h2></div></div>
+          <div className="announcement-grid">
+            {announcements.map((item) => {
+              const text = item[language].title.trim() ? item[language] : item.tr
+              const linkLabel = text.linkLabel?.trim() || c.announcements.more
+              const imageUrl = item.imageUrl ? (item.imageUrl.startsWith('/api/') ? `${apiBaseUrl}${item.imageUrl}` : item.imageUrl) : null
+              return <article className="announcement-card" key={item.id}>
+                {imageUrl && <img src={imageUrl} alt="" loading="lazy" />}
+                <div className="announcement-card__body">
+                  {item.date && <time dateTime={item.date}>{new Intl.DateTimeFormat(language === 'tr' ? 'tr-TR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${item.date}T12:00:00`))}</time>}
+                  <h3>{text.title}</h3>
+                  {text.body && <p>{text.body}</p>}
+                  {item.linkUrl && (item.linkUrl.startsWith('/')
+                    ? <Link to={item.linkUrl}>{linkLabel} <ArrowRight size={16} /></Link>
+                    : <a href={item.linkUrl} target="_blank" rel="noopener noreferrer">{linkLabel} <ArrowRight size={16} /></a>)}
+                </div>
               </article>
             })}
           </div>

@@ -38,17 +38,25 @@ export type HomepageContentDocument = {
   images?: Record<string, string>
   imagePositions?: Record<string, string>
   hiddenSections?: string[]
+  announcements?: HomepageAnnouncement[]
+}
+
+export type HomepageAnnouncementText = { title: string; body: string | null; linkLabel: string | null }
+// Shown on the homepage in list order; date is yyyy-MM-dd, linkUrl is https://... or a path on this site.
+export type HomepageAnnouncement = {
+  id: string; isVisible: boolean; date: string | null; imageUrl: string | null; linkUrl: string | null
+  tr: HomepageAnnouncementText; en: HomepageAnnouncementText
 }
 
 // Only presentation is editable here; routes, provider IDs and live prices are independent.
 export const homepageTextFields = [
   ['navigation', 'nav.0', 'Menü: Turlar', 'Menu: Tours', 'Turlar', 'Tours'],
-  ['navigation', 'nav.1', 'Menü: Hizmetlerimiz', 'Menu: Services', 'Hizmetlerimiz', 'Our Services'],
+  ['navigation', 'nav.announcements', 'Menü: Duyurular', 'Menu: Announcements', 'Duyurular', 'Announcements'],
   ['navigation', 'nav.2', 'Menü: Neden Pereme?', 'Menu: Why Pereme?', 'Neden Pereme?', 'Why Pereme?'],
   ['navigation', 'nav.3', 'Menü: Hikâyeler', 'Menu: Stories', 'Hikâyeler', 'Stories'],
   ['navigation', 'account', 'Hesabım butonu', 'Account button', 'Hesabım', 'My account'],
   ['hero', 'hero.eyebrow', 'Üst etiket', 'Eyebrow', 'İstanbul, suyun öteki tarafından', 'Istanbul, from the other side of the water'],
-  ['hero', 'hero.watch', 'Hizmet bağlantısı', 'Services link', 'Hizmetlerimizi incele', 'Explore our services'],
+  ['hero', 'hero.toursLink', 'Turlar bağlantısı', 'Tours link', 'Turları incele', 'Explore tours'],
   ['hero', 'hero.scroll', 'Aşağı kaydır metni', 'Scroll label', 'Keşfet', 'Explore'],
   ['hero', 'hero.cardLabel', 'Rota kartı üst yazısı', 'Route card label', 'İstanbul Boğazı’nda', 'On the Bosphorus'],
   ['hero', 'hero.cardCount', 'Rota kartı sayısı metni', 'Route card count text', '4 deneyim', '4 experiences'],
@@ -74,6 +82,11 @@ export const homepageTextFields = [
   ['marquee', 'marquee.3', 'Şerit 4', 'Strip 4', 'En iyi fiyat', 'Best price'],
   ['marquee', 'marquee.4', 'Şerit 5', 'Strip 5', '7/24 destek', '24/7 support'],
   ['tours', 'tours.select', 'Tur kartı rezervasyon butonu', 'Tour card booking button', 'Rezervasyon Yap', 'Book now'],
+  ['tours', 'tours.info', 'Tur kartı bilgi butonu', 'Tour card details button', 'Tur bilgisi', 'Tour details'],
+  ['announcements', 'announcements.eyebrow', 'Üst etiket', 'Eyebrow', 'Duyurular', 'Announcements'],
+  ['announcements', 'announcements.lead', 'Başlık', 'Heading', 'Pereme’den', 'News from'],
+  ['announcements', 'announcements.accent', 'Vurgulu başlık', 'Accent', 'haberler', 'Pereme'],
+  ['announcements', 'announcements.more', 'Bağlantı yazısı (boşsa)', 'Default link label', 'Detaylar', 'Details'],
   ['why', 'why.score', 'Gösterilen puan', 'Displayed rating', '4.9', '4.9'],
   ['stories', 'story.note', 'Görsel üstü not', 'Image note', 'İstanbul’a bir de\nburadan bak.', 'See Istanbul from\na different side.'],
   ['stories', 'story.author', 'Yorum sahibi', 'Review author', 'Elif & Mert', 'Elif & Mert'],
@@ -101,15 +114,11 @@ export const homepageImages = [
   { key: 'final', tr: 'Alt rezervasyon bannerı', en: 'Bottom booking banner', fallback: '/assets/ad2ca4f6-d888-4621-b0c1-b3db5903f0ac.webp' },
   { key: 'storyMain', tr: 'Hikâye büyük görseli', en: 'Large story image', fallback: '/assets/tour-sunset.webp' },
   { key: 'storySmall', tr: 'Hikâye küçük görseli', en: 'Small story image', fallback: '/assets/tour-private.webp' },
-  { key: 'turkish-night', tr: 'Türk Gecesi hizmet görseli', en: 'Turkish Night service image', fallback: '/assets/tour-dinner.webp' },
-  { key: 'sunset', tr: 'Sunset hizmet görseli', en: 'Sunset service image', fallback: '/assets/tour-sunset.webp' },
-  { key: 'daytime', tr: 'DayTime hizmet görseli', en: 'DayTime service image', fallback: '/assets/hero-bosphorus.webp' },
-  { key: 'bosphorus', tr: 'Boğaz Turu hizmet görseli', en: 'Bosphorus service image', fallback: '/assets/hero-bosphorus.webp' },
 ] as const
 
 export function normalizeHomepage(document: HomepageContentDocument): HomepageContentDocument {
   const defaults = (language: 'tr' | 'en') => Object.fromEntries(homepageTextFields.map(field => [field[1], field[language === 'tr' ? 4 : 5]]))
-  return { ...document, images: document.images ?? {}, imagePositions: document.imagePositions ?? {}, hiddenSections: document.hiddenSections ?? [],
+  return { ...document, images: document.images ?? {}, imagePositions: document.imagePositions ?? {}, hiddenSections: document.hiddenSections ?? [], announcements: document.announcements ?? [],
     tr: { ...document.tr, texts: { ...defaults('tr'), ...document.tr.texts } },
     en: { ...document.en, texts: { ...defaults('en'), ...document.en.texts } } }
 }

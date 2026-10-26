@@ -15,12 +15,12 @@ type PublicPageLayoutProps = {
 
 const copy = {
   tr: {
-    home: 'Ana sayfa', tours: 'Turlar', services: 'Hizmetlerimiz', faq: 'Sıkça Sorulanlar', contact: 'İletişim',
+    home: 'Ana sayfa', tours: 'Turlar', announcements: 'Duyurular', faq: 'Sıkça Sorulanlar', contact: 'İletişim',
     account: 'Hesabım', admin: 'Yönetim paneli', menu: 'Menüyü aç', close: 'Menüyü kapat',
     tagline: 'İstanbul’un en güzel haline, denizden tanış.', explore: 'Keşfet', support: 'Destek', kvkk: 'KVKK Aydınlatma Metni', contract: 'Mesafeli Satış Sözleşmesi',
   },
   en: {
-    home: 'Home', tours: 'Tours', services: 'Our Services', faq: 'FAQ', contact: 'Contact',
+    home: 'Home', tours: 'Tours', announcements: 'Announcements', faq: 'FAQ', contact: 'Contact',
     account: 'My account', admin: 'Admin panel', menu: 'Open menu', close: 'Close menu',
     tagline: 'Meet Istanbul at its best, from the water.', explore: 'Explore', support: 'Support', kvkk: 'KVKK Notice', contract: 'Distance Sales Agreement',
   },
@@ -44,7 +44,7 @@ export default function PublicPageLayout({ children }: PublicPageLayoutProps) {
       <div className="shell info-header__inner">
         <Link className="info-logo" to="/" aria-label={c.home}><img src="/assets/pereme-logo.svg" alt="Dentur Pereme" /></Link>
         <nav aria-label={c.explore}>
-          <Link to="/#turlar">{c.tours}</Link><Link to="/#hizmetler">{c.services}</Link><Link to="/sikca-sorulan-sorular">{c.faq}</Link><Link to="/iletisim">{c.contact}</Link>
+          <Link to="/#turlar">{c.tours}</Link><Link to="/#duyurular">{c.announcements}</Link><Link to="/sikca-sorulan-sorular">{c.faq}</Link><Link to="/iletisim">{c.contact}</Link>
         </nav>
         <div className="info-header__actions">
           <AccountMenu language={language} />
@@ -57,7 +57,7 @@ export default function PublicPageLayout({ children }: PublicPageLayoutProps) {
     <aside className={`info-mobile-menu ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
       <button type="button" aria-label={c.close} onClick={closeMenu}><X /></button>
       <nav aria-label={c.account}><Link to={user ? '/hesabim' : '/login'} onClick={closeMenu}>{c.account}<UserRound /></Link>{panelHome(user?.role) && <Link to={panelHome(user?.role)!} onClick={closeMenu}>{c.admin}<ArrowRight /></Link>}</nav>
-      <nav><Link to="/" onClick={closeMenu}>{c.home}<ArrowRight /></Link><Link to="/#turlar" onClick={closeMenu}>{c.tours}<ArrowRight /></Link><Link to="/#hizmetler" onClick={closeMenu}>{c.services}<ArrowRight /></Link><Link to="/sikca-sorulan-sorular" onClick={closeMenu}>{c.faq}<ArrowRight /></Link><Link to="/iletisim" onClick={closeMenu}>{c.contact}<ArrowRight /></Link></nav>
+      <nav><Link to="/" onClick={closeMenu}>{c.home}<ArrowRight /></Link><Link to="/#turlar" onClick={closeMenu}>{c.tours}<ArrowRight /></Link><Link to="/#duyurular" onClick={closeMenu}>{c.announcements}<ArrowRight /></Link><Link to="/sikca-sorulan-sorular" onClick={closeMenu}>{c.faq}<ArrowRight /></Link><Link to="/iletisim" onClick={closeMenu}>{c.contact}<ArrowRight /></Link></nav>
       <div>{(['tr', 'en'] as PublicLanguage[]).map((item) => <button className={language === item ? 'active' : ''} type="button" key={item} onClick={() => setLanguage(item)}>{item.toUpperCase()}</button>)}</div>
     </aside>
 
@@ -66,7 +66,7 @@ export default function PublicPageLayout({ children }: PublicPageLayoutProps) {
     <footer className="info-footer">
       <div className="shell info-footer__grid">
         <div><img src="/assets/pereme-logo.svg" alt="Dentur Pereme" /><p>{c.tagline}</p><a href="mailto:merhaba@peremetours.com">merhaba@peremetours.com</a></div>
-        <div><strong>{c.explore}</strong><Link to="/#turlar">{c.tours}</Link><Link to="/#hizmetler">{c.services}</Link></div>
+        <div><strong>{c.explore}</strong><Link to="/#turlar">{c.tours}</Link><Link to="/#duyurular">{c.announcements}</Link></div>
         <div><strong>{c.support}</strong><Link to="/sikca-sorulan-sorular">{c.faq}</Link><Link to="/iletisim">{c.contact}</Link><Link to="/kvkk-aydinlatma-metni">{c.kvkk}</Link><Link to="/mesafeli-satis-sozlesmesi">{c.contract}</Link></div>
       </div>
       <div className="shell info-footer__bottom">© 2026 {SITE_NAME}</div>

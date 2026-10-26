@@ -198,3 +198,20 @@
   .ticket-error-filters button svg { width: 13px; }
   .ticket-error-card__main strong { font-size: 13px; }
 }
+.announcement-editor-list { display: grid; gap: 14px; margin-top: 18px; }
+.announcement-editor-list > article { padding: 18px; border: 1px solid rgba(106,157,210,.25); border-radius: 12px; background: #fff; }
+.announcement-editor-list > article > header { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 14px; }
+.announcement-editor-list > article > header > div { display: flex; gap: 6px; margin-left: auto; }
+.announcement-editor-list > article > header button { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid rgba(31,71,140,.15); border-radius: 7px; color: #1f478c; background: #fff; }
+.announcement-editor-list > article > header button:disabled { opacity: .4; }
+.announcement-editor-published { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.announcement-editor-error { color: #b42318; font-weight: 700; }
+.announcement-editor-image { display: flex; align-items: center; gap: 16px; margin-top: 14px; }
+.announcement-editor-image > img { width: 160px; aspect-ratio: 16 / 9; border-radius: 8px; object-fit: cover; }
+.announcement-editor-image > div { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.announcement-editor-image button { padding: 0; border: 0; color: #1f478c; background: transparent; font-size: 11px; text-decoration: underline; }
+.announcement-editor-add { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 11px 15px; border: 1px dashed #6a9dd2; border-radius: 10px; color: #1f478c; background: #fff; font-size: 12px; font-weight: 700; }
+.announcement-editor-add svg { width: 16px; }
+.announcement-editor-list .announcement-editor-published { display: flex; flex-direction: row; align-items: center; gap: 8px; color: #1f478c; font-size: 12px; font-weight: 700; }
+.announcement-editor-list .announcement-editor-published input { width: 16px; height: 16px; min-height: 0; margin: 0; padding: 0; accent-color: #1f478c; }
+.announcement-editor-image strong { font-size: 12px; }

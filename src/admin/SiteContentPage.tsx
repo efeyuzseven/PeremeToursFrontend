@@ -1,15 +1,20 @@
-import { Camera, ExternalLink, ImagePlus, LayoutTemplate, Plus, Save, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Camera, ExternalLink, ImagePlus, LayoutTemplate, Megaphone, Plus, Save, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { homepageImages, homepageTextFields, normalizeHomepage, type HomepageContentDocument } from '../content/homepage'
+import { homepageImages, homepageTextFields, normalizeHomepage, type HomepageAnnouncement, type HomepageContentDocument } from '../content/homepage'
 import { ApiError, apiBaseUrl, apiRequest, apiUpload } from '../lib/api'
 import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
 
 const copy = {
   tr: { title: 'Site İçerikleri', subtitle: 'Ana sayfanın görsellerini, metinlerini ve bölüm görünürlüğünü yönetin. TR / EN taslakları birlikte kaydedilir.',
-    hero: 'Ana giriş alanı', tours: 'Turlar alanı', services: 'Hizmetlerimiz', why: 'Neden Pereme?', stories: 'Hikâyeler & Instagram', final: 'Son rezervasyon çağrısı',
+    hero: 'Ana giriş alanı', tours: 'Turlar alanı', announcements: 'Duyurular', why: 'Neden Pereme?',
+    announcementsHelp: 'Ana sayfada tur kartlarının altında, bu sırayla görünür. Yayında duyuru yoksa bölüm ve menüdeki “Duyurular” bağlantısı gizlenir.',
+    addAnnouncement: 'Duyuru ekle', announcement: 'Duyuru', published: 'Yayında', announcementTitle: 'Başlık', announcementBody: 'Metin',
+    announcementDate: 'Tarih (isteğe bağlı)', announcementLink: 'Bağlantı (isteğe bağlı): https://… veya /tur/3 gibi site içi adres', announcementLinkLabel: 'Bağlantı yazısı (boşsa “Detaylar”)',
+    announcementImage: 'Görsel (isteğe bağlı)', removeImage: 'Görseli kaldır', removeAnnouncement: 'Duyuruyu sil', removeAnnouncementConfirm: 'Bu duyuru silinsin mi?',
+    moveUp: 'Yukarı taşı', moveDown: 'Aşağı taşı', titleMissing: 'Türkçe başlık zorunludur.', stories: 'Hikâyeler & Instagram', final: 'Son rezervasyon çağrısı',
     navigation: 'Menü yazıları', booking: 'Tur arama ve kategori yazıları', marquee: 'Kayan bilgi şeridi', footer: 'Alt bilgi', images: 'Kapak ve bölüm görselleri',
     lead: 'Ana başlık', accent: 'Vurgulu başlık', description: 'Açıklama', eyebrow: 'Üst etiket', reviews: 'Puan altı metni', titleLabel: 'Başlık', browse: 'Turları gör butonu', bookingLabel: 'Rezervasyon butonu',
     quote: 'Instagram videosu yoksa gösterilecek yorum', meta: 'Yorum bilgisi', pre: 'Üst metin', action: 'Buton metni',
@@ -21,7 +26,12 @@ const copy = {
     dirty: 'Kaydedilmemiş değişiklikler var.', clean: 'İçerikler güncel.', preview: 'Ana sayfayı aç', hint: 'Tur sayfalarının kapak ve bölümleri: Tur Sayfaları. Satılan tur kartlarının yazı ve görselleri: Tur İçerikleri.',
     leave: 'Kaydedilmemiş değişiklikler var. Sayfadan ayrılmak istiyor musunuz?' },
   en: { title: 'Site Content', subtitle: 'Manage homepage images, text and section visibility. TR / EN drafts are saved together.',
-    hero: 'Hero section', tours: 'Tours section', services: 'Our Services', why: 'Why Pereme?', stories: 'Stories & Instagram', final: 'Final booking call',
+    hero: 'Hero section', tours: 'Tours section', announcements: 'Announcements', why: 'Why Pereme?',
+    announcementsHelp: 'Shown on the homepage below the tour cards, in this order. Without a published announcement the section and its menu link are hidden.',
+    addAnnouncement: 'Add announcement', announcement: 'Announcement', published: 'Published', announcementTitle: 'Title', announcementBody: 'Text',
+    announcementDate: 'Date (optional)', announcementLink: 'Link (optional): https://… or a site path such as /tur/3', announcementLinkLabel: 'Link label (defaults to “Details”)',
+    announcementImage: 'Image (optional)', removeImage: 'Remove image', removeAnnouncement: 'Delete announcement', removeAnnouncementConfirm: 'Delete this announcement?',
+    moveUp: 'Move up', moveDown: 'Move down', titleMissing: 'A Turkish title is required.', stories: 'Stories & Instagram', final: 'Final booking call',
     navigation: 'Menu labels', booking: 'Tour search and category labels', marquee: 'Scrolling information strip', footer: 'Footer', images: 'Cover and section images',
     lead: 'Main heading', accent: 'Accent heading', description: 'Description', eyebrow: 'Eyebrow', reviews: 'Rating subtext', titleLabel: 'Title', browse: 'View tours button', bookingLabel: 'Booking button',
     quote: 'Fallback review when no Instagram video exists', meta: 'Review details', pre: 'Top text', action: 'Button label',
@@ -34,7 +44,8 @@ const copy = {
     leave: 'You have unsaved changes. Leave this page?' },
 }
 
-type Section = 'hero' | 'tours' | 'services' | 'why' | 'stories' | 'final'
+type Section = 'hero' | 'tours' | 'why' | 'stories' | 'final'
+const emptyAnnouncementText = { title: '', body: null, linkLabel: null }
 export default function SiteContentPage() {
   const { language } = useOutletContext<{ language: AdminLanguage }>()
   const { session } = useAuth()
@@ -96,17 +107,27 @@ export default function SiteContentPage() {
     } catch (caught) { setError(caught instanceof ApiError ? caught.message : c.error) }
     finally { busyRef.current = false; setSaving(false) }
   }
-  const upload = async (key: string, file?: File) => {
+  // Uploads go to the homepage image store; by default the URL fills the image slot with this key.
+  const upload = async (key: string, file?: File, apply?: (url: string) => void) => {
     if (!file || busyRef.current) return
     if (file.size <= 0 || file.size > 8 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setError(c.imageHelp); return }
     busyRef.current = true; setUploading(key); setError(''); setSuccess('')
     try {
       const data = new FormData(); data.append('file', file)
       const result = await apiUpload<{ url: string }>('/api/v1/admin/site-content/homepage/images', data, session!.accessToken)
-      change(current => ({ ...current, images: { ...current.images, [key]: result.url } }))
+      if (apply) apply(result.url)
+      else change(current => ({ ...current, images: { ...current.images, [key]: result.url } }))
     } catch (caught) { setError(caught instanceof ApiError ? caught.message : c.error) }
     finally { busyRef.current = false; setUploading(null) }
   }
+  const announcements = content?.announcements ?? []
+  const changeAnnouncements = (update: (current: HomepageAnnouncement[]) => HomepageAnnouncement[]) =>
+    change(current => ({ ...current, announcements: update(current.announcements ?? []) }))
+  const editAnnouncement = (id: string, update: (current: HomepageAnnouncement) => HomepageAnnouncement) =>
+    changeAnnouncements(items => items.map(item => item.id === id ? update(item) : item))
+  const moveAnnouncement = (index: number, step: -1 | 1) => changeAnnouncements(items => {
+    const next = [...items]; [next[index], next[index + step]] = [next[index + step], next[index]]; return next
+  })
   if (loading) return <div className="site-content-loading"><span className="button-spinner" /></div>
   if (!content) return <div className="admin-alert" role="alert">{error || c.error}</div>
   const current = content[editLanguage]
@@ -126,8 +147,44 @@ export default function SiteContentPage() {
             <label>{c.focus}<select value={content.imagePositions?.[slot.key] ?? 'center'} onChange={event => { const value = event.target.value; change(draft => ({ ...draft, imagePositions: { ...draft.imagePositions, [slot.key]: value } })) }}>{['center', 'top', 'bottom', 'left', 'right'].map((position, index) => <option key={position} value={position}>{c.positions[index]}</option>)}</select></label>
           </article>
         })}</div></section>
-        <section><header><LayoutTemplate /><h2>{c.visibility}</h2></header><div className="homepage-visibility">{(['heroCard', 'marquee', 'services', 'why', 'stories', 'final'] as const).map(key => <label key={key}><input type="checkbox" checked={!content.hiddenSections?.includes(key)} onChange={event => { const visible = event.target.checked; change(draft => ({ ...draft, hiddenSections: visible ? draft.hiddenSections!.filter(item => item !== key) : [...draft.hiddenSections!, key] })) }} />{c.visible}: {c[key]}</label>)}</div></section>
-        {(['hero', 'tours', 'services', 'why', 'stories', 'final'] as const).map(section => <section key={section} data-content-section={section}><header>{section === 'stories' ? <Camera /> : <LayoutTemplate />}<div><h2>{c[section]}</h2></div></header>
+        <section><header><LayoutTemplate /><h2>{c.visibility}</h2></header><div className="homepage-visibility">{(['heroCard', 'marquee', 'announcements', 'why', 'stories', 'final'] as const).map(key => <label key={key}><input type="checkbox" checked={!content.hiddenSections?.includes(key)} onChange={event => { const visible = event.target.checked; change(draft => ({ ...draft, hiddenSections: visible ? draft.hiddenSections!.filter(item => item !== key) : [...draft.hiddenSections!, key] })) }} />{c.visible}: {c[key]}</label>)}</div></section>
+        <section data-content-section="announcements"><header><Megaphone /><div><h2>{c.announcements}</h2><p>{c.announcementsHelp}</p></div></header>
+          <div className="site-content-fields">{extraFields('announcements')}</div>
+          <div className="announcement-editor-list">{announcements.map((item, index) => {
+            const text = item[editLanguage]
+            const setText = (key: keyof HomepageAnnouncement['tr'], value: string) => editAnnouncement(item.id, entry => ({ ...entry, [editLanguage]: { ...entry[editLanguage], [key]: key === 'title' ? value : value || null } }))
+            const imageUrl = item.imageUrl ? (item.imageUrl.startsWith('/api/') ? `${apiBaseUrl}${item.imageUrl}` : item.imageUrl) : null
+            return <article key={item.id} data-announcement={item.id}>
+              <header><strong>{c.announcement} {index + 1}</strong>
+                <label className="announcement-editor-published"><input type="checkbox" checked={item.isVisible} onChange={event => { const value = event.target.checked; editAnnouncement(item.id, entry => ({ ...entry, isVisible: value })) }} />{c.published}</label>
+                <div>
+                  <button type="button" aria-label={c.moveUp} disabled={index === 0} onClick={() => moveAnnouncement(index, -1)}><ArrowUp size={15} /></button>
+                  <button type="button" aria-label={c.moveDown} disabled={index === announcements.length - 1} onClick={() => moveAnnouncement(index, 1)}><ArrowDown size={15} /></button>
+                  <button type="button" aria-label={c.removeAnnouncement} onClick={() => { if (window.confirm(c.removeAnnouncementConfirm)) changeAnnouncements(items => items.filter(entry => entry.id !== item.id)) }}><Trash2 size={15} /></button>
+                </div>
+              </header>
+              <div className="site-content-fields">
+                <label className="field-wide">{c.announcementTitle}<input maxLength={160} value={text.title} placeholder={editLanguage === 'en' ? item.tr.title : undefined} onChange={event => setText('title', event.target.value)} />
+                  {editLanguage === 'tr' && !item.tr.title.trim() && <small className="announcement-editor-error">{c.titleMissing}</small>}</label>
+                <label className="field-wide">{c.announcementBody}<textarea rows={4} maxLength={1500} value={text.body ?? ''} onChange={event => setText('body', event.target.value)} /></label>
+                <label>{c.announcementDate}<input type="date" value={item.date ?? ''} onChange={event => { const value = event.target.value; editAnnouncement(item.id, entry => ({ ...entry, date: value || null })) }} /></label>
+                <label>{c.announcementLinkLabel}<input maxLength={60} value={text.linkLabel ?? ''} onChange={event => setText('linkLabel', event.target.value)} /></label>
+                <label className="field-wide">{c.announcementLink}<input maxLength={500} value={item.linkUrl ?? ''} placeholder="https://…" onChange={event => { const value = event.target.value.trim(); editAnnouncement(item.id, entry => ({ ...entry, linkUrl: value || null })) }} /></label>
+              </div>
+              <div className="announcement-editor-image">
+                {imageUrl && <img src={imageUrl} alt="" />}
+                <div><strong>{c.announcementImage}</strong>
+                  <label className="homepage-image-upload"><ImagePlus size={15} />{uploading === item.id ? c.saving : c.choose}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; void upload(item.id, file, url => editAnnouncement(item.id, entry => ({ ...entry, imageUrl: url }))) }} /></label>
+                  {imageUrl && <button type="button" onClick={() => editAnnouncement(item.id, entry => ({ ...entry, imageUrl: null }))}>{c.removeImage}</button>}
+                </div>
+              </div>
+            </article>
+          })}</div>
+          {announcements.length < 12 && <button className="announcement-editor-add" type="button" onClick={() => changeAnnouncements(items => [...items, {
+            id: crypto.randomUUID(), isVisible: true, date: null, imageUrl: null, linkUrl: null, tr: { ...emptyAnnouncementText }, en: { ...emptyAnnouncementText },
+          }])}><Plus />{c.addAnnouncement}</button>}
+        </section>
+        {(['hero', 'tours', 'why', 'stories', 'final'] as const).map(section => <section key={section} data-content-section={section}><header>{section === 'stories' ? <Camera /> : <LayoutTemplate />}<div><h2>{c[section]}</h2></div></header>
           <div className="site-content-fields">
             {/* The tours section has no heading on the site any more; only the card button label is editable. */}
             {section !== 'hero' && section !== 'final' && section !== 'tours' && textField(section, 'eyebrow', c.eyebrow)}
@@ -138,7 +195,6 @@ export default function SiteContentPage() {
             {section === 'final' && <>{textField(section, 'pre', c.pre)}{textField(section, 'title', c.titleLabel)}{textField(section, 'action', c.action)}</>}
             {extraFields(section)}
           </div>
-          {section === 'services' && <div className="site-content-repeat-grid">{current.services.items.map((item, index) => <article key={item.categoryKey}><strong>{item.categoryKey}</strong>{(['title', 'description', 'browseLabel', 'bookingLabel'] as const).map(key => <label key={key}>{key === 'title' ? c.titleLabel : key === 'description' ? c.description : key === 'browseLabel' ? c.browse : c.bookingLabel}<textarea rows={key === 'description' ? 3 : 1} maxLength={3000} value={item[key]} onChange={event => { const value = event.target.value; change(draft => ({ ...draft, [editLanguage]: { ...draft[editLanguage], services: { ...draft[editLanguage].services, items: draft[editLanguage].services.items.map((entry, i) => i === index ? { ...entry, [key]: value } : entry) } } })) }} /></label>)}</article>)}</div>}
           {section === 'why' && <div className="site-content-repeat-grid">{current.why.benefits.map((item, index) => <article key={index}><strong>{index + 1}</strong>{(['title', 'description'] as const).map(key => <label key={key}>{key === 'title' ? c.titleLabel : c.description}<textarea rows={key === 'description' ? 3 : 1} maxLength={3000} value={item[key]} onChange={event => { const value = event.target.value; change(draft => ({ ...draft, [editLanguage]: { ...draft[editLanguage], why: { ...draft[editLanguage].why, benefits: draft[editLanguage].why.benefits.map((entry, i) => i === index ? { ...entry, [key]: value } : entry) } } })) }} /></label>)}</article>)}</div>}
           {section === 'stories' && <div className="instagram-url-list"><p>{c.instagramHelp}</p>{content.instagramUrls.map((url, index) => <div key={index}><Camera /><input aria-label={`Instagram ${index + 1}`} type="url" value={url} placeholder="https://www.instagram.com/reel/.../" onChange={event => { const value = event.target.value; change(draft => ({ ...draft, instagramUrls: draft.instagramUrls.map((entry, i) => i === index ? value : entry) })) }} />{url.startsWith('https://') && <a href={url} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><ExternalLink /></a>}<button type="button" aria-label={language === 'tr' ? 'Bağlantıyı kaldır' : 'Remove link'} onClick={() => change(draft => ({ ...draft, instagramUrls: draft.instagramUrls.filter((_, i) => i !== index) }))}><Trash2 /></button></div>)}{content.instagramUrls.length < 6 && <button type="button" onClick={() => change(draft => ({ ...draft, instagramUrls: [...draft.instagramUrls, ''] }))}><Plus />{c.addInstagram}</button>}</div>}
         </section>)}

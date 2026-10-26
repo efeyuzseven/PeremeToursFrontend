@@ -1,4 +1,4 @@
-import { Camera, ExternalLink, ImagePlus, LayoutTemplate, Plus, Save, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Camera, ExternalLink, ImagePlus, LayoutTemplate, Save, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
@@ -10,27 +10,27 @@ import type { AdminLanguage } from './AdminLayout'
 const copy = {
   tr: { title: 'Site İçerikleri', subtitle: 'Ana sayfanın görsellerini, metinlerini ve bölüm görünürlüğünü yönetin. TR / EN taslakları birlikte kaydedilir.',
     hero: 'Ana giriş alanı', tours: 'Turlar alanı', why: 'Neden Pereme?',
- stories: 'Hikâyeler & Instagram', final: 'Son rezervasyon çağrısı',
+ stories: 'Hikâyeler & Fotoğraflar', final: 'Son rezervasyon çağrısı',
     navigation: 'Menü yazıları', booking: 'Tur arama ve kategori yazıları', marquee: 'Kayan bilgi şeridi', footer: 'Alt bilgi', images: 'Kapak ve bölüm görselleri',
     lead: 'Ana başlık', accent: 'Vurgulu başlık', description: 'Açıklama', eyebrow: 'Üst etiket', reviews: 'Puan altı metni', titleLabel: 'Başlık', browse: 'Turları gör butonu', bookingLabel: 'Rezervasyon butonu',
-    quote: 'Instagram videosu yoksa gösterilecek yorum', meta: 'Yorum bilgisi', pre: 'Üst metin', action: 'Buton metni',
+    quote: 'Fotoğraf yoksa gösterilecek yorum', meta: 'Yorum bilgisi', pre: 'Üst metin', action: 'Buton metni',
     imageHelp: 'JPG, PNG veya WebP · En fazla 8 MB. Görseller iki dil için ortaktır. Yükledikten sonra içerikleri kaydedin. Tur kartı görselleri ayrıca Tur İçerikleri ekranındadır.',
     choose: 'Görsel yükle', reset: 'Varsayılanı kullan', focus: 'Görsel odak noktası', positions: ['Orta', 'Üst', 'Alt', 'Sol', 'Sağ'],
     visibility: 'Bölüm görünürlüğü', visible: 'Göster', heroCard: 'Ana kapak rota kartı',
-    instagramHelp: 'En fazla 6 herkese açık Instagram Reel / gönderi bağlantısı.', addInstagram: 'Instagram bağlantısı ekle',
+    photosHelp: 'En fazla 6 fotoğraf. Ana sayfada yan yana görünür; fotoğraf yoksa görsel kolajı ve misafir yorumu gösterilir. JPG, PNG veya WebP · En fazla 8 MB.', addPhoto: 'Fotoğraf ekle', moveLeft: 'Sola taşı', moveRight: 'Sağa taşı', removePhoto: 'Fotoğrafı kaldır',
     save: 'Tüm değişiklikleri kaydet', saving: 'Kaydediliyor...', saved: 'İki dildeki içerikler ve görseller kaydedildi.', error: 'İşlem tamamlanamadı. Lütfen tekrar deneyin.',
     dirty: 'Kaydedilmemiş değişiklikler var.', clean: 'İçerikler güncel.', preview: 'Ana sayfayı aç', hint: 'Tur sayfalarının kapak ve bölümleri: Tur Sayfaları. Satılan tur kartlarının yazı ve görselleri: Tur İçerikleri.',
     leave: 'Kaydedilmemiş değişiklikler var. Sayfadan ayrılmak istiyor musunuz?' },
   en: { title: 'Site Content', subtitle: 'Manage homepage images, text and section visibility. TR / EN drafts are saved together.',
     hero: 'Hero section', tours: 'Tours section', why: 'Why Pereme?',
- stories: 'Stories & Instagram', final: 'Final booking call',
+ stories: 'Stories & Photos', final: 'Final booking call',
     navigation: 'Menu labels', booking: 'Tour search and category labels', marquee: 'Scrolling information strip', footer: 'Footer', images: 'Cover and section images',
     lead: 'Main heading', accent: 'Accent heading', description: 'Description', eyebrow: 'Eyebrow', reviews: 'Rating subtext', titleLabel: 'Title', browse: 'View tours button', bookingLabel: 'Booking button',
-    quote: 'Fallback review when no Instagram video exists', meta: 'Review details', pre: 'Top text', action: 'Button label',
+    quote: 'Fallback review when no photos are added', meta: 'Review details', pre: 'Top text', action: 'Button label',
     imageHelp: 'JPG, PNG or WebP · Up to 8 MB. Images are shared across languages. Save content after uploading. Tour card images are managed in Tour Content.',
     choose: 'Upload image', reset: 'Use default', focus: 'Image focal point', positions: ['Centre', 'Top', 'Bottom', 'Left', 'Right'],
     visibility: 'Section visibility', visible: 'Show', heroCard: 'Hero route card',
-    instagramHelp: 'Up to 6 public Instagram Reel / post links.', addInstagram: 'Add Instagram link',
+    photosHelp: 'Up to 6 photos, shown side by side on the homepage; without photos the image collage and guest review are shown. JPG, PNG or WebP · Up to 8 MB.', addPhoto: 'Add photo', moveLeft: 'Move left', moveRight: 'Move right', removePhoto: 'Remove photo',
     save: 'Save all changes', saving: 'Saving...', saved: 'Both language drafts and images saved.', error: 'Could not complete the request. Please try again.',
     dirty: 'You have unsaved changes.', clean: 'Content is up to date.', preview: 'Open homepage', hint: 'Tour page covers and sections: Tour Pages. Tour card copy and images: Tour Content.',
     leave: 'You have unsaved changes. Leave this page?' },
@@ -100,14 +100,15 @@ export default function SiteContentPage() {
     } catch (caught) { setError(caught instanceof ApiError ? caught.message : c.error) }
     finally { busyRef.current = false; setSaving(false) }
   }
-  const upload = async (key: string, file?: File) => {
+  const upload = async (key: string, file?: File, apply?: (url: string) => void) => {
     if (!file || busyRef.current) return
     if (file.size <= 0 || file.size > 8 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setError(c.imageHelp); return }
     busyRef.current = true; setUploading(key); setError(''); setSuccess('')
     try {
       const data = new FormData(); data.append('file', file)
       const result = await apiUpload<{ url: string }>('/api/v1/admin/site-content/homepage/images', data, session!.accessToken)
-      change(current => ({ ...current, images: { ...current.images, [key]: result.url } }))
+      if (apply) apply(result.url)
+      else change(current => ({ ...current, images: { ...current.images, [key]: result.url } }))
     } catch (caught) { setError(caught instanceof ApiError ? caught.message : c.error) }
     finally { busyRef.current = false; setUploading(null) }
   }
@@ -143,7 +144,16 @@ export default function SiteContentPage() {
             {extraFields(section)}
           </div>
           {section === 'why' && <div className="site-content-repeat-grid">{current.why.benefits.map((item, index) => <article key={index}><strong>{index + 1}</strong>{(['title', 'description'] as const).map(key => <label key={key}>{key === 'title' ? c.titleLabel : c.description}<textarea rows={key === 'description' ? 3 : 1} maxLength={3000} value={item[key]} onChange={event => { const value = event.target.value; change(draft => ({ ...draft, [editLanguage]: { ...draft[editLanguage], why: { ...draft[editLanguage].why, benefits: draft[editLanguage].why.benefits.map((entry, i) => i === index ? { ...entry, [key]: value } : entry) } } })) }} /></label>)}</article>)}</div>}
-          {section === 'stories' && <div className="instagram-url-list"><p>{c.instagramHelp}</p>{content.instagramUrls.map((url, index) => <div key={index}><Camera /><input aria-label={`Instagram ${index + 1}`} type="url" value={url} placeholder="https://www.instagram.com/reel/.../" onChange={event => { const value = event.target.value; change(draft => ({ ...draft, instagramUrls: draft.instagramUrls.map((entry, i) => i === index ? value : entry) })) }} />{url.startsWith('https://') && <a href={url} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><ExternalLink /></a>}<button type="button" aria-label={language === 'tr' ? 'Bağlantıyı kaldır' : 'Remove link'} onClick={() => change(draft => ({ ...draft, instagramUrls: draft.instagramUrls.filter((_, i) => i !== index) }))}><Trash2 /></button></div>)}{content.instagramUrls.length < 6 && <button type="button" onClick={() => change(draft => ({ ...draft, instagramUrls: [...draft.instagramUrls, ''] }))}><Plus />{c.addInstagram}</button>}</div>}
+          {section === 'stories' && <div className="story-photo-editor"><p>{c.photosHelp}</p>
+            <div>{(content.storyPhotos ?? []).map((url, index, photos) => <figure key={`${url}-${index}`}><img src={url.startsWith('/api/') ? `${apiBaseUrl}${url}` : url} alt="" />
+              <div>
+                <button type="button" aria-label={c.moveLeft} disabled={index === 0} onClick={() => change(draft => { const next = [...draft.storyPhotos!]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return { ...draft, storyPhotos: next } })}><ArrowLeft size={15} /></button>
+                <button type="button" aria-label={c.moveRight} disabled={index === photos.length - 1} onClick={() => change(draft => { const next = [...draft.storyPhotos!]; [next[index + 1], next[index]] = [next[index], next[index + 1]]; return { ...draft, storyPhotos: next } })}><ArrowRight size={15} /></button>
+                <button type="button" aria-label={c.removePhoto} onClick={() => change(draft => ({ ...draft, storyPhotos: draft.storyPhotos!.filter((_, i) => i !== index) }))}><Trash2 size={15} /></button>
+              </div>
+            </figure>)}</div>
+            {(content.storyPhotos?.length ?? 0) < 6 && <label className="homepage-image-upload"><ImagePlus size={15} />{uploading === 'story-photo' ? c.saving : c.addPhoto}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; void upload('story-photo', file, url => change(draft => ({ ...draft, storyPhotos: [...(draft.storyPhotos ?? []), url] }))) }} /></label>}
+          </div>}
         </section>)}
         {(['navigation', 'booking', 'marquee', 'footer'] as const).map(group => <section key={group}><header><LayoutTemplate /><h2>{c[group]}</h2></header><div className="site-content-fields">{extraFields(group)}</div></section>)}
       </fieldset>

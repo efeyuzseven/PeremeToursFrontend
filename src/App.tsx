@@ -233,7 +233,7 @@ const copy = {
     },
     story: {
       eyebrow: 'Instagram’dan Pereme', lead: 'Boğaz’daki anlara', accent: 'yakından bak.',
-      description: 'Dentur | Pereme Tours Instagram hesabındaki güncel videoları ve misafir anlarını keşfet.',
+      description: 'Boğaz’dan anlar ve misafirlerimizin en güzel kareleri.',
       note: 'İstanbul’a bir de\nburadan bak.',
       quote: '“Gün batımı çok güzeldi ama asıl fark, ekibin küçük detayları düşünmesiydi. Kendimizi turist gibi değil, İstanbul’un misafiri gibi hissettik.”',
       meta: 'Ankara · Gün Batımı Turu',
@@ -299,7 +299,7 @@ const copy = {
     },
     story: {
       eyebrow: 'Pereme on Instagram', lead: 'See moments from', accent: 'the Bosphorus.',
-      description: 'Discover recent videos and guest moments from the Dentur | Pereme Tours Instagram account.',
+      description: 'Moments from the Bosphorus and our guests’ favourite shots.',
       note: 'See Istanbul from\na different side.',
       quote: '“The sunset was beautiful, but the real difference was the team’s attention to every small detail. We felt like guests of Istanbul, not tourists.”',
       meta: 'Ankara · Sunset Cruise',
@@ -344,16 +344,6 @@ const tomorrow = () => {
 }
 
 const today = toIsoDate(new Date())
-
-const instagramEmbedUrl = (url: string) => {
-  try {
-    const parsed = new URL(url)
-    const pathname = parsed.pathname.replace(/\/+$/, '')
-    return `${parsed.origin}${pathname}/embed/`
-  } catch {
-    return ''
-  }
-}
 
 function Logo({ light = false, language = 'tr' }: { light?: boolean; language?: Language }) {
   return (
@@ -520,7 +510,10 @@ function App() {
 
   const benefits = page?.why.benefits
     ?? c.why.benefits.map(([title, description]) => ({ title, description }))
-  const instagramUrls = homepageContent?.instagramUrls ?? []
+  // Story photos replace the Instagram video embeds, which could not autoplay and slowed the page down.
+  const storyPhotos = homepageReady ? homepageContent?.storyPhotos ?? [] : []
+  const instagramUrl = t('story.instagramUrl', INSTAGRAM_PROFILE_URL).trim()
+  const instagramLink = instagramUrl.startsWith('https://www.instagram.com/') ? instagramUrl : INSTAGRAM_PROFILE_URL
 
   return (
     <main id="top">
@@ -673,7 +666,12 @@ function App() {
 
       {!hidden('stories') && <section className="stories" id="hikayeler">
         <div className="shell"><div className="stories__heading"><div className="eyebrow"><Camera size={17} /> {page?.stories.eyebrow ?? c.story.eyebrow}</div><h2>{page?.stories.lead ?? c.story.lead} <em>{page?.stories.accent ?? c.story.accent}</em></h2><p>{page?.stories.description ?? c.story.description}</p></div>
-          {instagramUrls.length > 0 ? <div className="instagram-grid">{instagramUrls.map((url) => { const embedUrl = instagramEmbedUrl(url); return embedUrl && <iframe key={url} src={embedUrl} title={`${SITE_NAME} Instagram`} loading="lazy" allowFullScreen /> })}</div> : <div className="stories__inner stories__inner--fallback">
+          {storyPhotos.length > 0 ? <div className="story-photos-wrap">
+            <div className="story-photos" style={{ '--count': storyPhotos.length } as CSSProperties}>{storyPhotos.map((url, index) => <figure key={`${url}-${index}`}>
+              <img src={url.startsWith('/api/') ? `${apiBaseUrl}${url}` : url} alt={`${SITE_NAME} ${index + 1}`} loading="lazy" decoding="async" />
+            </figure>)}</div>
+            <a className="story-photos__follow" href={instagramLink} target="_blank" rel="noopener noreferrer"><Camera size={18} /> {t('story.instagramLabel', language === 'tr' ? 'Instagram’da takip et' : 'Follow us on Instagram')}</a>
+          </div> : <div className="stories__inner stories__inner--fallback">
             <div className="story-collage" aria-hidden="true"><img className="story-collage__main" src={image('storyMain', '/assets/tour-sunset.webp')} style={{ objectPosition: position('storyMain') }} alt="" /><img className="story-collage__small" src={image('storySmall', '/assets/tour-private.webp')} style={{ objectPosition: position('storySmall') }} alt="" /><div className="story-collage__note"><span>“</span>{c.story.note.split('\n').map((line, index) => <span className="story-note__line" key={index}>{line}</span>)}</div></div>
             <div className="testimonial"><Quote size={40} /><blockquote>{page?.stories.quote ?? c.story.quote}</blockquote><div className="testimonial__person"><div>{t('story.initials', 'EM')}</div><span><strong>{t('story.author', 'Elif & Mert')}</strong>{page?.stories.meta ?? c.story.meta}</span></div></div>
           </div>}

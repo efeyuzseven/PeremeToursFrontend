@@ -39,6 +39,8 @@ export type HomepageContentDocument = {
   imagePositions?: Record<string, string>
   hiddenSections?: string[]
   announcements?: HomepageAnnouncement[]
+  // Up to 6 photos shown side by side in the stories section.
+  storyPhotos?: string[]
 }
 
 export type HomepageAnnouncementText = { title: string; body: string | null; linkLabel: string | null }
@@ -87,6 +89,8 @@ export const homepageTextFields = [
   ['stories', 'story.note', 'Görsel üstü not', 'Image note', 'İstanbul’a bir de\nburadan bak.', 'See Istanbul from\na different side.'],
   ['stories', 'story.author', 'Yorum sahibi', 'Review author', 'Elif & Mert', 'Elif & Mert'],
   ['stories', 'story.initials', 'Yorum sahibi baş harfleri', 'Review initials', 'EM', 'EM'],
+  ['stories', 'story.instagramLabel', 'Instagram butonu yazısı', 'Instagram button label', 'Instagram’da takip et', 'Follow us on Instagram'],
+  ['stories', 'story.instagramUrl', 'Instagram profil bağlantısı', 'Instagram profile link', 'https://www.instagram.com/peremetours/', 'https://www.instagram.com/peremetours/'],
   ['footer', 'footer.tagline', 'Alt bilgi sloganı', 'Footer tagline', 'İstanbul’un en güzel haline,\ndenizden tanış.', 'Meet Istanbul at its best,\nfrom the water.'],
   ['footer', 'footer.email', 'Alt bilgi iletişim e-postası', 'Footer contact email', 'merhaba@peremetours.com', 'merhaba@peremetours.com'],
   ['footer', 'footer.copyright', 'Telif yazısı', 'Copyright text', '© 2026 Dentur | Pereme Tours', '© 2026 Dentur | Pereme Tours'],
@@ -114,7 +118,7 @@ export const homepageImages = [
 
 export function normalizeHomepage(document: HomepageContentDocument): HomepageContentDocument {
   const defaults = (language: 'tr' | 'en') => Object.fromEntries(homepageTextFields.map(field => [field[1], field[language === 'tr' ? 4 : 5]]))
-  return { ...document, images: document.images ?? {}, imagePositions: document.imagePositions ?? {}, hiddenSections: document.hiddenSections ?? [], announcements: document.announcements ?? [],
+  return { ...document, images: document.images ?? {}, imagePositions: document.imagePositions ?? {}, hiddenSections: document.hiddenSections ?? [], announcements: document.announcements ?? [], storyPhotos: document.storyPhotos ?? [],
     tr: { ...document.tr, texts: { ...defaults('tr'), ...document.tr.texts } },
     en: { ...document.en, texts: { ...defaults('en'), ...document.en.texts } } }
 }

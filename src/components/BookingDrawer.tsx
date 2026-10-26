@@ -10,6 +10,7 @@ import { BookingSelect } from './BookingSelect'
 import { PassengerForm } from './PassengerForm'
 import { BookingPayment } from './BookingPayment'
 import { getPaymentRecovery, type PaymentAvailability } from '../lib/payments'
+import type { BookingLinkSelection } from '../lib/booking-link'
 import { emptyPassenger, isCompletePassenger, istanbulToday, maskIdentity, passengerTexts, type PassengerDetails } from '../lib/passengers'
 import './booking.css'
 
@@ -48,9 +49,9 @@ const texts = {
   },
 }
 
-export function BookingDrawer({ tour, language, initialDate, initialGuests, onClose }: {
+export function BookingDrawer({ tour, language, initialDate, initialGuests, initialSelection, onClose }: {
   tour: { id: number; title: Record<'tr' | 'en', string>; image: string; duration: Record<'tr' | 'en', string> }
-  language: 'tr' | 'en'; initialDate: string; initialGuests: number; onClose: () => void
+  language: 'tr' | 'en'; initialDate: string; initialGuests: number; initialSelection?: BookingLinkSelection; onClose: () => void
 }) {
   const { user, session } = useAuth()
   const c = texts[language]
@@ -59,9 +60,9 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
   const [options, setOptions] = useState<PortAvailability[] | null>(null)
   const [error, setError] = useState(false)
   const [reload, setReload] = useState(0)
-  const [portId, setPortId] = useState(0)
-  const [date, setDate] = useState(initialDate)
-  const [departureId, setDepartureId] = useState(0)
+  const [portId, setPortId] = useState(initialSelection?.portId ?? 0)
+  const [date, setDate] = useState(initialSelection?.date ?? initialDate)
+  const [departureId, setDepartureId] = useState(initialSelection?.departureId ?? 0)
   const [quantities, setQuantities] = useState<Record<number, number> | null>(null)
   const [passengerData, setPassengerData] = useState<Record<string, PassengerDetails>>({})
   const [contact, setContact] = useState({
@@ -139,10 +140,13 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, onCl
   const dates = [...new Set(departures.flatMap((item) => item.date ? [item.date] : []))]
   const selectedDate = dates.includes(date) ? date : dates[0] ?? ''
   const dayDepartures = departures.filter((item) => item.date === selectedDate)
-  const departure = dayDepartures.find((item) => item.externalId === departureId) ?? dayDepartures[0]
+  const departure = dayDepartures.find((item) => item.externalId === departureId)
+    ?? dayDepartures.find((item) => !!initialSelection?.time && item.time?.startsWith(initialSelection.time)) ?? dayDepartures[0]
   const prices = (port?.availability.prices ?? []).filter(isTryPrice)
   const firstPrice = prices.find((item) => item.amount > 0) ?? prices[0]
-  const counts = quantities ?? (firstPrice ? { [firstPrice.externalPriceId]: initialGuests } : {})
+  const linkTickets = initialSelection?.tickets
+  const counts = quantities ?? (linkTickets && prices.some((item) => linkTickets[item.externalPriceId]) ? linkTickets
+    : firstPrice ? { [firstPrice.externalPriceId]: initialGuests } : {})
   const guestCount = prices.reduce((sum, item) => sum + (counts[item.externalPriceId] ?? 0), 0)
   const total = prices.reduce((sum, item) => sum + item.amount * (counts[item.externalPriceId] ?? 0), 0)
   const passengerSlots = prices.flatMap((price) => Array.from({ length: counts[price.externalPriceId] ?? 0 }, (_, index) => {

@@ -1,12 +1,13 @@
 import { ArrowLeft, ArrowRight, RefreshCw, Ticket } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { BookingDrawer } from '../components/BookingDrawer'
 import { TourPageContent } from '../components/TourPageContent'
 import { bookingTour, categoryImages, categoryPath, categorySlugs, resolvePageImage, tourCategories, tourPath, tourTitle,
   type PublicTourItem, type TourLanguage, type TourPageItem } from '../content/tour-pages'
 import { ApiError, apiRequest } from '../lib/api'
 import { istanbulToday } from '../lib/passengers'
+import { parseBookingLink, type BookingLinkSelection } from '../lib/booking-link'
 import { setPageMetadata, siteScrollBehavior } from '../lib/site'
 import PublicPageLayout from './PublicPageLayout'
 
@@ -28,22 +29,35 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
   const [catalogError, setCatalogError] = useState(false)
   const [reload, setReload] = useState(0)
   const [selected, setSelected] = useState<PublicTourItem | null>(null)
-  const [bookingStart, setBookingStart] = useState({ date: istanbulToday(), guests: 1 })
+  const [bookingStart, setBookingStart] = useState<{ date: string; guests: number; selection?: BookingLinkSelection }>({ date: istanbulToday(), guests: 1 })
+  const [searchParams] = useSearchParams()
+  const [bookingLink] = useState(() => parseBookingLink(searchParams))
+  const bookingLinkOpened = useRef(false)
   const c = copy[language]
   useEffect(() => {
     const controller = new AbortController()
     window.scrollTo(0, 0)
     if (!pageKey) return () => controller.abort()
-    apiRequest<TourPageItem>(`/api/v1/tour-pages/${pageKey}`, { signal: controller.signal, cache: 'no-store' })
+    const pageRequest = apiRequest<TourPageItem>(`/api/v1/tour-pages/${pageKey}`, { signal: controller.signal, cache: 'no-store' })
+    const toursRequest = apiRequest<PublicTourItem[]>('/api/v1/tours', { signal: controller.signal, cache: 'no-store' })
+    pageRequest
       .then(result => { if (!controller.signal.aborted) setPage(result) })
       .catch(caught => { if (!controller.signal.aborted) setError(caught instanceof ApiError && caught.status === 404 ? 'missing' : 'unavailable') })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
-    apiRequest<PublicTourItem[]>('/api/v1/tours', { signal: controller.signal, cache: 'no-store' })
+    toursRequest
       .then(result => { if (!controller.signal.aborted) setTours(result) })
       .catch(() => { if (!controller.signal.aborted) setCatalogError(true) })
       .finally(() => { if (!controller.signal.aborted) setCatalogLoading(false) })
+    // A booking link (see lib/booking-link) opens this tour's drawer once when the page loads.
+    if (bookingLink && !bookingLinkOpened.current) Promise.all([pageRequest, toursRequest]).then(([result, list]) => {
+      const tour = result.externalTourId ? list.find(item => item.externalTourId === result.externalTourId) : undefined
+      if (controller.signal.aborted || !tour) return
+      bookingLinkOpened.current = true
+      setBookingStart({ date: bookingLink.date ?? istanbulToday(), guests: 1, selection: bookingLink })
+      setSelected(tour)
+    }).catch(() => {})
     return () => controller.abort()
-  }, [pageKey, reload])
+  }, [pageKey, reload, bookingLink])
   useEffect(() => {
     const content = page?.document[language]
     setPageMetadata({ title: error === 'missing' ? c.missing : content?.title, description: content?.seoDescription, language, indexable: !loading && !error && !!page })
@@ -87,7 +101,7 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
           </article>)}</div>}
       </div></section>
     </TourPageContent>
-    {selected && <BookingDrawer key={selected.externalTourId} tour={bookingTour(selected)} language={language} initialDate={bookingStart.date} initialGuests={bookingStart.guests} onClose={() => setSelected(null)} />}
+    {selected && <BookingDrawer key={selected.externalTourId} tour={bookingTour(selected)} language={language} initialDate={bookingStart.date} initialGuests={bookingStart.guests} initialSelection={bookingStart.selection} onClose={() => setSelected(null)} />}
   </>
 }
 

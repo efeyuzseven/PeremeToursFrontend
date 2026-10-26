@@ -1,7 +1,7 @@
 import { ArrowRight, Camera, Clock3, Mail, MessageCircle } from 'lucide-react'
 import { useEffect } from 'react'
 import PublicPageLayout, { type PublicLanguage } from './PublicPageLayout'
-import { INSTAGRAM_PROFILE_URL, setPageMetadata } from '../lib/site'
+import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, setPageMetadata } from '../lib/site'
 import ContactForm from '../components/ContactForm'
 
 const copy = {
@@ -31,7 +31,7 @@ function ContactContent({ language }: { language: PublicLanguage }) {
     <section className="contact-section"><div className="shell">
       <div className="contact-cards">
         <a href="mailto:merhaba@peremetours.com"><span><Mail /></span><small>{c.emailTitle}</small><strong>merhaba@peremetours.com</strong><p>{c.emailText}</p><ArrowRight /></a>
-        <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><span><Camera /></span><small>{c.socialTitle}</small><strong>@peremetours</strong><p>{c.socialText}</p><ArrowRight /></a>
+        <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><span><Camera /></span><small>{c.socialTitle}</small><strong>{INSTAGRAM_HANDLE}</strong><p>{c.socialText}</p><ArrowRight /></a>
       </div>
       <div className="contact-form-layout">
         <div className="contact-form-copy"><span>{c.formEyebrow}</span><h2>{c.formTitle}</h2><div><Clock3 /><p><strong>{c.hours}</strong>{c.hoursText}</p></div></div>

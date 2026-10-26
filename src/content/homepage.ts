@@ -86,7 +86,7 @@ export const homepageTextFields = [
   ['stories', 'story.author', 'Yorum sahibi', 'Review author', 'Elif & Mert', 'Elif & Mert'],
   ['stories', 'story.initials', 'Yorum sahibi baş harfleri', 'Review initials', 'EM', 'EM'],
   ['stories', 'story.instagramLabel', 'Instagram butonu yazısı', 'Instagram button label', 'Instagram’da takip et', 'Follow us on Instagram'],
-  ['stories', 'story.instagramUrl', 'Instagram profil bağlantısı', 'Instagram profile link', 'https://www.instagram.com/peremetours/', 'https://www.instagram.com/peremetours/'],
+  ['stories', 'story.instagramUrl', 'Instagram profil bağlantısı', 'Instagram profile link', 'https://www.instagram.com/denturpereme/', 'https://www.instagram.com/denturpereme/'],
   ['footer', 'footer.tagline', 'Alt bilgi sloganı', 'Footer tagline', 'İstanbul’un en güzel haline,\ndenizden tanış.', 'Meet Istanbul at its best,\nfrom the water.'],
   ['footer', 'footer.email', 'Alt bilgi iletişim e-postası', 'Footer contact email', 'merhaba@peremetours.com', 'merhaba@peremetours.com'],
   ['footer', 'footer.copyright', 'Telif yazısı', 'Copyright text', '© 2026 Dentur | Pereme Tours', '© 2026 Dentur | Pereme Tours'],

@@ -1,6 +1,7 @@
 export const SITE_NAME = 'Dentur | Pereme Tours'
 export const SITE_URL = 'https://pereme.com.tr'
-export const INSTAGRAM_PROFILE_URL = 'https://www.instagram.com/peremetours/'
+export const INSTAGRAM_PROFILE_URL = 'https://www.instagram.com/denturpereme/'
+export const INSTAGRAM_HANDLE = '@denturpereme'
 
 export function siteScrollBehavior(): ScrollBehavior {
   return document.documentElement.hasAttribute('data-pereme-a11y-pausemotion')

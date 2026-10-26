@@ -1,11 +1,11 @@
-import { ArrowRight, Globe2, Menu, UserRound, X } from 'lucide-react'
+import { ArrowRight, Camera, Globe2, Menu, UserRound, X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { panelHome } from '../auth/roles'
 import { pagePath } from '../lib/content-pages'
 import { mainNavigation, useAnnouncementsAvailable, useFooterPages } from '../lib/navigation'
-import { SITE_NAME } from '../lib/site'
+import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, SITE_NAME } from '../lib/site'
 import AccountMenu from '../components/AccountMenu'
 import './info-pages.css'
 
@@ -79,7 +79,7 @@ export default function PublicPageLayout({ children, language: controlledLanguag
           {footerPages.map(page => <Link key={page.slug} to={pagePath(language, page.slug)}>{page.title}</Link>)}</div>
         <div><strong>{c.support}</strong><Link to="/sikca-sorulan-sorular">{c.faq}</Link><Link to="/iletisim">{c.contact}</Link><Link to="/kvkk-aydinlatma-metni">{c.kvkk}</Link><Link to="/mesafeli-satis-sozlesmesi">{c.contract}</Link></div>
       </div>
-      <div className="shell info-footer__bottom">© 2026 {SITE_NAME}</div>
+      <div className="shell info-footer__bottom"><span>© 2026 {SITE_NAME}</span><a className="footer-instagram" href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><Camera size={22} /> {INSTAGRAM_HANDLE}</a></div>
     </footer>
   </div>
 }

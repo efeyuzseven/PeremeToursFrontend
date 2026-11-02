@@ -1,0 +1,37 @@
+.google-reviews { padding: 110px 0 120px; border-top: 1px solid var(--line); background: #fff; }
+.google-reviews__header { display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; margin-bottom: 48px; }
+.google-reviews__header h2 { margin: 0; color: var(--navy); font: 500 clamp(38px, 4.6vw, 58px)/1.02 'Manrope', sans-serif; letter-spacing: -.055em; }
+.google-reviews__header h2 em { color: var(--sea); font-family: 'Playfair Display', serif; font-weight: 500; letter-spacing: -.03em; }
+.google-reviews__score { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border: 1px solid var(--line); border-radius: 16px; color: var(--navy); transition: border-color .2s ease, box-shadow .2s ease; }
+.google-reviews__score:hover { border-color: rgba(106,157,210,.5); box-shadow: 0 12px 30px rgba(31,71,140,.08); }
+.google-reviews__score > strong { font: 600 46px/1 'Manrope', sans-serif; letter-spacing: -.05em; }
+.google-reviews__score > span { display: grid; gap: 6px; }
+.google-reviews__score small { color: #4f6b8f; font-size: 12px; font-weight: 600; }
+.google-reviews__stars { display: inline-flex; gap: 2px; color: #f4b400; }
+
+/* Google returns at most five reviews; they share one row on wide screens. */
+.google-reviews__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.google-reviews__list article { display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 22px; border-radius: 18px; background: rgba(106,157,210,.09); }
+.google-reviews__list header { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.google-reviews__list header img,
+.google-reviews__initial { flex: none; width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.google-reviews__initial { display: grid; place-items: center; color: #fff; background: var(--blue); font-weight: 700; }
+.google-reviews__list header div { display: grid; gap: 2px; min-width: 0; }
+.google-reviews__list header a,
+.google-reviews__list header strong { overflow: hidden; color: var(--navy); font-size: 14px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.google-reviews__list header a:hover { text-decoration: underline; }
+.google-reviews__list header small { color: #4f6b8f; font-size: 12px; }
+.google-reviews__list p { display: -webkit-box; margin: 0; overflow: hidden; color: #233a5c; font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 9; line-clamp: 9; }
+.google-reviews__translated { margin-top: auto; color: #4f6b8f; font-size: 11px; }
+.google-reviews__all { display: inline-flex; align-items: center; gap: 8px; margin-top: 30px; color: var(--blue); font-size: 14px; font-weight: 700; }
+.google-reviews__all:hover { text-decoration: underline; }
+
+@media (max-width: 1050px) {
+  .google-reviews__list { display: flex; margin: 0 -16px; padding: 0 16px 6px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 16px; }
+  .google-reviews__list article { flex: 0 0 min(84%, 300px); scroll-snap-align: start; }
+}
+
+@media (max-width: 720px) {
+  .google-reviews { padding: 80px 0 90px; }
+  .google-reviews__header { flex-direction: column; align-items: flex-start; gap: 24px; margin-bottom: 32px; }
+}

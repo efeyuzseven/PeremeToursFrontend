@@ -38,6 +38,7 @@ import { mainNavigation, useFooterPages } from './lib/navigation'
 import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, setPageMetadata, siteScrollBehavior, SITE_NAME } from './lib/site'
 import { BookingDrawer } from './components/BookingDrawer'
 import AccountMenu from './components/AccountMenu'
+import GoogleReviews from './components/GoogleReviews'
 import { categoryPath, tourCategories, tourPath } from './content/tour-pages'
 
 type Language = 'tr' | 'en'
@@ -665,6 +666,8 @@ function App() {
           <div className="benefit-grid">{benefits.map(({ title, description }, index) => { const Icon = [ShieldCheck, CalendarDays, Users, Compass][index]; return <article key={`${title}-${index}`}><span>0{index + 1}</span><Icon /><h3>{title}</h3><p>{description}</p></article> })}</div>
         </div>
       </section>}
+
+      <GoogleReviews language={language} />
 
       {!hidden('stories') && <section className="stories" id="hikayeler">
         <div className="shell"><div className="stories__heading"><div className="eyebrow"><Camera size={17} /> {page?.stories.eyebrow ?? c.story.eyebrow}</div><h2>{page?.stories.lead ?? c.story.lead} <em>{page?.stories.accent ?? c.story.accent}</em></h2><p>{page?.stories.description ?? c.story.description}</p></div>

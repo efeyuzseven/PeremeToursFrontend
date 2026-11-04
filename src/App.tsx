@@ -35,9 +35,10 @@ import { normalizeHomepage, type HomepageContentDocument } from './content/homep
 import { apiBaseUrl, apiRequest } from './lib/api'
 import { pagePath as contentPagePath } from './lib/content-pages'
 import { mainNavigation, useFooterPages } from './lib/navigation'
-import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, organizationSchema, setPageMetadata, siteScrollBehavior, SITE_NAME, websiteSchema } from './lib/site'
+import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, organizationSchema, setPageMetadata, siteScrollBehavior, SITE_NAME, websiteSchema, X_HANDLE, X_PROFILE_URL } from './lib/site'
 import { BookingDrawer } from './components/BookingDrawer'
 import AccountMenu from './components/AccountMenu'
+import SocialLinks, { XIcon } from './components/SocialLinks'
 import GoogleReviews from './components/GoogleReviews'
 import { categoryPath, tourCategories, tourPath } from './content/tour-pages'
 
@@ -523,6 +524,7 @@ function App() {
           <Logo light={!scrolled} language={language} />
           <nav className="desktop-nav" aria-label={c.a11y.mainNav}>{c.nav.map(({ label, href }) => href.startsWith('/#') ? <a key={href} href={href.slice(1)}>{label}</a> : <Link key={href} to={href}>{label}</Link>)}</nav>
           <div className="header__actions">
+            <SocialLinks />
             <AccountMenu language={language} label={t('account', language === 'tr' ? 'Hesabım' : 'My account')} />
             <div className="language-picker" ref={languagePickerRef}>
               <button className="language" type="button" aria-label={c.a11y.language} aria-haspopup="menu" aria-expanded={languageMenu} onClick={() => setLanguageMenu((open) => !open)}>
@@ -699,7 +701,7 @@ function App() {
           })}{columnIndex === 1 && <><Link to={language === 'tr' ? '/blog' : '/en/blog'}>Blog</Link>
             {footerPages.map((page) => <Link key={page.slug} to={contentPagePath(language, page.slug)}>{page.title}</Link>)}</>}</div>)}</div>
         </div>
-        <div className="shell footer__bottom"><span>{c.footer.copyright}</span><a className="footer-instagram" href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><Camera size={22} /> {INSTAGRAM_HANDLE}</a></div>
+        <div className="shell footer__bottom"><span>{c.footer.copyright}</span><div className="footer-social"><a className="footer-instagram" href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><Camera size={22} /> {INSTAGRAM_HANDLE}</a><a className="footer-instagram" href={X_PROFILE_URL} target="_blank" rel="noopener noreferrer"><XIcon size={20} /> {X_HANDLE}</a></div></div>
       </footer>
 
       {bookingOpen && selectedTour && <BookingDrawer key={selectedTour.id} tour={selectedTour} language={language} initialDate={date} initialGuests={guests} onClose={() => setBookingOpen(false)} />}

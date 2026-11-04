@@ -5,8 +5,9 @@ import { useAuth } from '../auth/AuthContext'
 import { panelHome } from '../auth/roles'
 import { pagePath } from '../lib/content-pages'
 import { mainNavigation, useAnnouncementsAvailable, useFooterPages } from '../lib/navigation'
-import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, SITE_NAME } from '../lib/site'
+import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, SITE_NAME, X_HANDLE, X_PROFILE_URL } from '../lib/site'
 import AccountMenu from '../components/AccountMenu'
+import SocialLinks, { XIcon } from '../components/SocialLinks'
 import './info-pages.css'
 
 export type PublicLanguage = 'tr' | 'en'
@@ -56,6 +57,7 @@ export default function PublicPageLayout({ children, language: controlledLanguag
           {navigation.map(item => <Link key={item.href} to={item.href}>{item.label}</Link>)}
         </nav>
         <div className="info-header__actions">
+          <SocialLinks />
           <AccountMenu language={language} />
           <div className="info-language"><Globe2 />{(['tr', 'en'] as PublicLanguage[]).map((item) => <button className={language === item ? 'active' : ''} type="button" key={item} onClick={() => setLanguage(item)}>{item.toUpperCase()}</button>)}</div>
           <button className="info-menu-button" type="button" aria-label={c.menu} onClick={() => setMenuOpen(true)}><Menu /></button>
@@ -79,7 +81,7 @@ export default function PublicPageLayout({ children, language: controlledLanguag
           {footerPages.map(page => <Link key={page.slug} to={pagePath(language, page.slug)}>{page.title}</Link>)}</div>
         <div><strong>{c.support}</strong><Link to="/sikca-sorulan-sorular">{c.faq}</Link><Link to="/iletisim">{c.contact}</Link><Link to="/kvkk-aydinlatma-metni">{c.kvkk}</Link><Link to="/mesafeli-satis-sozlesmesi">{c.contract}</Link></div>
       </div>
-      <div className="shell info-footer__bottom"><span>© 2026 {SITE_NAME}</span><a className="footer-instagram" href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><Camera size={22} /> {INSTAGRAM_HANDLE}</a></div>
+      <div className="shell info-footer__bottom"><span>© 2026 {SITE_NAME}</span><div className="footer-social"><a className="footer-instagram" href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><Camera size={22} /> {INSTAGRAM_HANDLE}</a><a className="footer-instagram" href={X_PROFILE_URL} target="_blank" rel="noopener noreferrer"><XIcon size={20} /> {X_HANDLE}</a></div></div>
     </footer>
   </div>
 }

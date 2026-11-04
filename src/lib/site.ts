@@ -2,12 +2,15 @@ export const SITE_NAME = 'Dentur | Pereme Tours'
 export const SITE_URL = 'https://pereme.com.tr'
 export const INSTAGRAM_PROFILE_URL = 'https://www.instagram.com/denturpereme/'
 export const INSTAGRAM_HANDLE = '@denturpereme'
+// The group-wide X account, shared with Dentur Avrasya.
+export const X_PROFILE_URL = 'https://x.com/denturgrup'
+export const X_HANDLE = '@denturgrup'
 export const CONTACT_EMAIL = 'merhaba@peremetours.com'
 
 // schema.org entities shared by the pages' JSON-LD. Only facts the site already shows: no invented phone or address.
 export const organizationSchema = {
   '@type': 'Organization', '@id': `${SITE_URL}/#organization`, name: SITE_NAME, url: `${SITE_URL}/`,
-  logo: `${SITE_URL}/assets/pereme-logo.svg`, email: CONTACT_EMAIL, sameAs: [INSTAGRAM_PROFILE_URL],
+  logo: `${SITE_URL}/assets/pereme-logo.svg`, email: CONTACT_EMAIL, sameAs: [INSTAGRAM_PROFILE_URL, X_PROFILE_URL],
 }
 export const websiteSchema = {
   '@type': 'WebSite', '@id': `${SITE_URL}/#website`, name: SITE_NAME, url: `${SITE_URL}/`,

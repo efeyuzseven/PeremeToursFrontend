@@ -1,0 +1,15 @@
+/* Header social icons. They take the header's text colour: white over the home hero, navy once scrolled and on inner pages. */
+.social-links { display: flex; align-items: center; gap: 2px; }
+.social-links a { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: inherit; transition: background 180ms ease, color 180ms ease; }
+.social-links a:hover { background: rgba(255,255,255,.13); }
+.site-header--scrolled .social-links a:hover, .info-header .social-links a:hover { background: rgba(31,71,140,.07); color: var(--blue); }
+.social-links a:focus-visible { outline: 2px solid #6a9dd2; outline-offset: 2px; }
+.info-header .social-links { color: var(--navy); }
+
+/* X pill next to the Instagram one in the footers. */
+.footer-social { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+@media (max-width: 640px) {
+  .social-links { gap: 0; }
+  .social-links a { width: 32px; height: 32px; }
+}

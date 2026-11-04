@@ -1,6 +1,6 @@
 import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import App from './App'
 import AdminLayout from './admin/AdminLayout'
 import SiteContentPage from './admin/SiteContentPage'
@@ -38,9 +38,19 @@ const BlogListPage = lazy(() => import('./pages/BlogPages').then(module => ({ de
 const BlogPostPage = lazy(() => import('./pages/BlogPages').then(module => ({ default: module.BlogPostPage })))
 // eslint-disable-next-line react-refresh/only-export-components
 const StandalonePage = lazy(() => import('./pages/BlogPages').then(module => ({ default: module.StandalonePage })))
+// eslint-disable-next-line react-refresh/only-export-components
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const pageFallback = <div className="site-content-loading"><span className="button-spinner" /></div>
 
-createRoot(document.getElementById('root')!).render(
+// Pages prerendered at build time (scripts/prerender.mjs) carry static markup for crawlers that do not run
+// JavaScript; index.html keeps it hidden while the bundle loads, and the app always renders from scratch.
+const container = document.getElementById('root')!
+if (container.hasAttribute('data-prerendered')) {
+  container.replaceChildren()
+  container.removeAttribute('data-prerendered')
+}
+
+createRoot(container).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
@@ -83,7 +93,7 @@ createRoot(document.getElementById('root')!).render(
           {/* Standalone pages created in the admin; fixed routes above always win over these. */}
           <Route path="/en/:slug" element={<Suspense fallback={pageFallback}><StandalonePage /></Suspense>} />
           <Route path="/:slug" element={<Suspense fallback={pageFallback}><StandalonePage /></Suspense>} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Suspense fallback={pageFallback}><NotFoundPage /></Suspense>} />
         </Routes>
         <FloatingSupport />
       </AuthProvider>

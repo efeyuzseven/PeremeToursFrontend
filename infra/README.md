@@ -7,13 +7,28 @@
 - Official site name: `Dentur | Pereme Tours`
 - Primary URL: <https://pereme.com.tr>
 
-The bucket blocks all public access. CloudFront reads objects through Origin Access Control, redirects HTTP to HTTPS, adds AWS managed security headers and maps SPA 403/404 responses to `index.html`.
+The bucket blocks all public access. CloudFront reads objects through Origin Access Control, redirects HTTP to HTTPS, adds AWS managed security headers and maps SPA 403/404 responses to `index.html` (see "Prerendered pages" below).
 
 Deploy a new version from PowerShell:
 
 ```powershell
 .\scripts\deploy-test.ps1
 ```
+
+## Prerendered pages (SEO)
+
+Each deploy renders the public pages (homepage, tour categories and tours, blog, FAQ, contact, legal pages; the list
+comes from the API sitemap and the blog/page lists) in headless Chromium with `scripts/prerender.mjs`, so crawlers
+that do not run JavaScript get each page's own title, H1, canonical, robots, Open Graph/Twitter tags and JSON-LD.
+Each page is stored at its address without an extension (object `turlar/sunset` serves `/turlar/sunset`); the
+homepage replaces `index.html`. `prerender-manifest.json` lists the objects in use, so the next deploy removes pages
+that are no longer rendered. Browsers never show the prerendered markup: the app renders as before. A page published
+after a deploy (e.g. a new blog post) has no prerender until the next deploy and gets the SPA shell meanwhile.
+
+Pending infrastructure step (not applied): point both custom error responses (403/404) at `/spa.html` instead of
+`/index.html`, keeping response code 200. Each deploy uploads the plain shell as `spa.html`. Until then, addresses
+without an object (unknown URLs, account pages, posts newer than the last deploy) are served the prerendered
+homepage HTML; the app still renders the right page, but crawlers without JavaScript see the homepage there.
 
 ## Custom domain cutover (completed 2026-10-12)
 

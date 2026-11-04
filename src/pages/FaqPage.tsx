@@ -38,8 +38,13 @@ function FaqContent({ language }: { language: PublicLanguage }) {
   const c = copy[language]
 
   useEffect(() => {
-    setPageMetadata({ title: language === 'tr' ? 'Sıkça Sorulan Sorular' : 'Frequently Asked Questions', description: c.description, language })
-  }, [language, c.description])
+    // FAQPage lists the questions and answers this page shows, as the same plain text.
+    const shown = questions.map(question => language === 'tr' ? [question.questionTr, question.answerTr] : [question.questionEn, question.answerEn])
+      .map(([name, text]) => [name?.trim(), text?.trim()]).filter(([name, text]) => name && text)
+    setPageMetadata({ title: language === 'tr' ? 'Sıkça Sorulan Sorular' : 'Frequently Asked Questions', description: c.description, language,
+      jsonLd: shown.length ? { '@context': 'https://schema.org', '@type': 'FAQPage', inLanguage: language,
+        mainEntity: shown.map(([name, text]) => ({ '@type': 'Question', name, acceptedAnswer: { '@type': 'Answer', text } })) } : undefined })
+  }, [language, c.description, questions])
 
   useEffect(() => {
     let active = true

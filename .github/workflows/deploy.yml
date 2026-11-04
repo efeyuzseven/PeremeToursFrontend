@@ -24,7 +24,7 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -45,22 +45,69 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Static HTML of each public page for crawlers that do not run JavaScript (scripts/prerender.mjs).
+      # Never blocks a deploy: a page without a prerender is served the plain SPA shell, as before.
+      - name: Prerender pages
+        id: prerender
+        continue-on-error: true
+        run: |
+          npx playwright install --with-deps --only-shell chromium
+          npm run prerender
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # Same steps as scripts/deploy-test.ps1: hashed assets first, then the page that references them.
+      # Same steps as scripts/deploy-test.ps1: hashed assets first, then the pages that reference them.
+      # The shell goes to index.html (replaced below by the homepage prerender) and to spa.html, the page
+      # CloudFront should return for addresses without an object (see infra/README.md).
       - name: Upload to S3
         shell: bash
         run: |
           set -euo pipefail
           aws s3 sync dist/assets "s3://$BUCKET_NAME/assets" --cache-control 'public,max-age=31536000,immutable'
-          aws s3 cp dist/index.html "s3://$BUCKET_NAME/index.html" \
-            --content-type 'text/html; charset=utf-8' --cache-control 'no-cache,no-store,must-revalidate'
+          for key in index.html spa.html; do
+            aws s3 cp dist/index.html "s3://$BUCKET_NAME/$key" \
+              --content-type 'text/html; charset=utf-8' --cache-control 'no-cache,no-store,must-revalidate'
+          done
           aws s3 cp dist/favicon.svg "s3://$BUCKET_NAME/favicon.svg" \
             --content-type 'image/svg+xml' --cache-control 'public,max-age=86400'
+          aws s3 cp dist/robots.txt "s3://$BUCKET_NAME/robots.txt" \
+            --content-type 'text/plain; charset=utf-8' --cache-control 'public,max-age=3600'
+
+      # Each prerendered page is stored at its address without an extension (key "turlar/sunset" serves
+      # /turlar/sunset), so CloudFront needs no extra rule. prerender-manifest.json lists the keys in use.
+      - name: Upload prerendered pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest=dist/prerendered/manifest.json
+          if [ "${{ steps.prerender.outcome }}" != success ] || [ ! -f "$manifest" ]; then
+            echo "::warning::Prerendering failed; every page is served the plain SPA shell this time."
+            mkdir -p dist/prerendered && echo '{"pages":[]}' > "$manifest"
+          fi
+          jq -r '.pages[] | [.file, .key] | @tsv' "$manifest" | while IFS=$'\t' read -r file key; do
+            aws s3 cp "dist/prerendered/$file" "s3://$BUCKET_NAME/$key" --only-show-errors \
+              --content-type 'text/html; charset=utf-8' --cache-control 'no-cache,no-store,must-revalidate'
+          done
+          # Pages prerendered last time but not now would still load the previous bundle: remove them, or, if the
+          # role may not delete, replace them with the current shell. The previous list is read through the site,
+          # which needs no S3 read permission (before the first such deploy that returns the shell, not JSON).
+          curl -fsS https://pereme.com.tr/prerender-manifest.json -o previous-manifest.json || echo '{}' > previous-manifest.json
+          { jq -r '.pages[]?.key' previous-manifest.json 2>/dev/null || true; } | sort > previous-keys
+          jq -r '.pages[].key' "$manifest" | sort > current-keys
+          comm -23 previous-keys current-keys | while read -r key; do
+            if [ "$key" = index.html ]; then continue; fi # already the shell, from the step above
+            echo "Removing stale prerendered page $key"
+            aws s3 rm "s3://$BUCKET_NAME/$key" --only-show-errors \
+              || aws s3 cp dist/index.html "s3://$BUCKET_NAME/$key" --only-show-errors \
+                --content-type 'text/html; charset=utf-8' --cache-control 'no-cache,no-store,must-revalidate'
+          done
+          jq '{generatedAtUtc, pages: [.pages[] | {path, key}]}' "$manifest" > published-manifest.json
+          aws s3 cp published-manifest.json "s3://$BUCKET_NAME/prerender-manifest.json" --only-show-errors \
+            --content-type 'application/json' --cache-control 'no-cache,no-store,must-revalidate'
 
       - name: Invalidate CloudFront
         shell: bash

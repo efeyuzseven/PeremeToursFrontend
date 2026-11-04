@@ -8,13 +8,13 @@
       name="description"
       content="Dentur | Pereme Tours ile Boğaz Turu, Türk Gecesi Dinner Cruise, Sunset ve Daytime deneyimlerini keşfedin."
     />
-    <link rel="canonical" href="https://pereme.com.tr/" />
+    <!-- canonical and og:url are set per page (src/lib/site.ts). None here: this shell is also served for
+         addresses without a prerendered page, which must not claim to be the homepage. -->
     <meta name="robots" content="index, follow" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Dentur | Pereme Tours" />
     <meta property="og:title" content="Dentur | Pereme Tours" />
     <meta property="og:description" content="Dentur | Pereme Tours ile Boğaz Turu, Türk Gecesi Dinner Cruise, Sunset ve Daytime deneyimlerini keşfedin." />
-    <meta property="og:url" content="https://pereme.com.tr/" />
     <meta property="og:locale" content="tr_TR" />
     <meta property="og:image" content="https://pereme.com.tr/assets/ad2ca4f6-d888-4621-b0c1-b3db5903f0ac.webp" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -23,6 +23,9 @@
     <meta name="twitter:image" content="https://pereme.com.tr/assets/ad2ca4f6-d888-4621-b0c1-b3db5903f0ac.webp" />
     <link rel="icon" href="/assets/pereme-mark.svg" type="image/svg+xml" />
     <title>Dentur | Pereme Tours</title>
+    <!-- Browsers that run the app never see prerendered markup (it is for crawlers): main.tsx clears it and renders. -->
+    <script id="pereme-boot">document.documentElement.classList.add('pereme-js')</script>
+    <style>.pereme-js #root[data-prerendered] { visibility: hidden }</style>
   </head>
   <body>
     <div id="root"></div>

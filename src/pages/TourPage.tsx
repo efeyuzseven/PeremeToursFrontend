@@ -3,12 +3,12 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { BookingDrawer } from '../components/BookingDrawer'
 import { TourPageContent } from '../components/TourPageContent'
-import { bookingTour, categoryImages, categoryPath, categorySlugs, resolvePageImage, tourCategories, tourPath, tourTitle,
+import { bookingTour, categoryImages, categoryLabels, categoryPath, categorySlugs, pagePath, resolvePageImage, tourCategories, tourPath, tourTitle,
   type PublicTourItem, type TourLanguage, type TourPageItem } from '../content/tour-pages'
 import { ApiError, apiRequest } from '../lib/api'
 import { istanbulToday } from '../lib/passengers'
 import { parseBookingLink, type BookingLinkSelection } from '../lib/booking-link'
-import { setPageMetadata, siteScrollBehavior } from '../lib/site'
+import { breadcrumbSchema, setPageMetadata, siteScrollBehavior } from '../lib/site'
 import PublicPageLayout from './PublicPageLayout'
 
 const copy = {
@@ -60,8 +60,16 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
   }, [pageKey, reload, bookingLink])
   useEffect(() => {
     const content = page?.document[language]
-    setPageMetadata({ title: error === 'missing' ? c.missing : content?.title, description: content?.seoDescription, language, indexable: !loading && !error && !!page })
-  }, [page, language, loading, error, c.missing])
+    const ready = !loading && !error && !!page && !!content
+    // Share image and breadcrumb follow what the page shows: its hero image, and Home / category / tour.
+    const listedImage = page && (tours.find(tour => tour.externalTourId === page.externalTourId)?.imageUrl
+      || tours.find(tour => tour.categoryKey === page.categoryKey)?.imageUrl)
+    setPageMetadata({ title: error === 'missing' ? c.missing : content?.title, description: content?.seoDescription, language, indexable: ready,
+      image: page ? resolvePageImage(page.document.heroImageUrl || listedImage || categoryImages[page.categoryKey]) : undefined,
+      jsonLd: ready ? { '@context': 'https://schema.org', '@graph': [breadcrumbSchema([{ name: c.home, path: '/' },
+        ...(page.externalTourId ? [{ name: categoryLabels[page.categoryKey][language], path: categoryPath(page.categoryKey) }] : []),
+        { name: content.title, path: pagePath(page) }])] } : undefined })
+  }, [page, tours, language, loading, error, c.missing, c.home])
   useEffect(() => {
     if (!selected) return
     const previous = document.body.style.overflow

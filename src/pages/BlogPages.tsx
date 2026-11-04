@@ -5,7 +5,7 @@ import { ApiError, apiRequest } from '../lib/api'
 import { blogPath, contentImage, formatContentDate, pagePath, type ContentKind, type ContentLanguage, type PublicContentPage,
   type PublicContentPageList, type PublicContentPageListItem } from '../lib/content-pages'
 import { htmlToText, sanitizeHtml } from '../lib/html'
-import { setPageMetadata, SITE_NAME, SITE_URL } from '../lib/site'
+import { breadcrumbSchema, organizationSchema, setPageMetadata, SITE_URL } from '../lib/site'
 import PublicPageLayout from './PublicPageLayout'
 import './content-pages.css'
 
@@ -19,7 +19,6 @@ const copy = {
 }
 
 const languageOf = (pathname: string): ContentLanguage => pathname === '/en' || pathname.startsWith('/en/') ? 'en' : 'tr'
-const organization = { '@type': 'Organization', name: SITE_NAME, url: SITE_URL, logo: `${SITE_URL}/assets/pereme-logo.svg` }
 
 function BlogList({ language }: { language: ContentLanguage }) {
   const c = copy[language]
@@ -40,7 +39,7 @@ function BlogList({ language }: { language: ContentLanguage }) {
   useEffect(() => {
     setPageMetadata({ title: c.title, description: c.description, language, alternates: { tr: blogPath('tr'), en: blogPath('en') },
       jsonLd: { '@context': 'https://schema.org', '@type': 'Blog', name: `${c.eyebrow} — ${c.title}`, description: c.description, url: `${SITE_URL}${blogPath(language)}`,
-        inLanguage: language, publisher: organization, blogPost: items.map(item => ({ '@type': 'BlogPosting', headline: item.title,
+        inLanguage: language, publisher: organizationSchema, blogPost: items.map(item => ({ '@type': 'BlogPosting', headline: item.title,
           url: `${SITE_URL}${blogPath(language, item.slug)}`, datePublished: item.publishedAtUtc ?? undefined })) } })
   }, [c, language, items])
   return <>
@@ -87,15 +86,14 @@ function ContentView({ kind, language, slug, onLoad }: { kind: ContentKind; lang
     const url = `${SITE_URL}${path(language, item.slug)}`
     const description = item.metaDescription || item.summary || htmlToText(item.body).slice(0, 160)
     const image = contentImage(item.coverImageUrl)
-    const breadcrumb = { '@type': 'BreadcrumbList', itemListElement: [
-      { '@type': 'ListItem', position: 1, name: c.home, item: `${SITE_URL}${language === 'en' ? '/en/blog' : '/'}` },
-      ...(kind === 'blog' ? [{ '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}${blogPath(language)}` }] : []),
-      { '@type': 'ListItem', position: kind === 'blog' ? 3 : 2, name: item.title, item: url }] }
+    // Same trail as the visible breadcrumb: the homepage serves both languages at "/".
+    const breadcrumb = breadcrumbSchema([{ name: c.home, path: '/' },
+      ...(kind === 'blog' ? [{ name: 'Blog', path: blogPath(language) }] : []), { name: item.title, path: path(language, item.slug) }])
     setPageMetadata({ title: item.metaTitle || item.title, description, language, image, type: kind === 'blog' ? 'article' : 'website',
       alternates: { tr: path('tr', item.slugTr), ...(item.slugEn ? { en: path('en', item.slugEn) } : {}) },
       jsonLd: { '@context': 'https://schema.org', '@graph': [kind === 'blog'
         ? { '@type': 'BlogPosting', headline: item.title, description, image: image ?? undefined, datePublished: item.publishedAtUtc ?? undefined,
-          dateModified: item.updatedAtUtc, inLanguage: language, mainEntityOfPage: url, author: organization, publisher: organization }
+          dateModified: item.updatedAtUtc, inLanguage: language, mainEntityOfPage: url, author: organizationSchema, publisher: organizationSchema }
         : { '@type': 'WebPage', name: item.title, description, url, inLanguage: language }, breadcrumb] } })
   }, [item, state, kind, language, c])
   if (state === 'loading') return <p className="content-state content-state--page" role="status">{c.loading}</p>

@@ -35,7 +35,7 @@ import { normalizeHomepage, type HomepageContentDocument } from './content/homep
 import { apiBaseUrl, apiRequest } from './lib/api'
 import { pagePath as contentPagePath } from './lib/content-pages'
 import { mainNavigation, useFooterPages } from './lib/navigation'
-import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, setPageMetadata, siteScrollBehavior, SITE_NAME } from './lib/site'
+import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, organizationSchema, setPageMetadata, siteScrollBehavior, SITE_NAME, websiteSchema } from './lib/site'
 import { BookingDrawer } from './components/BookingDrawer'
 import AccountMenu from './components/AccountMenu'
 import GoogleReviews from './components/GoogleReviews'
@@ -430,7 +430,7 @@ function App() {
 
   useEffect(() => {
     document.documentElement.lang = language
-    setPageMetadata({ language })
+    setPageMetadata({ language, jsonLd: { '@context': 'https://schema.org', '@graph': [organizationSchema, websiteSchema] } })
     window.localStorage.setItem('pereme-language', language)
   }, [language])
 

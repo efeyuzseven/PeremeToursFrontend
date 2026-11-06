@@ -8,6 +8,8 @@ import { ApiError, apiRequest } from '../lib/api'
 import { formatMoney, isTryPrice, isUpcomingDeparture, loadTourBookingOptions, type PortAvailability, type TourQuote } from '../lib/tours'
 import { BookingSelect } from './BookingSelect'
 import { PassengerForm } from './PassengerForm'
+import { InvoiceForm } from './InvoiceForm'
+import { emptyInvoice, invoiceRequestBody, invoiceTexts, isCompleteInvoice, type InvoiceDetails } from '../lib/invoice'
 import { BookingPayment } from './BookingPayment'
 import { getPaymentRecovery, type PaymentAvailability } from '../lib/payments'
 import type { BookingLinkSelection } from '../lib/booking-link'
@@ -56,6 +58,7 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, init
   const { user, session } = useAuth()
   const c = texts[language]
   const pc = passengerTexts[language]
+  const ic = invoiceTexts[language]
   const today = istanbulToday()
   const [options, setOptions] = useState<PortAvailability[] | null>(null)
   const [error, setError] = useState(false)
@@ -69,6 +72,8 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, init
     name: [user?.firstName, user?.lastName].filter(Boolean).join(' '), email: user?.email ?? '', phone: '',
   })
   const [consent, setConsent] = useState(false)
+  const [wantsInvoice, setWantsInvoice] = useState(false)
+  const [invoice, setInvoice] = useState<InvoiceDetails>(() => emptyInvoice('', ''))
   const [checking, setChecking] = useState(false)
   const [quoteError, setQuoteError] = useState('')
   const [quote, setQuote] = useState<TourQuote | null>(null)
@@ -175,6 +180,11 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, init
       drawer.current?.querySelectorAll('.reservation-passenger')[invalidPassengerIndex]?.scrollIntoView({ behavior: siteScrollBehavior(), block: 'center' })
       return
     }
+    if (wantsInvoice && !isCompleteInvoice(invoice)) {
+      setQuoteError(ic.invalid)
+      drawer.current?.querySelector('.reservation-invoice')?.scrollIntoView({ behavior: siteScrollBehavior(), block: 'center' })
+      return
+    }
     setChecking(true); setQuoteError('')
     const controller = new AbortController()
     quoteController.current = controller
@@ -218,6 +228,9 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, init
           <div className="reservation-itinerary"><span><MapPin /> {quote.portName}</span><span><CalendarDays /> {dateLabel(quote.tourDate)}</span><span><Clock3 /> {quote.departureTime.slice(0, 5)}</span></div>
           <div className="reservation-review__tickets">{quote.tickets.map((item) => <div key={item.externalPriceId}><span>{item.quantity} × {language === 'en' ? item.ticketTypeEn || item.ticketType : item.ticketType}<small>{formatMoney(item.unitAmount, language)} {c.each}</small></span><strong>{formatMoney(item.amount, language)}</strong></div>)}</div>
           <div className="reservation-review__contact"><h3>{c.contact}</h3><strong>{contact.name.trim()}</strong><span>{contact.email.trim()}</span><span>{contact.phone.trim()}</span></div>
+          {wantsInvoice && <div className="reservation-review__contact"><h3>{ic.title}</h3><strong>{invoice.title.trim()}</strong>
+            <span>{invoice.type === 'corporate' ? ic.corporate : ic.individual} · {maskIdentity(invoice.taxNumber)}{invoice.taxOffice.trim() && ` · ${invoice.taxOffice.trim()}`}</span>
+            <span>{invoice.email.trim()}</span><span>{invoice.address.trim()}</span></div>}
           <section className="reservation-review__passengers">
             <div className="reservation-section-heading"><h3 id="reservation-review-passengers-title">{pc.title}</h3>{passengerSlots.length > 1 && <p>{c.passengerScroll}</p>}</div>
             <div className={`reservation-passenger-list${passengerSlots.length > 1 ? ' reservation-passenger-list--scrollable' : ''}`}
@@ -236,7 +249,8 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, init
           {!paymentEnabled && <p className="reservation-notice">{c.notice}</p>}
           <BookingPayment language={language} token={session?.accessToken} enabled={paymentEnabled} onLockChange={setPaymentLocked} onBusyChange={setPaymentBusy} onFinish={onClose}
             booking={{ quote, externalTourId: tour.id, externalDeparturePortId: port.port.externalPortId, externalDepartureId: departure.externalId,
-              passengers: passengerSlots.map((slot) => ({ ...slot.details, externalPriceId: slot.externalPriceId })), contact, privacyNoticeAccepted: consent }} />
+              passengers: passengerSlots.map((slot) => ({ ...slot.details, externalPriceId: slot.externalPriceId })), contact, privacyNoticeAccepted: consent,
+              invoice: wantsInvoice ? invoiceRequestBody(invoice) : undefined }} />
           <button className="button button--navy booking-submit" type="button" disabled={paymentLocked} onClick={() => { setQuote(null); setQuoteError('') }}><ArrowLeft size={17} /> {c.edit}</button>
           <button className="reservation-back" type="button" disabled={paymentBusy} onClick={onClose}>{c.back} <ArrowRight size={16} /></button>
         </div> : <form className="reservation-form" onSubmit={submit}>
@@ -270,6 +284,13 @@ export function BookingDrawer({ tour, language, initialDate, initialGuests, init
                   onChange={(value) => { setPassengerData((current) => ({ ...current, [slot.key]: value })); clearQuoteError() }} />)}
               </div>
             </section>
+            <InvoiceForm requested={wantsInvoice} invoice={invoice} language={language}
+              onRequestedChange={(requested) => {
+                setWantsInvoice(requested); clearQuoteError()
+                // Start from the booking contact; the customer can change either field.
+                if (requested) setInvoice((current) => ({ ...current, title: current.title || contact.name.trim(), email: current.email || contact.email.trim() }))
+              }}
+              onChange={(value) => { setInvoice(value); clearQuoteError() }} />
             <div className="reservation-contact">
               <label className="reservation-consent"><input type="checkbox" required checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>{c.consent[0]}<Link to="/mesafeli-satis-sozlesmesi" target="_blank" rel="noopener noreferrer">{c.consent[1]}</Link>{c.consent[2]}<Link to="/kvkk-aydinlatma-metni" target="_blank" rel="noopener noreferrer">{c.consent[3]}</Link>{c.consent[4]}</span></label>
               <small className="reservation-helper">{c.privacy}</small>

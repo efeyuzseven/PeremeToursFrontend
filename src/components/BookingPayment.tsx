@@ -109,7 +109,7 @@ export function BookingPayment({ booking, language, token, enabled, onLockChange
           tickets: booking.quote.tickets.map((item) => ({ externalPriceId: item.externalPriceId, quantity: item.quantity })),
           passengers: booking.passengers, customerName: booking.contact.name.trim(), customerEmail: booking.contact.email.trim(),
           customerPhone: booking.contact.phone.trim(), language, expectedAmount: booking.quote.amount,
-          attemptId: attemptId.current, privacyNoticeAccepted: booking.privacyNoticeAccepted, card,
+          attemptId: attemptId.current, privacyNoticeAccepted: booking.privacyNoticeAccepted, card, invoice: booking.invoice,
           recaptchaToken: captchaToken || undefined,
         },
       })

@@ -1,3 +1,4 @@
+import type { InvoiceRequest } from './invoice'
 import type { PassengerDetails } from './passengers'
 import type { TourQuote } from './tours'
 
@@ -24,6 +25,7 @@ export type PaymentBooking = {
   quote: TourQuote; externalTourId: number; externalDeparturePortId: number; externalDepartureId: number
   passengers: (PassengerDetails & { externalPriceId: number })[]
   contact: { name: string; email: string; phone: string }; privacyNoticeAccepted: boolean
+  invoice?: InvoiceRequest
 }
 
 export function validPaymentCard(card: PaymentCard, today: string): boolean {

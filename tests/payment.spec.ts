@@ -30,7 +30,7 @@ async function mockCatalog(page: Page) {
   })
 }
 
-async function openReview(page: Page) {
+async function openReview(page: Page, withInvoice = false) {
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await expect(page.locator('.tour-card')).toHaveCount(1)
   await page.locator('.tour-card__footer button').click()
@@ -53,7 +53,24 @@ async function openReview(page: Page) {
   }
   await expect(dialog.locator('.reservation-payment')).toHaveCount(0)
   await expect(dialog.getByLabel('Kart Numarası', { exact: true })).toHaveCount(0)
-  await dialog.getByRole('checkbox').check()
+  if (withInvoice) {
+    await dialog.getByRole('checkbox', { name: 'E-fatura istiyorum' }).check()
+    // The invoice starts from the booking contact.
+    await expect(dialog.getByLabel('Faturadaki ad soyad', { exact: true })).toHaveValue('Test Misafir')
+    await expect(dialog.getByLabel('Fatura e-postası', { exact: true })).toHaveValue('test@example.com')
+    await dialog.getByRole('button', { name: /^Fatura tipi/ }).click()
+    await dialog.getByRole('option', { name: 'Kurumsal', exact: true }).click()
+    await dialog.getByLabel('Şirket unvanı', { exact: true }).fill('Örnek Turizm A.Ş.')
+    await dialog.getByLabel('Vergi no / T.C. kimlik no', { exact: true }).fill('1234567890')
+    await dialog.getByLabel('Fatura e-postası', { exact: true }).fill('fatura@example.com')
+    await dialog.getByLabel('Fatura adresi', { exact: true }).fill('Moda Cad. 1, Kadıköy / İstanbul')
+    // A corporate invoice needs a tax office before prices are checked.
+    await dialog.getByRole('checkbox', { name: /Mesafeli Satış Sözleşmesi/ }).check()
+    await dialog.getByRole('button', { name: 'Bilgileri Kontrol et ve Ödemeye geç' }).click()
+    await expect(dialog.getByLabel('Kart Numarası', { exact: true })).toHaveCount(0)
+    await dialog.getByLabel('Vergi dairesi', { exact: true }).fill('Kadıköy')
+  }
+  await dialog.getByRole('checkbox', { name: /Mesafeli Satış Sözleşmesi/ }).check()
   await dialog.getByRole('button', { name: 'Bilgileri Kontrol et ve Ödemeye geç' }).click()
   await expect(dialog.getByLabel('Kart Numarası', { exact: true })).toBeEnabled()
   await expect(dialog).not.toContainText('Ödeme henüz etkin değil')
@@ -198,6 +215,7 @@ test('payment sends mixed tickets and passenger data once, sandboxed bank result
     expect(body.card.number).toBe('4111111111111111')
     expect(body.privacyNoticeAccepted).toBe(true)
     expect(body.externalTripId).toBeUndefined()
+    expect(body.invoice).toBeUndefined()
     attemptId = body.attemptId
     await route.fulfill({ json: { ticketId: 'mock', ticketCode: order, amount: 4050, currency: 'TRY', threeDSecureUrl: frameUrl } })
   })
@@ -225,6 +243,27 @@ test('payment sends mixed tickets and passenger data once, sandboxed bank result
   expect(await page.getByRole('dialog').evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(false)
   await page.getByRole('button', { name: 'Tamam, turlara dön' }).click()
   expect(await page.evaluate(() => sessionStorage.getItem('pereme-payment-attempt'))).toBeNull()
+})
+
+test('a requested e-invoice is reviewed and sent with the payment', async ({ page }, testInfo) => {
+  await mockCatalog(page)
+  let invoice: unknown
+  await page.route('**/payments/tour/initialize', async (route) => {
+    invoice = route.request().postDataJSON().invoice
+    await route.fulfill({ json: { ticketId: 'mock', ticketCode: order, amount: 4050, currency: 'TRY', threeDSecureUrl: frameUrl } })
+  })
+  await openReview(page, true)
+  const dialog = page.getByRole('dialog')
+  const review = dialog.locator('.reservation-review__contact', { hasText: 'Fatura bilgileri' })
+  await expect(review).toContainText('Örnek Turizm A.Ş.')
+  await expect(review).toContainText('Kurumsal · •••• 7890 · Kadıköy')
+  await expect(review).not.toContainText('1234567890')
+  await review.screenshot({ path: testInfo.outputPath('invoice-review.png') })
+  await fillCard(page)
+  await page.getByRole('button', { name: /^Güvenli ödeme yap/ }).click()
+  await expect(page.getByTitle('3D Secure doğrulaması')).toBeVisible()
+  expect(invoice).toEqual({ type: 'corporate', title: 'Örnek Turizm A.Ş.', taxNumber: '1234567890', taxOffice: 'Kadıköy',
+    email: 'fatura@example.com', address: 'Moda Cad. 1, Kadıköy / İstanbul' })
 })
 
 test('invalid card checksum never calls the payment endpoint', async ({ page }) => {

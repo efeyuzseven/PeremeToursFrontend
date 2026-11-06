@@ -96,7 +96,7 @@ async function fillContact(page: Page) {
     await passenger.getByLabel('T.C. Kimlik / Pasaport No', { exact: true }).fill('12345678901')
     await passenger.getByLabel('Doğum Tarihi', { exact: true }).fill('1990-01-01')
   }
-  await dialog.getByRole('checkbox').check()
+  await dialog.getByRole('checkbox', { name: /Mesafeli Satış Sözleşmesi/ }).check()
 }
 
 async function expectIndependentPassengerScroll(page: Page, list: Locator) {

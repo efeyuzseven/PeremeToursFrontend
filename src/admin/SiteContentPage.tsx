@@ -9,9 +9,9 @@ import type { AdminLanguage } from './AdminLayout'
 
 const copy = {
   tr: { title: 'Ana Sayfa', subtitle: 'Ana sayfanın görsellerini ve metinlerini yönetin. TR / EN taslakları birlikte kaydedilir.',
-    hero: 'Ana giriş alanı', tours: 'Turlar alanı', why: 'Neden Pereme?',
+    hero: 'Ana giriş alanı', why: 'Neden Pereme?',
  stories: 'Hikâyeler & Fotoğraflar', final: 'Son rezervasyon çağrısı',
-    navigation: 'Menü yazıları', booking: 'Tur arama ve kategori yazıları', marquee: 'Kayan bilgi şeridi', footer: 'Alt bilgi', images: 'Kapak ve bölüm görselleri',
+    booking: 'Tur arama ve kategori yazıları', marquee: 'Kayan bilgi şeridi', images: 'Kapak ve bölüm görselleri',
     lead: 'Ana başlık', accent: 'Vurgulu başlık', description: 'Açıklama', eyebrow: 'Üst etiket', reviews: 'Puan altı metni', titleLabel: 'Başlık', browse: 'Turları gör butonu', bookingLabel: 'Rezervasyon butonu',
     quote: 'Fotoğraf yoksa gösterilecek yorum', meta: 'Yorum bilgisi', pre: 'Üst metin', action: 'Buton metni',
     imageHelp: 'JPG, PNG veya WebP · En fazla 8 MB. Görseller iki dil için ortaktır. Yükledikten sonra içerikleri kaydedin. Tur kartı görselleri ayrıca Tur İçerikleri ekranındadır.',
@@ -21,9 +21,9 @@ const copy = {
     dirty: 'Kaydedilmemiş değişiklikler var.', clean: 'İçerikler güncel.', preview: 'Ana sayfayı aç', hint: 'Tur sayfalarının kapak ve bölümleri: Tur Sayfaları. Satılan tur kartlarının yazı ve görselleri: Tur İçerikleri.',
     leave: 'Kaydedilmemiş değişiklikler var. Sayfadan ayrılmak istiyor musunuz?' },
   en: { title: 'Homepage', subtitle: 'Manage homepage images and text. TR / EN drafts are saved together.',
-    hero: 'Hero section', tours: 'Tours section', why: 'Why Pereme?',
+    hero: 'Hero section', why: 'Why Pereme?',
  stories: 'Stories & Photos', final: 'Final booking call',
-    navigation: 'Menu labels', booking: 'Tour search and category labels', marquee: 'Scrolling information strip', footer: 'Footer', images: 'Cover and section images',
+    booking: 'Tour search and category labels', marquee: 'Scrolling information strip', images: 'Cover and section images',
     lead: 'Main heading', accent: 'Accent heading', description: 'Description', eyebrow: 'Eyebrow', reviews: 'Rating subtext', titleLabel: 'Title', browse: 'View tours button', bookingLabel: 'Booking button',
     quote: 'Fallback review when no photos are added', meta: 'Review details', pre: 'Top text', action: 'Button label',
     imageHelp: 'JPG, PNG or WebP · Up to 8 MB. Images are shared across languages. Save content after uploading. Tour card images are managed in Tour Content.',
@@ -129,12 +129,11 @@ export default function SiteContentPage() {
             <label>{c.focus}<select value={content.imagePositions?.[slot.key] ?? 'center'} onChange={event => { const value = event.target.value; change(draft => ({ ...draft, imagePositions: { ...draft.imagePositions, [slot.key]: value } })) }}>{['center', 'top', 'bottom', 'left', 'right'].map((position, index) => <option key={position} value={position}>{c.positions[index]}</option>)}</select></label>
           </article>
         })}</div></section>
-        {(['hero', 'tours', 'why', 'stories', 'final'] as const).map(section => <section key={section} data-content-section={section}><header>{section === 'stories' ? <Camera /> : <LayoutTemplate />}<div><h2>{c[section]}</h2></div></header>
+        {(['hero', 'why', 'stories', 'final'] as const).map(section => <section key={section} data-content-section={section}><header>{section === 'stories' ? <Camera /> : <LayoutTemplate />}<div><h2>{c[section]}</h2></div></header>
           <div className="site-content-fields">
-            {/* The tours section has no heading on the site any more; only the card button label is editable. */}
-            {section !== 'hero' && section !== 'final' && section !== 'tours' && textField(section, 'eyebrow', c.eyebrow)}
-            {section !== 'final' && section !== 'tours' && <>{textField(section, 'lead', c.lead)}{textField(section, 'accent', c.accent)}</>}
-            {section !== 'why' && section !== 'final' && section !== 'tours' && textField(section, 'description', c.description, true)}
+            {section !== 'hero' && section !== 'final' && textField(section, 'eyebrow', c.eyebrow)}
+            {section !== 'final' && <>{textField(section, 'lead', c.lead)}{textField(section, 'accent', c.accent)}</>}
+            {section !== 'why' && section !== 'final' && textField(section, 'description', c.description, true)}
             {section === 'why' && textField(section, 'reviews', c.reviews)}
             {section === 'stories' && <>{textField(section, 'quote', c.quote, true)}{textField(section, 'meta', c.meta)}</>}
             {section === 'final' && <>{textField(section, 'pre', c.pre)}{textField(section, 'title', c.titleLabel)}{textField(section, 'action', c.action)}</>}
@@ -152,7 +151,8 @@ export default function SiteContentPage() {
             {(content.storyPhotos?.length ?? 0) < 6 && <label className="homepage-image-upload"><ImagePlus size={15} />{uploading === 'story-photo' ? c.saving : c.addPhoto}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; void upload('story-photo', file, url => change(draft => ({ ...draft, storyPhotos: [...(draft.storyPhotos ?? []), url] }))) }} /></label>}
           </div>}
         </section>)}
-        {(['navigation', 'booking', 'marquee', 'footer'] as const).map(group => <section key={group}><header><LayoutTemplate /><h2>{c[group]}</h2></header><div className="site-content-fields">{extraFields(group)}</div></section>)}
+        {/* Tour card buttons, the account button and the footer keep their saved texts but are not editable here. */}
+        {(['booking', 'marquee'] as const).map(group => <section key={group}><header><LayoutTemplate /><h2>{c[group]}</h2></header><div className="site-content-fields">{extraFields(group)}</div></section>)}
       </fieldset>
       <div className="site-content-save"><button className="admin-primary-button" disabled={saving || !!uploading || !dirty} type="submit"><Save />{saving ? c.saving : c.save}</button></div>
     </form>

@@ -1,5 +1,20 @@
 .tour-page-content { color: var(--navy); background: #fff; }
-.tour-page-hero { position: relative; isolation: isolate; overflow: hidden; min-height: 520px; background: var(--navy); color: #fff; }
+/* A full-width cover runs under the site header, like the homepage: the header is see-through with white text at the
+   top of the page and turns into its usual white bar once the page is scrolled. --overlay-header is the header's
+   height; it is unset (0) elsewhere, such as the admin preview. */
+.info-page:has(.tour-page-hero--cover) { --overlay-header: 84px; }
+.info-page:has(.tour-page-hero--cover) .info-header { position: fixed; left: 0; width: 100%; transition: color .3s ease, background .3s ease, box-shadow .3s ease, border-color .3s ease; }
+.info-page:has(.tour-page-hero--cover) .info-header:not(.info-header--scrolled) { border-color: rgba(255,255,255,.16); color: #fff; background: transparent; box-shadow: none; backdrop-filter: none; }
+.info-page:has(.tour-page-hero--cover) .info-header:not(.info-header--scrolled) :is(nav a, .social-links, .social-links a:hover, .info-language button.active) { color: #fff; }
+.info-page:has(.tour-page-hero--cover) .info-header:not(.info-header--scrolled) .social-links a:hover { background: rgba(255,255,255,.13); }
+.info-page:has(.tour-page-hero--cover) .info-header:not(.info-header--scrolled) .info-logo img { filter: brightness(0) invert(1); }
+.info-page:has(.tour-page-hero--cover) .info-header:not(.info-header--scrolled) .info-language { border-color: rgba(255,255,255,.28); }
+.info-page:has(.tour-page-hero--cover) .info-header:not(.info-header--scrolled) .info-language button { color: rgba(255,255,255,.6); }
+.info-page:has(.tour-page-hero--cover) .info-header:not(.info-header--scrolled) .info-menu-button { background: rgba(255,255,255,.16); }
+/* Keeps the white header text readable over bright pictures. */
+.info-page .tour-page-hero--cover::after { content: ''; position: absolute; z-index: -1; inset: 0 0 auto; height: 170px; background: linear-gradient(180deg, rgba(7,27,53,.6), rgba(7,27,53,0)); pointer-events: none; }
+@media (max-width: 640px) { .info-page:has(.tour-page-hero--cover) { --overlay-header: 72px; } }
+.tour-page-hero { position: relative; isolation: isolate; overflow: hidden; min-height: calc(520px + var(--overlay-header, 0px)); background: var(--navy); color: #fff; }
 .tour-page-hero__image { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 /* Several hero images: a strip of full-size slides that moves sideways (see TourHero). */
 .tour-page-hero__slides { position: absolute; z-index: -2; inset: 0; overflow: hidden; }
@@ -15,7 +30,7 @@
 .tour-page-hero__controls button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .tour-page-hero__track { transition: none; } }
 .tour-page-hero--cover::before { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(90deg, rgba(7,27,53,.86), rgba(7,27,53,.42) 65%, rgba(7,27,53,.12)); }
-.tour-page-hero__inner { display: flex; align-items: center; min-height: 520px; padding-top: 75px; padding-bottom: 75px; }
+.tour-page-hero__inner { display: flex; align-items: center; min-height: calc(520px + var(--overlay-header, 0px)); padding-top: calc(75px + var(--overlay-header, 0px)); padding-bottom: 75px; }
 .tour-page-hero__inner > div { max-width: 690px; }
 .tour-page-eyebrow { display: inline-flex; align-items: center; gap: 10px; color: var(--sea); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .tour-page-hero h1 { margin: 20px 0; font: 600 clamp(38px, 5.5vw, 76px)/1.06 'Manrope', sans-serif; letter-spacing: -.05em; overflow-wrap: anywhere; }
@@ -148,8 +163,8 @@
   .tour-detail__aside { position: static; order: -1; margin: 16px 0 24px; }
 }
 @media (max-width: 600px) {
-  .tour-page-hero, .tour-page-hero__inner { min-height: 460px; }
-  .tour-page-hero__inner { padding-top: 55px; padding-bottom: 55px; }
+  .tour-page-hero, .tour-page-hero__inner { min-height: calc(460px + var(--overlay-header, 0px)); }
+  .tour-page-hero__inner { padding-top: calc(55px + var(--overlay-header, 0px)); padding-bottom: 55px; }
   .tour-page-hero--split .tour-page-hero__image { position: relative; z-index: 0; left: 0; display: block; width: 100%; height: 240px; }
   .tour-page-hero--split .tour-page-hero__slides { position: relative; z-index: 0; left: 0; height: 240px; }
   .tour-page-hero--split .tour-page-hero__controls { top: 188px; bottom: auto; }

@@ -37,6 +37,8 @@ export default function PublicPageLayout({ children, language: controlledLanguag
   const language = controlledLanguage ?? storedLanguage
   const setLanguage = (next: PublicLanguage) => { if (onLanguageChange) onLanguageChange(next); else setStoredLanguage(next) }
   const [menuOpen, setMenuOpen] = useState(false)
+  // Pages whose hero runs under the header (tour pages, see tour-pages.css) show it see-through until the page is scrolled.
+  const [scrolled, setScrolled] = useState(() => window.scrollY > 48)
   const { user } = useAuth()
   const c = copy[language]
   const navigation = mainNavigation(language, useAnnouncementsAvailable())
@@ -47,10 +49,16 @@ export default function PublicPageLayout({ children, language: controlledLanguag
     localStorage.setItem('pereme-language', language)
   }, [language])
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 48)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   const closeMenu = () => setMenuOpen(false)
 
   return <div className="info-page" id="top">
-    <header className="info-header">
+    <header className={`info-header${scrolled ? ' info-header--scrolled' : ''}`}>
       <div className="shell info-header__inner">
         <Link className="info-logo" to="/" aria-label={c.home}><img src="/assets/pereme-logo.svg" alt="Dentur Pereme" /></Link>
         <nav aria-label={c.explore}>

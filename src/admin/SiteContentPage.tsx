@@ -14,11 +14,11 @@ const copy = {
     booking: 'Kategori yazıları', marquee: 'Kayan bilgi şeridi', images: 'Kapak ve bölüm görselleri',
     lead: 'Ana başlık', accent: 'Vurgulu başlık', description: 'Açıklama', eyebrow: 'Üst etiket', reviews: 'Puan altı metni', titleLabel: 'Başlık', browse: 'Turları gör butonu', bookingLabel: 'Rezervasyon butonu',
     quote: 'Fotoğraf yoksa gösterilecek yorum', meta: 'Yorum bilgisi', pre: 'Üst metin', action: 'Buton metni',
-    imageHelp: 'JPG, PNG veya WebP · En fazla 8 MB. Görseller iki dil için ortaktır. Yükledikten sonra içerikleri kaydedin. Tur kartı görselleri ayrıca Tur İçerikleri ekranındadır.',
+    imageHelp: 'JPG, PNG veya WebP · En fazla 8 MB. Görseller iki dil için ortaktır. Yükledikten sonra içerikleri kaydedin. Tur kartı görselleri ayrıca Kart İçerikleri ekranındadır.',
     choose: 'Görsel yükle', reset: 'Varsayılanı kullan', focus: 'Görsel odak noktası', positions: ['Orta', 'Üst', 'Alt', 'Sol', 'Sağ'],
     photosHelp: 'En fazla 6 fotoğraf. Ana sayfada yan yana görünür; fotoğraf yoksa görsel kolajı ve misafir yorumu gösterilir. JPG, PNG veya WebP · En fazla 8 MB.', addPhoto: 'Fotoğraf ekle', moveLeft: 'Sola taşı', moveRight: 'Sağa taşı', removePhoto: 'Fotoğrafı kaldır',
     save: 'Tüm değişiklikleri kaydet', saving: 'Kaydediliyor...', saved: 'İki dildeki içerikler ve görseller kaydedildi.', error: 'İşlem tamamlanamadı. Lütfen tekrar deneyin.',
-    dirty: 'Kaydedilmemiş değişiklikler var.', clean: 'İçerikler güncel.', preview: 'Ana sayfayı aç', hint: 'Tur sayfalarının kapak ve bölümleri: Tur Sayfaları. Satılan tur kartlarının yazı ve görselleri: Tur İçerikleri.',
+    dirty: 'Kaydedilmemiş değişiklikler var.', clean: 'İçerikler güncel.', preview: 'Ana sayfayı aç', hint: 'Tur sayfalarının kapak ve bölümleri: Tur Sayfaları. Satılan tur kartlarının yazı ve görselleri: Kart İçerikleri.',
     leave: 'Kaydedilmemiş değişiklikler var. Sayfadan ayrılmak istiyor musunuz?' },
   en: { title: 'Homepage', subtitle: 'Manage homepage images and text. TR / EN drafts are saved together.',
     hero: 'Hero section', why: 'Why Pereme?',
@@ -26,11 +26,11 @@ const copy = {
     booking: 'Category labels', marquee: 'Scrolling information strip', images: 'Cover and section images',
     lead: 'Main heading', accent: 'Accent heading', description: 'Description', eyebrow: 'Eyebrow', reviews: 'Rating subtext', titleLabel: 'Title', browse: 'View tours button', bookingLabel: 'Booking button',
     quote: 'Fallback review when no photos are added', meta: 'Review details', pre: 'Top text', action: 'Button label',
-    imageHelp: 'JPG, PNG or WebP · Up to 8 MB. Images are shared across languages. Save content after uploading. Tour card images are managed in Tour Content.',
+    imageHelp: 'JPG, PNG or WebP · Up to 8 MB. Images are shared across languages. Save content after uploading. Tour card images are managed in Card Content.',
     choose: 'Upload image', reset: 'Use default', focus: 'Image focal point', positions: ['Centre', 'Top', 'Bottom', 'Left', 'Right'],
     photosHelp: 'Up to 6 photos, shown side by side on the homepage; without photos the image collage and guest review are shown. JPG, PNG or WebP · Up to 8 MB.', addPhoto: 'Add photo', moveLeft: 'Move left', moveRight: 'Move right', removePhoto: 'Remove photo',
     save: 'Save all changes', saving: 'Saving...', saved: 'Both language drafts and images saved.', error: 'Could not complete the request. Please try again.',
-    dirty: 'You have unsaved changes.', clean: 'Content is up to date.', preview: 'Open homepage', hint: 'Tour page covers and sections: Tour Pages. Tour card copy and images: Tour Content.',
+    dirty: 'You have unsaved changes.', clean: 'Content is up to date.', preview: 'Open homepage', hint: 'Tour page covers and sections: Tour Pages. Tour card copy and images: Card Content.',
     leave: 'You have unsaved changes. Leave this page?' },
 }
 
@@ -121,7 +121,7 @@ export default function SiteContentPage() {
   const current = content[editLanguage]
   return <>
     <div className="admin-page-heading"><div><span>{language === 'tr' ? 'SİTE YÖNETİMİ' : 'WEBSITE MANAGEMENT'}</span><h1>{c.title}</h1><p>{c.subtitle}</p></div></div>
-    <p className="homepage-editor-hint">{c.hint} <a href="/admin/tour-pages">{language === 'tr' ? 'Tur Sayfaları' : 'Tour Pages'}</a> · <a href="/admin/tour-contents">{language === 'tr' ? 'Tur İçerikleri' : 'Tour Content'}</a></p>
+    <p className="homepage-editor-hint">{c.hint} <a href="/admin/tour-pages">{language === 'tr' ? 'Tur Sayfaları' : 'Tour Pages'}</a> · <a href="/admin/tour-contents">{language === 'tr' ? 'Kart İçerikleri' : 'Card Content'}</a></p>
     <div className="homepage-editor-status"><span>{dirty ? c.dirty : c.clean}</span><a href="/" target="_blank" rel="noopener noreferrer">{c.preview}<ExternalLink size={15} /></a></div>
     {error && <div className="admin-alert" role="alert">{error}</div>}{success && <div className="admin-alert site-content-success" role="status">{success}</div>}
     <div className="site-content-language-tabs">{(['tr', 'en'] as const).map(item => <button key={item} disabled={saving || !!uploading} className={editLanguage === item ? 'active' : ''} type="button" onClick={() => setEditLanguage(item)}>{item.toUpperCase()} <span>{item === 'tr' ? 'Türkçe içerik' : 'English content'}</span></button>)}</div>

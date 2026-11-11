@@ -37,15 +37,15 @@ const permissions: Record<AdminLanguage, Record<UserRole, string>> = {
   tr: {
     User: 'Kendi hesabını ve rezervasyonlarını yönetir. Panel erişimi yoktur.',
     Admin: 'Kullanıcı ve rol yönetimi dahil tüm yönetim paneline tam erişim sağlar.',
-    Editor: 'Ana Sayfa, Tur İçerikleri, Tur Sayfaları ve SSS içeriklerini düzenleyebilir.',
-    Advisor: 'Ana Sayfa, Tur İçerikleri, Tur Sayfaları ve SSS içeriklerini düzenleyebilir.',
+    Editor: 'Ana Sayfa, Kart İçerikleri, Tur Sayfaları ve SSS içeriklerini düzenleyebilir.',
+    Advisor: 'Ana Sayfa, Kart İçerikleri, Tur Sayfaları ve SSS içeriklerini düzenleyebilir.',
     Service: 'Geri bildirimleri yanıtlar; tur biletlerini ve hataları görür, bilet iptal/iadesi yapabilir.',
   },
   en: {
     User: 'Manages their own account and bookings. No panel access.',
     Admin: 'Full panel access, including user and role management.',
-    Editor: 'Edits Homepage, Tour Content, Tour Pages and FAQs.',
-    Advisor: 'Edits Homepage, Tour Content, Tour Pages and FAQs.',
+    Editor: 'Edits Homepage, Card Content, Tour Pages and FAQs.',
+    Advisor: 'Edits Homepage, Card Content, Tour Pages and FAQs.',
     Service: 'Responds to feedback, views tickets and errors, and can cancel/refund bookings.',
   },
 }

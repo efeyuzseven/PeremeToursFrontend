@@ -29,9 +29,9 @@ type ManagedTourContent = {
 
 const copy = {
   tr: {
-    eyebrow: 'KATALOG & İÇERİK', title: 'Tur İçerikleri', subtitle: 'EasyTicket’tan gelen turların sitedeki başlık, açıklama, görsel ve sırasını yönetin.',
+    eyebrow: 'KATALOG & İÇERİK', title: 'Kart İçerikleri', subtitle: 'EasyTicket’tan gelen turların sitedeki başlık, açıklama, görsel ve sırasını yönetin.',
     total: 'Toplam tur', customized: 'Düzenlenen', visible: 'Yayında', search: 'Tur veya kategori ara...', edit: 'Düzenle', source: 'EasyTicket kaynağı',
-    custom: 'Özel içerik', original: 'Kaynak içerik', hidden: 'Gizli', empty: 'Eşleşen tur bulunamadı.', error: 'Tur içerikleri yüklenemedi.',
+    custom: 'Özel içerik', original: 'Kaynak içerik', hidden: 'Gizli', empty: 'Eşleşen tur bulunamadı.', error: 'Kart içerikleri yüklenemedi.',
     modalTitle: 'Tur içeriğini düzenle', modalText: 'Boş bıraktığınız metinlerde EasyTicket veya varsayılan içerik kullanılır.', titleTr: 'Türkçe başlık',
     titleEn: 'İngilizce başlık', descriptionTr: 'Türkçe açıklama', descriptionEn: 'İngilizce açıklama', badgeTr: 'Türkçe rozet', badgeEn: 'İngilizce rozet',
     order: 'Gösterim sırası', publish: 'Sitede göster', image: 'Kapak görseli', imageHint: 'JPG, PNG veya WebP · en fazla 8 MB', chooseImage: 'Görsel seç',
@@ -40,9 +40,9 @@ const copy = {
     removeImage: 'Özel görseli kaldır', removeImageConfirm: 'Özel görsel kaldırılsın mı? Tur varsayılan görseline dönecek.', save: 'Değişiklikleri kaydet', cancel: 'Vazgeç', saving: 'Kaydediliyor...',
   },
   en: {
-    eyebrow: 'CATALOGUE & CONTENT', title: 'Tour Content', subtitle: 'Manage the titles, descriptions, images and order of tours supplied by EasyTicket.',
+    eyebrow: 'CATALOGUE & CONTENT', title: 'Card Content', subtitle: 'Manage the titles, descriptions, images and order of tours supplied by EasyTicket.',
     total: 'Total tours', customized: 'Customized', visible: 'Published', search: 'Search tour or category...', edit: 'Edit', source: 'EasyTicket source',
-    custom: 'Custom content', original: 'Source content', hidden: 'Hidden', empty: 'No matching tour found.', error: 'Tour content could not be loaded.',
+    custom: 'Custom content', original: 'Source content', hidden: 'Hidden', empty: 'No matching tour found.', error: 'Card content could not be loaded.',
     modalTitle: 'Edit tour content', modalText: 'EasyTicket or default content is used for text fields you leave blank.', titleTr: 'Turkish title',
     titleEn: 'English title', descriptionTr: 'Turkish description', descriptionEn: 'English description', badgeTr: 'Turkish badge', badgeEn: 'English badge',
     order: 'Display order', publish: 'Show on website', image: 'Cover image', imageHint: 'JPG, PNG or WebP · maximum 8 MB', chooseImage: 'Choose image',

@@ -500,14 +500,16 @@ img {
 
 .hero__experience-card {
   position: absolute;
-  /* Starts level with the top of the hero copy; the offset matches .hero__content's padding. */
-  top: 25px;
-  right: 38px;
+  z-index: 2;
+  /* Hangs from the header: its top edge sits on the header's bottom line (the header is 86px plus a 1px line).
+     The right offset keeps it 38px inside the page shell, whose width is min(1180px, 100% - 48px). */
+  top: 86px;
+  right: calc((100% - min(1180px, 100% - 48px)) / 2 + 38px);
   width: 285px;
   padding: 19px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.24);
-  border-radius: 8px;
+  border-radius: 0 0 8px 8px;
   background: linear-gradient(145deg, rgba(7,27,53,.72), rgba(31,71,140,.5));
   box-shadow: 0 20px 50px rgba(7,27,53,.18);
   backdrop-filter: blur(14px);

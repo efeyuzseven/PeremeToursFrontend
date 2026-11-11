@@ -574,15 +574,16 @@ function App() {
               <a className="play-link" href="#turlar"><span><Play size={15} fill="currentColor" /></span> {c.hero.toursLink}</a>
             </div>
           </div>
-          {!hidden('heroCard') && <div className="hero__experience-card">
-            <div className="experience-card__top"><span><Waves size={15} /> {c.hero.cardLabel}</span><i>{c.hero.cardCount}</i></div>
-            <p className="experience-card__lead">{c.hero.cardLead}<br /><em>{c.hero.cardAccent}</em></p>
-            <div className="experience-card__types">{tourCategories.map((category, index) => <Link key={category} to={categoryPath(category)}><b aria-hidden="true">0{index + 1}</b>{c.hero.cardTypes[index]}</Link>)}</div>
-            <div className="experience-card__note"><Sparkles size={14} /> {c.hero.cardNote}</div>
-          </div>}
           <div className="hero__side-note" aria-hidden="true"><span>41° 02′ N</span><div /><span>29° 00′ E</span></div>
           <a className="scroll-cue" href="#turlar" aria-label={c.a11y.scrollTours}><span>{c.hero.scroll}</span><ArrowDown size={18} /></a>
         </div>
+        {/* Hangs from the header's bottom line, outside the centred hero content. */}
+        {!hidden('heroCard') && <div className="hero__experience-card">
+          <div className="experience-card__top"><span><Waves size={15} /> {c.hero.cardLabel}</span><i>{c.hero.cardCount}</i></div>
+          <p className="experience-card__lead">{c.hero.cardLead}<br /><em>{c.hero.cardAccent}</em></p>
+          <div className="experience-card__types">{tourCategories.map((category, index) => <Link key={category} to={categoryPath(category)}><b aria-hidden="true">0{index + 1}</b>{c.hero.cardTypes[index]}</Link>)}</div>
+          <div className="experience-card__note"><Sparkles size={14} /> {c.hero.cardNote}</div>
+        </div>}
 
         <div className="shell booking-bar-wrap">
           <div className="booking-bar">

@@ -1236,14 +1236,17 @@ h2 em {
   border-color: var(--navy);
 }
 
+/* Four tours per row on wide screens; three, two and one as the screen narrows (see the media queries). */
 .tour-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 21px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
 }
 
 .tour-card {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   background: #fff;
   border: 1px solid rgba(31,71,140,.08);
@@ -1260,7 +1263,8 @@ h2 em {
 
 .tour-card__media {
   position: relative;
-  height: 265px;
+  flex: 0 0 auto;
+  height: 215px;
   overflow: hidden;
 }
 
@@ -1285,6 +1289,8 @@ h2 em {
   position: absolute;
   left: 17px;
   top: 17px;
+  /* Long labels wrap instead of running under the favourite button on the right. */
+  max-width: calc(100% - 80px);
   padding: 7px 11px;
   color: var(--navy);
   background: #fff;
@@ -1336,8 +1342,12 @@ h2 em {
 .tour-card__rating svg { color: #6a9dd2; }
 .tour-card__rating span { opacity: .67; font-weight: 400; }
 
+/* The description grows so the details row and the buttons line up across a row of cards. */
 .tour-card__body {
-  padding: 24px 23px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 18px 18px;
 }
 
 .tour-card__category {
@@ -1349,15 +1359,16 @@ h2 em {
 }
 
 .tour-card h3 {
-  min-height: 53px;
+  min-height: 46px;
   margin: 8px 0 9px;
   font-family: 'Manrope', sans-serif;
-  font-size: 22px;
+  font-size: 19px;
   line-height: 1.2;
   letter-spacing: -.035em;
 }
 
 .tour-card__body > p {
+  flex: 1;
   min-height: 63px;
   margin: 0;
   color: rgba(106,157,210,.64);
@@ -1400,24 +1411,25 @@ h2 em {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 15px;
+  gap: 8px;
 }
 
 .tour-card__footer button {
   width: 100%;
   min-width: 72px;
   height: 44px;
-  padding: 0 18px;
+  padding: 0 10px;
   border: 0;
   border-radius: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   color: #fff;
   background: var(--navy);
   font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
   transition: background 180ms ease;
 }
 
@@ -1427,13 +1439,13 @@ h2 em {
 .tour-card__footer .tour-card__info {
   flex: 0 0 auto;
   height: 44px;
-  padding: 0 18px;
+  padding: 0 12px;
   border: 1px solid rgba(7,27,53,.2);
   border-radius: 100px;
   display: inline-flex;
   align-items: center;
   color: var(--navy);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -2376,6 +2388,10 @@ footer {
   color: rgba(106,157,210,.64);
   font-size: 14px;
   line-height: 1.7;
+}
+
+@media (max-width: 1200px) {
+  .tour-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 1050px) {

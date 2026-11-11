@@ -59,6 +59,8 @@ export type TourPageDocument = {
   heroLayout: 'cover' | 'split'; heroImageUrl: string | null
   // Extra hero images after heroImageUrl; with at least one the hero becomes a slider.
   heroSlideUrls?: string[] | null
+  // Tour detail pages only: the readable address (/tur/{slug}). Without one the page is /tur/{tour number}.
+  slug?: string | null
   tr: TourPageLanguageContent; en: TourPageLanguageContent; sections: TourPageSection[]
 }
 export type TourPageItem = {
@@ -68,6 +70,8 @@ export type TourPageItem = {
 export type PublicTourItem = {
   externalTourId: number; categoryKey: TourCategory; name: string; titleTr?: string | null; titleEn?: string | null
   descriptionTr?: string | null; descriptionEn?: string | null; imageUrl?: string | null; sortOrder: number
+  // Readable address of the tour's detail page, when it has one.
+  slug?: string | null
 }
 export const tourCategories: TourCategory[] = ['turkish-night', 'sunset', 'daytime', 'bosphorus']
 export const categorySlugs: Record<TourCategory, string> = { 'turkish-night': 'turk-gecesi', sunset: 'sunset', daytime: 'daytime', bosphorus: 'bogaz-turu' }
@@ -145,8 +149,11 @@ export const tourDetailsTemplate: Record<TourLanguage, string> = {
   en: '## Highlights\n- First item\n- Second item\n\n## Full description\nWrite the tour description here.\n\n## Includes\n+ Something included\nx Something not included\n\n## Not suitable for\n- Wheelchair users',
 }
 export const categoryPath = (category: TourCategory) => `/turlar/${categorySlugs[category]}`
-export const tourPath = (id: number) => `/tur/${id}`
-export const pagePath = (page: Pick<TourPageItem, 'externalTourId' | 'categoryKey'>) => page.externalTourId ? tourPath(page.externalTourId) : categoryPath(page.categoryKey)
+// A tour detail page lives at its readable address when it has one, otherwise at its tour number.
+export const tourPath = (id: number, slug?: string | null) => `/tur/${slug || id}`
+export const isTourSlug = (value: string) => value.length <= 120 && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(value) && !/^\d+$/.test(value)
+export const pagePath = (page: Pick<TourPageItem, 'externalTourId' | 'categoryKey'> & { document?: Pick<TourPageDocument, 'slug'> }) =>
+  page.externalTourId ? tourPath(page.externalTourId, page.document?.slug) : categoryPath(page.categoryKey)
 export const resolvePageImage = (url: string) => url.startsWith('/api/') ? `${apiBaseUrl}${url}` : url
 export const tourTitle = (tour: PublicTourItem, language: TourLanguage) => (language === 'tr' ? tour.titleTr : tour.titleEn) || tour.name
 export const bookingTour = (tour: PublicTourItem) => ({

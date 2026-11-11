@@ -63,6 +63,8 @@ type CatalogTour = {
   imageUrl?: string | null
   // Extra card images after imageUrl; visitors flip through them with the arrows on the card.
   galleryImageUrls?: string[] | null
+  // Readable address of the tour's detail page, when it has one.
+  slug?: string | null
   sortOrder?: number
 }
 
@@ -79,6 +81,7 @@ type Tour = {
   live?: boolean
   image: string
   gallery?: string[]
+  slug?: string | null
   imagePosition?: string
   remaining?: number
   sortOrder?: number
@@ -193,6 +196,7 @@ const mergeCatalogTours = (catalog: CatalogTour[]): Tour[] => {
       ),
       image: resolveCatalogImage(item.imageUrl, template.image),
       gallery: (item.galleryImageUrls ?? []).map((url) => url.startsWith('/api/') ? `${apiBaseUrl}${url}` : url),
+      slug: item.slug,
       sortOrder: item.sortOrder,
     }]
   })
@@ -631,10 +635,10 @@ function App() {
                   <div className="tour-card__rating"><Star size={14} fill="currentColor" /> {tour.rating} <span>({tour.reviews})</span></div>
                 </div>
                 <div className="tour-card__body">
-                  <span className="tour-card__category">{c.categories[tour.category]}</span><h3>{tour.live ? <Link to={tourPath(tour.id)}>{tour.title[language]}</Link> : tour.title[language]}</h3><p>{tour.description[language]}</p>
+                  <span className="tour-card__category">{c.categories[tour.category]}</span><h3>{tour.live ? <Link to={tourPath(tour.id, tour.slug)}>{tour.title[language]}</Link> : tour.title[language]}</h3><p>{tour.description[language]}</p>
                   <div className="tour-card__meta"><span><Clock3 size={16} /> {tour.duration[language]}</span><span><MapPin size={16} /> {tour.location[language]}</span></div>
                   <div className="tour-card__footer">
-                    {tour.live && <Link className="tour-card__info" to={tourPath(tour.id)} aria-label={`${tour.title[language]} ${c.tours.info}`}>{c.tours.info}</Link>}
+                    {tour.live && <Link className="tour-card__info" to={tourPath(tour.id, tour.slug)} aria-label={`${tour.title[language]} ${c.tours.info}`}>{c.tours.info}</Link>}
                     <button type="button" disabled={!tour.live} onClick={() => openBooking(tour)} aria-label={`${tour.title[language]} ${c.tours.select}`}>{c.tours.select} <ArrowRight size={18} /></button>
                   </div>
                 </div>

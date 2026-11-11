@@ -6,6 +6,7 @@ import { TourPageContent } from '../components/TourPageContent'
 import { bookingNotesFor, categoryImages, categoryLabels, mapSlots, pagePath, parseCoordinates, resolvePageImage, tourDetailsTemplate, withTextDetails, type TourLanguage,
   type TourPageBookingNote, type TourPageDocument, type TourPageItem, type TourPageMapPoint, type TourPageSection } from '../content/tour-pages'
 import { ApiError, apiRequest, apiUpload } from '../lib/api'
+import { slugify } from '../lib/content-pages'
 import { setPageMetadata } from '../lib/site'
 import { TourPagePicker } from './TourPagePicker'
 import type { AdminLanguage } from './AdminLayout'
@@ -19,6 +20,8 @@ const copy = {
     unsaved: 'Kaydedilmemiş değişiklikler', confirm: 'Kaydedilmemiş değişiklikler var. Sayfayı değiştirmek istiyor musunuz?',
     hero: 'Kapak alanı', cover: 'Tam genişlik kapak', split: 'Görsel / metin yan yana', layout: 'Kapak düzeni', image: 'Kapak görseli',
     choose: 'Görsel yükle', imageHint: 'JPG, PNG veya WebP · en fazla 8 MB', url: 'Görsel bağlantısı', default: 'Varsayılan görsel',
+    slug: 'Sayfa bağlantısı', slugHint: (id: number) => `Küçük harf, rakam ve tire kullanılır. Boş bırakırsanız sayfa tur numarasıyla açılır (pereme.com.tr/tur/${id}). Bağlantıyı değiştirdiğinizde numaralı adres yeni adrese yönlendirilir.`,
+    slugFromTitle: 'Başlıktan üret', slugDigits: 'Sayfa bağlantısı yalnızca rakamlardan oluşamaz.',
     slides: 'Kayan kapak görselleri', slidesHint: 'Buraya görsel eklerseniz kapak alanı kayan görsele (slider) dönüşür: önce kapak görseli, sonra bu görseller sırayla gösterilir. En fazla 8 görsel.',
     eyebrow: 'Üst etiket', heading: 'Başlık', intro: 'Giriş açıklaması', booking: 'Rezervasyon butonu', related: 'İlgili turlar başlığı', seo: 'Arama motoru açıklaması',
     content: 'Sayfa içeriği', contentLabel: 'İçerik (düz yazı veya HTML)', guideTitle: 'Nasıl yazılır?',
@@ -48,6 +51,8 @@ const copy = {
     unsaved: 'Unsaved changes', confirm: 'You have unsaved changes. Do you want to switch pages?',
     hero: 'Hero section', cover: 'Full-width cover', split: 'Image / text side by side', layout: 'Hero layout', image: 'Cover image',
     choose: 'Upload image', imageHint: 'JPG, PNG or WebP · maximum 8 MB', url: 'Image URL', default: 'Default image',
+    slug: 'Page address', slugHint: (id: number) => `Lowercase letters, digits and hyphens. Leave empty to keep the tour number (pereme.com.tr/tur/${id}). After a change the numbered address redirects to the new one.`,
+    slugFromTitle: 'Create from title', slugDigits: 'The page address cannot be digits only.',
     slides: 'Sliding cover images', slidesHint: 'Add images here to turn the hero into a slider: the cover image comes first, then these images in order. Up to 8 images.',
     eyebrow: 'Eyebrow', heading: 'Title', intro: 'Introduction', booking: 'Booking button', related: 'Related tours heading', seo: 'Search engine description',
     content: 'Page content', contentLabel: 'Content (plain text or HTML)', guideTitle: 'How to write',
@@ -147,6 +152,9 @@ function MapSlotEditor({ slot, section, language, editLanguage, update, remove }
   </section>
 }
 
+// What the address field keeps while typing: like slugify, but a hyphen at the end stays so the next word can follow.
+const typedSlug = (value: string) => { const slug = slugify(value); return slug && /[\s-]$/.test(value) && slug.length < 120 ? `${slug}-` : slug }
+
 // Upload target for the hero slider images (gallery uploads pass their section id instead).
 const heroSlidesTarget = 'hero-slides'
 
@@ -235,7 +243,9 @@ export default function TourPagesPage() {
     if (!selected || !document) return
     setSaving(true); setError(''); setSuccess('')
     try {
-      const body = { ...document, sections: document.sections.filter(section => section.type !== 'map' || section.mapPoints?.length || section.mapUrl?.trim()) }
+      const slug = selected.externalTourId ? slugify(document.slug ?? '') || null : null
+      if (slug && /^\d+$/.test(slug)) { setError(c.slugDigits); return }
+      const body = { ...document, slug, sections: document.sections.filter(section => section.type !== 'map' || section.mapPoints?.length || section.mapUrl?.trim()) }
       const updated = await apiRequest<TourPageItem>(`/api/v1/admin/tour-pages/${selected.key}`, { method: 'PUT', token: session!.accessToken, body })
       setPages(current => current.map(page => page.key === updated.key ? updated : page))
       setDocument(withTextDetails(structuredClone(updated.document))); setDirty(false); setSuccess(c.saved)
@@ -266,6 +276,11 @@ export default function TourPagesPage() {
           <div className="tour-page-editor-grid"><label>{c.layout}<select value={document.heroLayout} onChange={event => change(current => ({ ...current, heroLayout: event.target.value as TourPageDocument['heroLayout'] }))}><option value="cover">{c.cover}</option><option value="split">{c.split}</option></select></label>
             <label>{c.eyebrow}<input maxLength={100} value={document[editLanguage].eyebrow} onChange={event => change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], eyebrow: event.target.value } }))} /></label>
             <label className="field-wide">{c.heading}<input maxLength={200} value={document[editLanguage].title} onChange={event => change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], title: event.target.value } }))} /></label>
+            {selected.externalTourId && <div className="tour-page-editor-slug field-wide"><label htmlFor="tour-page-slug">{c.slug}</label>
+              <div><span>pereme.com.tr/tur/</span><input id="tour-page-slug" maxLength={120} value={document.slug ?? ''} placeholder={String(selected.externalTourId)} spellCheck={false} autoCapitalize="none"
+                onChange={event => { const value = typedSlug(event.target.value); change(current => ({ ...current, slug: value || null })) }} />
+                <button type="button" onClick={() => change(current => ({ ...current, slug: slugify(current.tr.title) || null }))}>{c.slugFromTitle}</button></div>
+              <small>{c.slugHint(selected.externalTourId)}</small></div>}
             <label className="field-wide">{c.intro}<textarea rows={4} maxLength={3000} value={document[editLanguage].intro} onChange={event => change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], intro: event.target.value } }))} /></label>
             <label>{c.booking}<input maxLength={80} value={document[editLanguage].bookingLabel} onChange={event => change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], bookingLabel: event.target.value } }))} /></label>
             <label>{c.related}<input maxLength={200} value={document[editLanguage].toursHeading} onChange={event => change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], toursHeading: event.target.value } }))} /></label>

@@ -63,6 +63,15 @@
 .tour-page-editor-add { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 35px; }
 .tour-page-editor-add button { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border: 1px dashed var(--sea); border-radius: 10px; color: var(--blue); background: #fff; font-size: 11px; }
 .tour-page-editor-gallery figure .tour-page-editor-gallery__first { right: 48px; }
+.tour-page-editor-slug { display: grid; gap: 8px; }
+.tour-page-editor-slug > div { display: flex; align-items: stretch; min-width: 0; border: 1px solid rgba(31,71,140,.18); border-radius: 9px; background: #fff; overflow: hidden; }
+.tour-page-editor-slug > div:focus-within { border-color: var(--sea); box-shadow: 0 0 0 3px rgba(106,157,210,.14); }
+.tour-page-editor-slug > div > span { display: flex; align-items: center; padding: 0 0 0 13px; color: var(--blue); font: 12px/1.5 'DM Sans', sans-serif; white-space: nowrap; }
+.tour-page-editor-fields .tour-page-editor-slug input:not([type=checkbox]):not([type=file]) { flex: 1; min-width: 60px; padding-left: 1px; border: 0; border-radius: 0; box-shadow: none; outline: 0; font-weight: 700; }
+.tour-page-editor-slug > div > button { flex: 0 0 auto; padding: 0 14px; border: 0; border-left: 1px solid rgba(31,71,140,.14); color: var(--blue); background: rgba(106,157,210,.1); font-size: 11px; font-weight: 700; cursor: pointer; }
+.tour-page-editor-slug > div > button:hover { background: rgba(106,157,210,.2); }
+.tour-page-editor-slug small { color: var(--blue); font-size: 11px; font-weight: 500; line-height: 1.7; }
+@media (max-width: 600px) { .tour-page-editor-slug > div { flex-wrap: wrap; } .tour-page-editor-slug > div > span { padding-top: 10px; width: 100%; } .tour-page-editor-slug > div > button { min-height: 40px; } }
 .tour-page-editor-slides { margin-top: 22px; padding-top: 20px; border-top: 1px solid rgba(31,71,140,.12); }
 .tour-page-editor-slides > strong { display: block; margin-bottom: 4px; font-size: 13px; }
 .tour-page-editor-fields > .tour-page-editor-section > .tour-page-editor-checkbox { display: flex; align-items: center; gap: 10px; }

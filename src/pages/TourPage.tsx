@@ -1,9 +1,9 @@
 import { ArrowLeft, ArrowRight, RefreshCw, Ticket } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { BookingDrawer } from '../components/BookingDrawer'
 import { TourPageContent } from '../components/TourPageContent'
-import { bookingTour, categoryImages, categoryLabels, categoryPath, categorySlugs, pagePath, resolvePageImage, tourCategories, tourPath, tourTitle,
+import { bookingTour, categoryImages, categoryLabels, categoryPath, categorySlugs, isTourSlug, pagePath, resolvePageImage, tourCategories, tourPath, tourTitle,
   type PublicTourItem, type TourLanguage, type TourPageItem } from '../content/tour-pages'
 import { ApiError, apiRequest } from '../lib/api'
 import { istanbulToday } from '../lib/passengers'
@@ -33,6 +33,9 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
   const [searchParams] = useSearchParams()
   const [bookingLink] = useState(() => parseBookingLink(searchParams))
   const bookingLinkOpened = useRef(false)
+  // Set when the page was opened by its tour number (or an old address) but has a readable address to move to.
+  const [movedTo, setMovedTo] = useState<string | null>(null)
+  const location = useLocation()
   const c = copy[language]
   useEffect(() => {
     const controller = new AbortController()
@@ -41,7 +44,12 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
     const pageRequest = apiRequest<TourPageItem>(`/api/v1/tour-pages/${pageKey}`, { signal: controller.signal, cache: 'no-store' })
     const toursRequest = apiRequest<PublicTourItem[]>('/api/v1/tours', { signal: controller.signal, cache: 'no-store' })
     pageRequest
-      .then(result => { if (!controller.signal.aborted) setPage(result) })
+      .then(result => {
+        if (controller.signal.aborted) return
+        const slug = result.externalTourId ? result.document.slug : null
+        if (slug && pageKey !== slug) setMovedTo(tourPath(result.externalTourId!, slug))
+        else setPage(result)
+      })
       .catch(caught => { if (!controller.signal.aborted) setError(caught instanceof ApiError && caught.status === 404 ? 'missing' : 'unavailable') })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
     toursRequest
@@ -79,6 +87,7 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
     return () => { document.body.style.overflow = previous; window.removeEventListener('keydown', closeOnEscape) }
   }, [selected])
   const retry = () => { setLoading(true); setError(null); setCatalogLoading(true); setCatalogError(false); setReload(value => value + 1) }
+  if (movedTo) return <Navigate to={{ pathname: movedTo, search: location.search, hash: location.hash }} replace />
   if (loading) return <div className="tour-page-state" role="status"><span className="button-spinner" />{c.loading}</div>
   if (error || !page) return <section className="shell tour-page-state"><h1>{error === 'missing' ? c.missing : c.error}</h1>
     {error === 'missing' ? <p>{c.missingText}</p> : <button type="button" className="tour-page-button" onClick={retry}><RefreshCw size={16} />{c.retry}</button>}
@@ -98,9 +107,9 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
         <div className="tour-page-related__heading"><div><span className="tour-page-eyebrow"><Ticket size={16} />PEREME TOURS</span><h2>{page.document[language].toursHeading}</h2></div><p>{c.live}</p></div>
         {catalogLoading ? <p role="status">{c.loading}</p> : catalogError ? <div className="tour-page-state"><p>{c.error}</p><button className="tour-page-button" type="button" onClick={retry}>{c.retry}</button></div>
           : related.length === 0 ? <p>{page.externalTourId ? c.relatedEmpty : c.empty}</p> : <div className="tour-page-tour-grid">{related.map(tour => <article className="tour-page-tour-card" key={tour.externalTourId}>
-            <Link to={tourPath(tour.externalTourId)} aria-label={`${c.details}: ${tourTitle(tour, language)}`}><img src={resolvePageImage(tour.imageUrl || categoryImages[tour.categoryKey])} alt="" loading="lazy" /></Link>
-            <div><h3><Link to={tourPath(tour.externalTourId)}>{tourTitle(tour, language)}</Link></h3><p>{(language === 'tr' ? tour.descriptionTr : tour.descriptionEn) || c.live}</p>
-              <div className="tour-page-tour-card__actions"><Link to={tourPath(tour.externalTourId)}>{c.details}<ArrowRight size={16} /></Link><button type="button" onClick={() => openTour(tour)}>{c.booking}<Ticket size={16} /></button></div>
+            <Link to={tourPath(tour.externalTourId, tour.slug)} aria-label={`${c.details}: ${tourTitle(tour, language)}`}><img src={resolvePageImage(tour.imageUrl || categoryImages[tour.categoryKey])} alt="" loading="lazy" /></Link>
+            <div><h3><Link to={tourPath(tour.externalTourId, tour.slug)}>{tourTitle(tour, language)}</Link></h3><p>{(language === 'tr' ? tour.descriptionTr : tour.descriptionEn) || c.live}</p>
+              <div className="tour-page-tour-card__actions"><Link to={tourPath(tour.externalTourId, tour.slug)}>{c.details}<ArrowRight size={16} /></Link><button type="button" onClick={() => openTour(tour)}>{c.booking}<Ticket size={16} /></button></div>
             </div>
           </article>)}</div>}
       </div></section>
@@ -113,6 +122,7 @@ export default function TourPage() {
   const { categorySlug, tourId } = useParams()
   const category = tourCategories.find(key => categorySlugs[key] === categorySlug)
   const id = tourId && /^[1-9]\d*$/.test(tourId) && Number(tourId) <= 2147483647 ? Number(tourId) : null
-  const key = category || (id ? `tour-${id}` : null)
+  // /tur/{number} is the tour with that number; anything else there is a tour page's readable address.
+  const key = category || (id ? `tour-${id}` : tourId && isTourSlug(tourId) ? tourId : null)
   return <PublicPageLayout>{language => <TourPageBody key={key ?? 'missing'} pageKey={key} language={language} />}</PublicPageLayout>
 }

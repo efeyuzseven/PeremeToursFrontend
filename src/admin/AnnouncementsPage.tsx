@@ -64,7 +64,7 @@ export default function AnnouncementsPage() {
   const change = (update: (current: HomepageAnnouncement[]) => HomepageAnnouncement[]) => { setItems(current => current ? update(current) : current); setSuccess('') }
   const edit = (id: string, update: (current: HomepageAnnouncement) => HomepageAnnouncement) => change(list => list.map(item => item.id === id ? update(item) : item))
   const move = (index: number, step: -1 | 1) => change(list => { const next = [...list]; [next[index], next[index + step]] = [next[index + step], next[index]]; return next })
-  // The latest homepage document is read right before saving so changes made in Site Content meanwhile are kept.
+  // The latest homepage document is read right before saving so changes made on the admin Homepage (Ana Sayfa) screen meanwhile are kept.
   const save = async (event: FormEvent) => {
     event.preventDefault()
     if (!items || busyRef.current) return

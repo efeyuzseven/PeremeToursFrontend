@@ -8,7 +8,7 @@ import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
 
 const copy = {
-  tr: { title: 'Site İçerikleri', subtitle: 'Ana sayfanın görsellerini ve metinlerini yönetin. TR / EN taslakları birlikte kaydedilir.',
+  tr: { title: 'Ana Sayfa', subtitle: 'Ana sayfanın görsellerini ve metinlerini yönetin. TR / EN taslakları birlikte kaydedilir.',
     hero: 'Ana giriş alanı', tours: 'Turlar alanı', why: 'Neden Pereme?',
  stories: 'Hikâyeler & Fotoğraflar', final: 'Son rezervasyon çağrısı',
     navigation: 'Menü yazıları', booking: 'Tur arama ve kategori yazıları', marquee: 'Kayan bilgi şeridi', footer: 'Alt bilgi', images: 'Kapak ve bölüm görselleri',
@@ -20,7 +20,7 @@ const copy = {
     save: 'Tüm değişiklikleri kaydet', saving: 'Kaydediliyor...', saved: 'İki dildeki içerikler ve görseller kaydedildi.', error: 'İşlem tamamlanamadı. Lütfen tekrar deneyin.',
     dirty: 'Kaydedilmemiş değişiklikler var.', clean: 'İçerikler güncel.', preview: 'Ana sayfayı aç', hint: 'Tur sayfalarının kapak ve bölümleri: Tur Sayfaları. Satılan tur kartlarının yazı ve görselleri: Tur İçerikleri.',
     leave: 'Kaydedilmemiş değişiklikler var. Sayfadan ayrılmak istiyor musunuz?' },
-  en: { title: 'Site Content', subtitle: 'Manage homepage images and text. TR / EN drafts are saved together.',
+  en: { title: 'Homepage', subtitle: 'Manage homepage images and text. TR / EN drafts are saved together.',
     hero: 'Hero section', tours: 'Tours section', why: 'Why Pereme?',
  stories: 'Stories & Photos', final: 'Final booking call',
     navigation: 'Menu labels', booking: 'Tour search and category labels', marquee: 'Scrolling information strip', footer: 'Footer', images: 'Cover and section images',

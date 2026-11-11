@@ -8,8 +8,8 @@ import './admin.css'
 export type AdminLanguage = 'tr' | 'en'
 
 const copy = {
-  tr: { panel: 'Yönetim Paneli', tickets: 'Tur Biletleri', tourContents: 'Tur İçerikleri', siteContent: 'Site İçerikleri', faqs: 'Sıkça Sorulanlar', users: 'Kullanıcılar', home: 'Siteyi görüntüle', logout: 'Çıkış yap', workspace: 'Operasyon merkezi' },
-  en: { panel: 'Admin Panel', tickets: 'Tour Tickets', tourContents: 'Tour Content', siteContent: 'Site Content', faqs: 'Frequently Asked', users: 'Users', home: 'View website', logout: 'Sign out', workspace: 'Operations hub' },
+  tr: { panel: 'Yönetim Paneli', tickets: 'Tur Biletleri', tourContents: 'Tur İçerikleri', siteContent: 'Ana Sayfa', faqs: 'Sıkça Sorulanlar', users: 'Kullanıcılar', home: 'Siteyi görüntüle', logout: 'Çıkış yap', workspace: 'Operasyon merkezi' },
+  en: { panel: 'Admin Panel', tickets: 'Tour Tickets', tourContents: 'Tour Content', siteContent: 'Homepage', faqs: 'Frequently Asked', users: 'Users', home: 'View website', logout: 'Sign out', workspace: 'Operations hub' },
 }
 
 export default function AdminLayout() {

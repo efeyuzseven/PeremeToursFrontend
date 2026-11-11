@@ -500,11 +500,8 @@ img {
 
 .hero__experience-card {
   position: absolute;
-  /* Vertically centred on the hero copy; the top offset matches .hero__content's padding. */
+  /* Starts level with the top of the hero copy; the offset matches .hero__content's padding. */
   top: 25px;
-  bottom: 0;
-  height: fit-content;
-  margin-block: auto;
   right: 38px;
   width: 285px;
   padding: 19px;

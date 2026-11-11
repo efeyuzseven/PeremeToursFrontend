@@ -99,9 +99,6 @@
 .homepage-image-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .homepage-image-upload:focus-within { outline: 2px solid #1f478c; outline-offset: 2px; }
 .homepage-image-grid select { min-height: 40px; border: 1px solid #e5edf7; border-radius: 8px; padding: 0 10px; color: #1f478c; background: white; }
-.homepage-visibility { display: flex; flex-wrap: wrap; gap: 18px; }
-.site-content-form .homepage-visibility label { display: flex; align-items: center; gap: 8px; }
-.site-content-form .homepage-visibility input { width: 18px; height: 18px; accent-color: #1f478c; }
 .site-content-save { position: sticky; bottom: 12px; z-index: 2; padding: 12px; background: #fff; border: 1px solid #e5edf7; border-radius: 12px; }
 @media (max-width: 650px) { .homepage-image-grid { grid-template-columns: 1fr; } .site-content-form section { padding: 18px; } }
 .site-content-form section { padding: 24px; border: 1px solid rgba(106,157,210,.13); border-radius: 15px; background: #fff; box-shadow: 0 10px 30px rgba(31,71,140,.035); }

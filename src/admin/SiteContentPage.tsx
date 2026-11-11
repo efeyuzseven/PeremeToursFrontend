@@ -8,7 +8,7 @@ import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
 
 const copy = {
-  tr: { title: 'Site İçerikleri', subtitle: 'Ana sayfanın görsellerini, metinlerini ve bölüm görünürlüğünü yönetin. TR / EN taslakları birlikte kaydedilir.',
+  tr: { title: 'Site İçerikleri', subtitle: 'Ana sayfanın görsellerini ve metinlerini yönetin. TR / EN taslakları birlikte kaydedilir.',
     hero: 'Ana giriş alanı', tours: 'Turlar alanı', why: 'Neden Pereme?',
  stories: 'Hikâyeler & Fotoğraflar', final: 'Son rezervasyon çağrısı',
     navigation: 'Menü yazıları', booking: 'Tur arama ve kategori yazıları', marquee: 'Kayan bilgi şeridi', footer: 'Alt bilgi', images: 'Kapak ve bölüm görselleri',
@@ -16,12 +16,11 @@ const copy = {
     quote: 'Fotoğraf yoksa gösterilecek yorum', meta: 'Yorum bilgisi', pre: 'Üst metin', action: 'Buton metni',
     imageHelp: 'JPG, PNG veya WebP · En fazla 8 MB. Görseller iki dil için ortaktır. Yükledikten sonra içerikleri kaydedin. Tur kartı görselleri ayrıca Tur İçerikleri ekranındadır.',
     choose: 'Görsel yükle', reset: 'Varsayılanı kullan', focus: 'Görsel odak noktası', positions: ['Orta', 'Üst', 'Alt', 'Sol', 'Sağ'],
-    visibility: 'Bölüm görünürlüğü', visible: 'Göster', heroCard: 'Ana kapak rota kartı',
     photosHelp: 'En fazla 6 fotoğraf. Ana sayfada yan yana görünür; fotoğraf yoksa görsel kolajı ve misafir yorumu gösterilir. JPG, PNG veya WebP · En fazla 8 MB.', addPhoto: 'Fotoğraf ekle', moveLeft: 'Sola taşı', moveRight: 'Sağa taşı', removePhoto: 'Fotoğrafı kaldır',
     save: 'Tüm değişiklikleri kaydet', saving: 'Kaydediliyor...', saved: 'İki dildeki içerikler ve görseller kaydedildi.', error: 'İşlem tamamlanamadı. Lütfen tekrar deneyin.',
     dirty: 'Kaydedilmemiş değişiklikler var.', clean: 'İçerikler güncel.', preview: 'Ana sayfayı aç', hint: 'Tur sayfalarının kapak ve bölümleri: Tur Sayfaları. Satılan tur kartlarının yazı ve görselleri: Tur İçerikleri.',
     leave: 'Kaydedilmemiş değişiklikler var. Sayfadan ayrılmak istiyor musunuz?' },
-  en: { title: 'Site Content', subtitle: 'Manage homepage images, text and section visibility. TR / EN drafts are saved together.',
+  en: { title: 'Site Content', subtitle: 'Manage homepage images and text. TR / EN drafts are saved together.',
     hero: 'Hero section', tours: 'Tours section', why: 'Why Pereme?',
  stories: 'Stories & Photos', final: 'Final booking call',
     navigation: 'Menu labels', booking: 'Tour search and category labels', marquee: 'Scrolling information strip', footer: 'Footer', images: 'Cover and section images',
@@ -29,7 +28,6 @@ const copy = {
     quote: 'Fallback review when no photos are added', meta: 'Review details', pre: 'Top text', action: 'Button label',
     imageHelp: 'JPG, PNG or WebP · Up to 8 MB. Images are shared across languages. Save content after uploading. Tour card images are managed in Tour Content.',
     choose: 'Upload image', reset: 'Use default', focus: 'Image focal point', positions: ['Centre', 'Top', 'Bottom', 'Left', 'Right'],
-    visibility: 'Section visibility', visible: 'Show', heroCard: 'Hero route card',
     photosHelp: 'Up to 6 photos, shown side by side on the homepage; without photos the image collage and guest review are shown. JPG, PNG or WebP · Up to 8 MB.', addPhoto: 'Add photo', moveLeft: 'Move left', moveRight: 'Move right', removePhoto: 'Remove photo',
     save: 'Save all changes', saving: 'Saving...', saved: 'Both language drafts and images saved.', error: 'Could not complete the request. Please try again.',
     dirty: 'You have unsaved changes.', clean: 'Content is up to date.', preview: 'Open homepage', hint: 'Tour page covers and sections: Tour Pages. Tour card copy and images: Tour Content.',
@@ -131,7 +129,6 @@ export default function SiteContentPage() {
             <label>{c.focus}<select value={content.imagePositions?.[slot.key] ?? 'center'} onChange={event => { const value = event.target.value; change(draft => ({ ...draft, imagePositions: { ...draft.imagePositions, [slot.key]: value } })) }}>{['center', 'top', 'bottom', 'left', 'right'].map((position, index) => <option key={position} value={position}>{c.positions[index]}</option>)}</select></label>
           </article>
         })}</div></section>
-        <section><header><LayoutTemplate /><h2>{c.visibility}</h2></header><div className="homepage-visibility">{(['heroCard', 'marquee', 'why', 'stories', 'final'] as const).map(key => <label key={key}><input type="checkbox" checked={!content.hiddenSections?.includes(key)} onChange={event => { const visible = event.target.checked; change(draft => ({ ...draft, hiddenSections: visible ? draft.hiddenSections!.filter(item => item !== key) : [...draft.hiddenSections!, key] })) }} />{c.visible}: {c[key]}</label>)}</div></section>
         {(['hero', 'tours', 'why', 'stories', 'final'] as const).map(section => <section key={section} data-content-section={section}><header>{section === 'stories' ? <Camera /> : <LayoutTemplate />}<div><h2>{c[section]}</h2></div></header>
           <div className="site-content-fields">
             {/* The tours section has no heading on the site any more; only the card button label is editable. */}

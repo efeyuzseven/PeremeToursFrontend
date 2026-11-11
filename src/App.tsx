@@ -701,7 +701,8 @@ function App() {
               : columnIndex === 1
                 ? ['/#neden-biz', '/#hikayeler', '/sikca-sorulan-sorular', '/iletisim'][index]
                 : ['/kvkk-aydinlatma-metni', '/mesafeli-satis-sozlesmesi'][index]
-            if (columnIndex === 1 && (index === 0 && hidden('why') || index === 1 && hidden('stories'))) return null
+            // "All tours", "About us" and "Stories" are no longer listed; their saved labels simply go unused.
+            if (columnIndex === 0 && index === 0 || columnIndex === 1 && index <= 1) return null
             return <Link key={index} to={to}>{link}</Link>
           })}{columnIndex === 1 && <><Link to={language === 'tr' ? '/blog' : '/en/blog'}>Blog</Link>
             {footerPages.map((page) => <Link key={page.slug} to={contentPagePath(language, page.slug)}>{page.title}</Link>)}</>}</div>)}</div>

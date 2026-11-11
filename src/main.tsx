@@ -19,6 +19,7 @@ import KvkkPage from './pages/KvkkPage'
 import TourPage from './pages/TourPage'
 import TourPagesPage from './admin/TourPagesPage'
 import FloatingSupport from './components/FloatingSupport'
+import ScrollToTop from './components/ScrollToTop'
 import './styles.css'
 
 // This entry point mounts the application; the admin-only screen is intentionally loaded on demand.
@@ -54,6 +55,7 @@ createRoot(container).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/turlar/:categorySlug" element={<TourPage />} />

@@ -373,8 +373,9 @@ img {
 
 .hero {
   position: relative;
-  min-height: 860px;
-  height: min(910px, 100vh);
+  /* Shorter than the viewport so the booking bar sits higher and the tour cards peek in below it. */
+  min-height: 620px;
+  height: clamp(620px, 72vh, 720px);
   color: #fff;
   display: flex;
   align-items: center;
@@ -478,8 +479,8 @@ img {
 .hero__content {
   position: relative;
   z-index: 2;
-  /* The hero centres this box, so the extra bottom padding lifts the copy and the card towards the header. */
-  padding-bottom: 216px;
+  /* The hero centres this box; the top padding centres the copy between the header and the booking bar. */
+  padding-top: 25px;
 }
 
 .hero__copy {
@@ -489,9 +490,9 @@ img {
 
 .hero__experience-card {
   position: absolute;
-  /* Vertically centred on the hero copy; the bottom offset matches .hero__content's padding. */
-  top: 0;
-  bottom: 216px;
+  /* Vertically centred on the hero copy; the top offset matches .hero__content's padding. */
+  top: 25px;
+  bottom: 0;
   height: fit-content;
   margin-block: auto;
   right: 38px;
@@ -759,7 +760,7 @@ h2 em {
 .hero__side-note {
   position: absolute;
   right: -18px;
-  top: 44%;
+  top: 62%;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -779,7 +780,7 @@ h2 em {
 .scroll-cue {
   position: absolute;
   right: 5px;
-  bottom: 8px;
+  bottom: -34px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1170,7 +1171,7 @@ h2 em {
 }
 
 /* Without a heading the cards start right below the booking bar. */
-.tours-section--compact { padding-top: 70px; }
+.tours-section--compact { padding-top: 40px; }
 
 .section-heading {
   display: grid;
@@ -2399,14 +2400,14 @@ footer {
   .logo img { height: 52px; }
   .language-picker,
   .account-link { display: none; }
-  .hero { min-height: 710px; height: 88svh; margin-bottom: 180px; align-items: flex-start; }
+  .hero { min-height: 600px; height: 74svh; margin-bottom: 180px; align-items: flex-start; }
   .hero__image { background-position: 64% center; }
   .hero__image { animation: none; transform: none; }
   .hero__shade {
     background: linear-gradient(90deg, rgba(7,27,53,.87), rgba(7,27,53,.2)), linear-gradient(0deg, rgba(7,27,53,.8), transparent 58%, rgba(7,27,53,.45));
   }
   .hero__route-map { display: none; }
-  .hero__content { padding-top: 165px; padding-bottom: 66px; }
+  .hero__content { padding-top: 165px; }
   .hero h1 { font-size: clamp(51px, 15vw, 67px); }
   .hero__copy > p { margin: 22px 0 28px; font-size: 15px; line-height: 1.6; }
   .hero__buttons { gap: 20px; }
@@ -2427,7 +2428,7 @@ footer {
   .search-button { min-width: 0; margin-top: 3px; }
   .marquee { margin-top: 0; }
   .tours-section { padding: 90px 0; }
-  .tours-section--compact { padding-top: 56px; }
+  .tours-section--compact { padding-top: 40px; }
   .section-heading { grid-template-columns: 1fr; margin-bottom: 31px; }
   .section-heading h2,
   .why h2 { font-size: 49px; }

@@ -391,10 +391,20 @@ img {
 
 /* The image is set inline once the admin-managed content has loaded; until then the navy hero background shows. */
 .hero__image {
+  overflow: hidden;
   background-size: cover;
   background-position: 55% center;
   opacity: 0;
   transition: opacity .6s ease;
+}
+
+/* The slow zoom runs on a copy clipped by .hero__image, so the picture never grows past the hero's edges
+   (the hero itself cannot clip: the booking bar hangs below it). */
+.hero__image::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
   animation: heroDrift 18s ease-in-out infinite alternate;
 }
 
@@ -2402,7 +2412,7 @@ footer {
   .account-link { display: none; }
   .hero { min-height: 600px; height: 74svh; margin-bottom: 180px; align-items: flex-start; }
   .hero__image { background-position: 64% center; }
-  .hero__image { animation: none; transform: none; }
+  .hero__image::before { animation: none; transform: none; }
   .hero__shade {
     background: linear-gradient(90deg, rgba(7,27,53,.87), rgba(7,27,53,.2)), linear-gradient(0deg, rgba(7,27,53,.8), transparent 58%, rgba(7,27,53,.45));
   }

@@ -6,6 +6,7 @@ import { sanitizeHtml } from '../lib/html'
 import '../pages/tour-pages.css'
 import { TourBookingCard } from './TourBookingCard'
 import { TourGallery } from './TourGallery'
+import { TourHero } from './TourHero'
 
 const copy = {
   tr: { more: 'Daha fazlasını gör', less: 'Daha az göster' },
@@ -84,7 +85,7 @@ export function TourPageContent({ page, language, fallbackImage, onBook, booking
   bookingDisabled?: boolean; preview?: boolean; children?: ReactNode
 }) {
   const c = page.document[language]
-  const image = resolvePageImage(page.document.heroImageUrl || fallbackImage || categoryImages[page.categoryKey])
+  const heroImages = [page.document.heroImageUrl || fallbackImage || categoryImages[page.categoryKey], ...(page.document.heroSlideUrls ?? [])].map(resolvePageImage)
   const gallery = page.document.sections.filter(section => section.type === 'gallery' && section.isVisible).flatMap(section => section.imageUrls)
   const details = tourDetailsFor(page.document, language)
   // Maps always come last, after the content: meeting point, route, then shuttle point.
@@ -92,14 +93,13 @@ export function TourPageContent({ page, language, fallbackImage, onBook, booking
     .filter(section => section.type === 'map' && section.id === slot.id && section.isVisible && (section.mapPoints?.length || isGoogleMapEmbed(section.mapUrl)))
     .map(section => ({ section, title: slot[language] })))
   return <div className="tour-page-content">
-    <section className={`tour-page-hero tour-page-hero--${page.document.heroLayout}`}>
-      <img className="tour-page-hero__image" src={image} alt="" />
+    <TourHero layout={page.document.heroLayout} images={heroImages} language={language}>
       <div className="shell tour-page-hero__inner"><div>
         <span className="tour-page-eyebrow"><Waves size={18} />{c.eyebrow}</span>
         <h1>{c.title}</h1><p>{c.intro}</p>
         <button className="tour-page-button" type="button" disabled={bookingDisabled} onClick={() => onBook()}>{c.bookingLabel}<ArrowRight size={18} /></button>
       </div></div>
-    </section>
+    </TourHero>
     {/* Service pages are not a single tour, so only tour detail pages get the booking card. */}
     <div className={`shell tour-detail${page.externalTourId ? '' : ' tour-detail--wide'}`}>
       <div className="tour-detail__rows">

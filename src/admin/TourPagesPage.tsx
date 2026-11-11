@@ -18,6 +18,7 @@ const copy = {
     unsaved: 'Kaydedilmemiş değişiklikler', confirm: 'Kaydedilmemiş değişiklikler var. Sayfayı değiştirmek istiyor musunuz?',
     hero: 'Kapak alanı', cover: 'Tam genişlik kapak', split: 'Görsel / metin yan yana', layout: 'Kapak düzeni', image: 'Kapak görseli',
     choose: 'Görsel yükle', imageHint: 'JPG, PNG veya WebP · en fazla 8 MB', url: 'Görsel bağlantısı', default: 'Varsayılan görsel',
+    slides: 'Kayan kapak görselleri', slidesHint: 'Buraya görsel eklerseniz kapak alanı kayan görsele (slider) dönüşür: önce kapak görseli, sonra bu görseller sırayla gösterilir. En fazla 8 görsel.',
     eyebrow: 'Üst etiket', heading: 'Başlık', intro: 'Giriş açıklaması', booking: 'Rezervasyon butonu', related: 'İlgili turlar başlığı', seo: 'Arama motoru açıklaması',
     content: 'Sayfa içeriği', contentLabel: 'İçerik (düz yazı veya HTML)', guideTitle: 'Nasıl yazılır?',
     guide: [['## Başlık', 'Soldaki başlık (örn. ## Dahil olanlar)'], ['- madde', 'Madde işaretli satır'], ['+ madde', 'Yeşil ✓ (dahil olan)'], ['x madde', 'Kırmızı ✕ (dahil olmayan)']] as [string, string][],
@@ -46,6 +47,7 @@ const copy = {
     unsaved: 'Unsaved changes', confirm: 'You have unsaved changes. Do you want to switch pages?',
     hero: 'Hero section', cover: 'Full-width cover', split: 'Image / text side by side', layout: 'Hero layout', image: 'Cover image',
     choose: 'Upload image', imageHint: 'JPG, PNG or WebP · maximum 8 MB', url: 'Image URL', default: 'Default image',
+    slides: 'Sliding cover images', slidesHint: 'Add images here to turn the hero into a slider: the cover image comes first, then these images in order. Up to 8 images.',
     eyebrow: 'Eyebrow', heading: 'Title', intro: 'Introduction', booking: 'Booking button', related: 'Related tours heading', seo: 'Search engine description',
     content: 'Page content', contentLabel: 'Content (plain text or HTML)', guideTitle: 'How to write',
     guide: [['## Heading', 'Heading on the left (e.g. ## Includes)'], ['- item', 'Bullet point'], ['+ item', 'Green ✓ (included)'], ['x item', 'Red ✕ (not included)']] as [string, string][],
@@ -144,6 +146,9 @@ function MapSlotEditor({ slot, section, language, editLanguage, update, remove }
   </section>
 }
 
+// Upload target for the hero slider images (gallery uploads pass their section id instead).
+const heroSlidesTarget = 'hero-slides'
+
 export default function TourPagesPage() {
   const { language } = useOutletContext<{ language: AdminLanguage }>()
   const { session } = useAuth()
@@ -205,6 +210,7 @@ export default function TourPagesPage() {
   })
   const setContent = (value: string) => change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], details: value } }))
   const notes = document ? bookingNotesFor(document[editLanguage], editLanguage) : []
+  const heroSlides = document?.heroSlideUrls ?? []
   const changeNotes = (update: (current: TourPageBookingNote[]) => TourPageBookingNote[]) =>
     change(current => ({ ...current, [editLanguage]: { ...current[editLanguage], bookingNotes: update(bookingNotesFor(current[editLanguage], editLanguage)) } }))
   const upload = async (event: ChangeEvent<HTMLInputElement>, sectionId?: string) => {
@@ -216,7 +222,8 @@ export default function TourPagesPage() {
     const data = new FormData(); data.append('file', file)
     try {
       const result = await apiUpload<{ url: string }>(`/api/v1/admin/tour-pages/${selected.key}/images`, data, session!.accessToken)
-      if (sectionId) updateSection(sectionId, section => ({ ...section, imageUrls: [...section.imageUrls, result.url] }))
+      if (sectionId === heroSlidesTarget) change(current => ({ ...current, heroSlideUrls: [...(current.heroSlideUrls ?? []), result.url].slice(0, 8) }))
+      else if (sectionId) updateSection(sectionId, section => ({ ...section, imageUrls: [...section.imageUrls, result.url] }))
       else change(current => ({ ...current, heroImageUrl: result.url }))
     } catch (caught) { setError(caught instanceof ApiError ? caught.message : c.uploadError) }
     finally { setUploading(false) }
@@ -264,6 +271,12 @@ export default function TourPagesPage() {
           </div>
           <div className="tour-page-editor-image"><img src={resolvePageImage(document.heroImageUrl || categoryImages[selected.categoryKey])} alt="" /><div><strong>{c.image}</strong><small>{c.imageHint}</small><label className="tour-page-upload"><ImagePlus size={16} />{uploading ? c.saving : c.choose}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void upload(event)} /></label><button type="button" onClick={() => change(current => ({ ...current, heroImageUrl: null }))}>{c.default}</button></div></div>
           <label className="tour-page-editor-url">{c.url}<input value={document.heroImageUrl ?? ''} maxLength={2000} onChange={event => change(current => ({ ...current, heroImageUrl: event.target.value || null }))} /></label>
+          <div className="tour-page-editor-gallery tour-page-editor-slides"><strong>{c.slides}</strong><p>{c.slidesHint}</p>
+            {heroSlides.length > 0 && <div>{heroSlides.map((url, imageIndex) => <figure key={`${url}-${imageIndex}`}><img src={resolvePageImage(url)} alt="" />
+              {imageIndex > 0 && <button type="button" className="tour-page-editor-gallery__first" aria-label={c.first} title={c.first} onClick={() => change(current => ({ ...current, heroSlideUrls: [url, ...heroSlides.filter((_, i) => i !== imageIndex)] }))}><ArrowUpLeft size={16} /></button>}
+              <button type="button" aria-label={c.removeImage} onClick={() => change(current => ({ ...current, heroSlideUrls: heroSlides.filter((_, i) => i !== imageIndex) }))}><Trash2 size={16} /></button></figure>)}</div>}
+            {heroSlides.length < 8 && <label className="tour-page-upload"><ImagePlus size={16} />{uploading ? c.saving : c.addImage}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void upload(event, heroSlidesTarget)} /></label>}
+          </div>
         </section>
         {selected.externalTourId && <section className="tour-page-editor-section" data-editor-section="booking-notes"><header><strong>{c.notes}</strong></header>
           <p className="tour-page-editor-hint">{c.notesHint}</p>

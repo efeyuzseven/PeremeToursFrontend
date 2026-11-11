@@ -57,6 +57,8 @@ export function extractMapEmbedUrl(input: string) {
 }
 export type TourPageDocument = {
   heroLayout: 'cover' | 'split'; heroImageUrl: string | null
+  // Extra hero images after heroImageUrl; with at least one the hero becomes a slider.
+  heroSlideUrls?: string[] | null
   tr: TourPageLanguageContent; en: TourPageLanguageContent; sections: TourPageSection[]
 }
 export type TourPageItem = {

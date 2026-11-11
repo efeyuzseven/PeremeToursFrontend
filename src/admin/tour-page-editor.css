@@ -42,6 +42,8 @@
 .tour-page-editor-add { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 35px; }
 .tour-page-editor-add button { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border: 1px dashed var(--sea); border-radius: 10px; color: var(--blue); background: #fff; font-size: 11px; }
 .tour-page-editor-gallery figure .tour-page-editor-gallery__first { right: 48px; }
+.tour-page-editor-slides { margin-top: 22px; padding-top: 20px; border-top: 1px solid rgba(31,71,140,.12); }
+.tour-page-editor-slides > strong { display: block; margin-bottom: 4px; font-size: 13px; }
 .tour-page-editor-fields > .tour-page-editor-section > .tour-page-editor-checkbox { display: flex; align-items: center; gap: 10px; }
 .tour-page-editor-hint { margin: 0 0 16px; color: var(--blue); font-size: 11px; line-height: 1.7; }
 .tour-page-editor-note { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto; align-items: end; gap: 12px; margin-bottom: 12px; }

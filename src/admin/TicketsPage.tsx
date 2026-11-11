@@ -6,6 +6,7 @@ import { apiRequest, ApiError } from '../lib/api'
 import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
 import CancelTicketDialog from './CancelTicketDialog'
+import CancellationDetails, { type CancellationInfo } from './CancellationDetails'
 import './cancellation.css'
 
 type TicketStatus = 'Pending' | 'Confirmed' | 'Cancelled' | 'Used'
@@ -21,6 +22,7 @@ type TourTicket = {
   cancellationEmailStatus?: 'Queued' | 'Processing' | 'Sent' | 'Failed' | 'ReviewRequired' | null
   cancellationEmailSentAtUtc?: string | null
   canCancel?: boolean; canRetryCancellation?: boolean; cancellationStatus?: string | null; cancellationFailureCode?: string | null
+  cancellation?: CancellationInfo | null
 }
 type CatalogTour = {
   externalTourId: number
@@ -168,6 +170,7 @@ export default function TicketsPage() {
               {automatic && ticket.ticketingStatus && <small>{ticket.cancellationStatus === 'Completed' ? (language === 'tr' ? 'Rezervasyon iptal edildi' : 'Booking cancelled') : ticketingCopy[language][ticket.ticketingStatus]}</small>}
               {ticket.cancellationStatus && <small className={ticket.cancellationStatus === 'Completed' ? undefined : 'admin-payment-warning'}>{language === 'tr' ? 'İptal' : 'Cancellation'}: {ticket.cancellationStatus === 'Completed' ? (language === 'tr' ? 'Tamamlandı' : 'Completed') : ticket.canRetryCancellation ? (language === 'tr' ? 'Banka iadesi başlatılmadı — yeniden onaylanabilir' : 'Bank refund not started — confirmation available') : ticket.cancellationStatus === 'ReviewRequired' ? (language === 'tr' ? 'Banka kontrolü gerekli — tekrar iade yapmayın' : 'Bank review required — do not refund again') : (language === 'tr' ? 'İşleniyor — tekrar başlatmayın' : 'Processing — do not replay')}</small>}
               {ticket.cancellationFailureCode && ticket.cancellationStatus !== 'Completed' && <small>{ticket.cancellationFailureCode}</small>}
+              {ticket.cancellation && <CancellationDetails details={ticket.cancellation} language={language} compact />}
               {ticket.emailStatus && <small>{language === 'tr' ? 'Satın alma maili' : 'Purchase email'}: {emailStatusCopy[language][ticket.emailStatus]}</small>}
               {ticket.cancellationEmailStatus && <small data-testid="cancellation-email-status">{language === 'tr' ? 'İptal maili' : 'Cancellation email'}: {emailStatusCopy[language][ticket.cancellationEmailStatus]}{ticket.cancellationEmailSentAtUtc && <span> · {new Intl.DateTimeFormat(language === 'tr' ? 'tr-TR' : 'en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Istanbul' }).format(new Date(ticket.cancellationEmailSentAtUtc))}</span>}</small>}
               {ticket.cancellationStatus === 'Completed' && !ticket.cancellationEmailStatus && <small>{language === 'tr' ? 'İptal maili: Kayıt yok' : 'Cancellation email: No record'}</small>}

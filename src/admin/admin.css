@@ -170,6 +170,16 @@
 .ticket-error-codes > span { padding: 7px; color: #1f478c; font-size: 10px; }
 .ticket-error-detail { margin: 13px 0 16px; color: #1f478c; font-size: 12px; line-height: 1.7; }
 .ticket-error-history { margin: 0 0 15px; color: #1f478c; font-size: 10px; line-height: 1.6; opacity: .7; }
+.ticket-error-customer { display: block; margin-top: 3px; color: #1f478c; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+.cancellation-details { display: grid; gap: 7px; margin: 0 0 15px; padding: 12px 14px; border: 1px solid rgba(106,157,210,.25); border-radius: 10px; background: rgba(106,157,210,.08); }
+.cancellation-details > div { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 10px; font-size: 11px; line-height: 1.55; }
+.cancellation-details dt { color: #1f478c; font-weight: 700; }
+.cancellation-details dd { margin: 0; color: var(--navy); overflow-wrap: anywhere; }
+.cancellation-details dd span { display: block; color: #1f478c; }
+.cancellation-details dd em { color: #1f478c; font-style: italic; }
+.cancellation-details--compact { gap: 5px; margin: 2px 0 0; padding: 8px 10px; }
+.cancellation-details--compact > div { grid-template-columns: minmax(0, 1fr); gap: 0; font-size: 10.5px; }
+@media (max-width: 560px) { .cancellation-details > div { grid-template-columns: minmax(0, 1fr); gap: 0; } }
 .ticket-error-card footer { display: flex; flex-wrap: wrap; gap: 10px 20px; padding: 13px 0 0; border-top: 1px solid rgba(106,157,210,.2); color: #1f478c; background: #fff; font-size: 10px; line-height: 1.6; }
 .ticket-error-card footer strong { color: var(--navy); }
 .ticket-error-pagination { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px; border-top: 1px solid rgba(106,157,210,.2); color: #1f478c; font-size: 11px; }

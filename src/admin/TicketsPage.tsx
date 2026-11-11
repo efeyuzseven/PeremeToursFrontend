@@ -1,8 +1,8 @@
-import { CalendarDays, CheckCircle2, CircleDollarSign, Clock3, Plus, Search, TicketCheck, UsersRound, X } from 'lucide-react'
+import { CalendarDays, CheckCircle2, CircleDollarSign, Clock3, Download, Plus, Search, TicketCheck, UsersRound, X } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { apiRequest, ApiError } from '../lib/api'
+import { apiBaseUrl, apiRequest, ApiError } from '../lib/api'
 import { setPageMetadata } from '../lib/site'
 import type { AdminLanguage } from './AdminLayout'
 import CancelTicketDialog from './CancelTicketDialog'
@@ -30,9 +30,16 @@ type CatalogTour = {
   name: string
 }
 
+// Sale months follow Istanbul time, the same rule the backend uses for the Excel export.
+const monthKeyFormat = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul', year: 'numeric', month: '2-digit' })
+const saleMonth = (value: string | Date) => {
+  const parts = monthKeyFormat.formatToParts(typeof value === 'string' ? new Date(value) : value)
+  return `${parts.find((part) => part.type === 'year')?.value}-${parts.find((part) => part.type === 'month')?.value}`
+}
+
 const pageCopy = {
-  tr: { eyebrow: 'SATIŞ & REZERVASYON', title: 'Tur Biletleri', subtitle: 'Tüm tur satışlarını, yolcu bilgilerini ve bilet durumlarını yönetin.', create: 'Yeni bilet', total: 'Toplam bilet', revenue: 'Onaylı ciro', pending: 'Bekleyen', guests: 'Toplam misafir', search: 'Bilet, tur veya müşteri ara...', all: 'Tüm durumlar', code: 'Bilet', customer: 'Müşteri', tour: 'Tur & tarih', count: 'Kişi', amount: 'Tutar', channel: 'Kanal', payment: 'Ödeme', status: 'Durum', empty: 'Aramanızla eşleşen bilet bulunamadı.', modalTitle: 'Yeni tur bileti', modalText: 'Manuel satış veya rezervasyon ekleyin.', tourName: 'Tur adı', date: 'Tur tarihi', time: 'Kalkış saati', name: 'Müşteri adı', email: 'Müşteri e-postası', guestCount: 'Misafir sayısı', save: 'Bileti oluştur', cancel: 'Vazgeç', web: 'Web sitesi', admin: 'Yönetici', error: 'Biletler yüklenemedi.' },
-  en: { eyebrow: 'SALES & BOOKINGS', title: 'Tour Tickets', subtitle: 'Manage tour sales, passenger details and every ticket status.', create: 'New ticket', total: 'Total tickets', revenue: 'Confirmed revenue', pending: 'Pending', guests: 'Total guests', search: 'Search ticket, tour or customer...', all: 'All statuses', code: 'Ticket', customer: 'Customer', tour: 'Tour & date', count: 'Guests', amount: 'Amount', channel: 'Channel', payment: 'Payment', status: 'Status', empty: 'No tickets matched your search.', modalTitle: 'New tour ticket', modalText: 'Add a manual sale or reservation.', tourName: 'Tour name', date: 'Tour date', time: 'Departure time', name: 'Customer name', email: 'Customer email', guestCount: 'Guest count', save: 'Create ticket', cancel: 'Cancel', web: 'Website', admin: 'Admin', error: 'Tickets could not be loaded.' },
+  tr: { eyebrow: 'SATIŞ & REZERVASYON', title: 'Tur Biletleri', subtitle: 'Tüm tur satışlarını, yolcu bilgilerini ve bilet durumlarını yönetin.', create: 'Yeni bilet', total: 'Toplam bilet', revenue: 'Onaylı ciro', pending: 'Bekleyen', guests: 'Toplam misafir', search: 'Bilet, tur veya müşteri ara...', all: 'Tüm durumlar', code: 'Bilet', customer: 'Müşteri', tour: 'Tur & tarih', count: 'Kişi', amount: 'Tutar', channel: 'Kanal', payment: 'Ödeme', status: 'Durum', empty: 'Aramanızla eşleşen bilet bulunamadı.', modalTitle: 'Yeni tur bileti', modalText: 'Manuel satış veya rezervasyon ekleyin.', tourName: 'Tur adı', date: 'Tur tarihi', time: 'Kalkış saati', name: 'Müşteri adı', email: 'Müşteri e-postası', guestCount: 'Misafir sayısı', save: 'Bileti oluştur', cancel: 'Vazgeç', web: 'Web sitesi', admin: 'Yönetici', error: 'Biletler yüklenemedi.', month: 'Satış ayı', allMonths: 'Tüm aylar', excel: 'Excel indir', exporting: 'Hazırlanıyor…', exportError: 'Excel dosyası indirilemedi. Lütfen tekrar deneyin.', soldAt: 'Satış' },
+  en: { eyebrow: 'SALES & BOOKINGS', title: 'Tour Tickets', subtitle: 'Manage tour sales, passenger details and every ticket status.', create: 'New ticket', total: 'Total tickets', revenue: 'Confirmed revenue', pending: 'Pending', guests: 'Total guests', search: 'Search ticket, tour or customer...', all: 'All statuses', code: 'Ticket', customer: 'Customer', tour: 'Tour & date', count: 'Guests', amount: 'Amount', channel: 'Channel', payment: 'Payment', status: 'Status', empty: 'No tickets matched your search.', modalTitle: 'New tour ticket', modalText: 'Add a manual sale or reservation.', tourName: 'Tour name', date: 'Tour date', time: 'Departure time', name: 'Customer name', email: 'Customer email', guestCount: 'Guest count', save: 'Create ticket', cancel: 'Cancel', web: 'Website', admin: 'Admin', error: 'Tickets could not be loaded.', month: 'Sale month', allMonths: 'All months', excel: 'Download Excel', exporting: 'Preparing…', exportError: 'The Excel file could not be downloaded. Please try again.', soldAt: 'Sold' },
 }
 
 const statusCopy: Record<AdminLanguage, Record<TicketStatus, string>> = {
@@ -67,6 +74,9 @@ export default function TicketsPage() {
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<'All' | TicketStatus>('All')
+  const [month, setMonth] = useState('')
+  const [currentMonth] = useState(() => saleMonth(new Date()))
+  const [exporting, setExporting] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [cancelTicket, setCancelTicket] = useState<TourTicket | null>(null)
   const c = pageCopy[language]
@@ -98,21 +108,53 @@ export default function TicketsPage() {
     return () => controller.abort()
   }, [])
 
+  const monthOptions = useMemo(() => [...new Set([currentMonth, ...tickets.map((ticket) => saleMonth(ticket.createdAtUtc))])].sort().reverse(), [currentMonth, tickets])
+  const monthTickets = useMemo(() => month ? tickets.filter((ticket) => saleMonth(ticket.createdAtUtc) === month) : tickets, [month, tickets])
+  const monthLabel = (key: string) => new Intl.DateTimeFormat(language === 'tr' ? 'tr-TR' : 'en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${key}-01T12:00:00Z`))
+  const period = month ? ` · ${monthLabel(month)}` : ''
+
   const visibleTickets = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase(language === 'tr' ? 'tr-TR' : 'en-US')
-    return tickets.filter((ticket) => {
+    return monthTickets.filter((ticket) => {
       const matchesStatus = filter === 'All' || ticket.status === filter
       const matchesQuery = !normalized || [ticket.ticketCode, ticket.tourName, ticket.customerName, ticket.customerEmail]
         .some((value) => value.toLocaleLowerCase(language === 'tr' ? 'tr-TR' : 'en-US').includes(normalized))
       return matchesStatus && matchesQuery
     })
-  }, [filter, language, query, tickets])
+  }, [filter, language, query, monthTickets])
 
-  const confirmedRevenue = tickets
+  // Downloads exactly what the filters show: sale month, status and search are applied by the backend the same way.
+  const downloadExcel = async () => {
+    setExporting(true)
+    setError('')
+    const params = new URLSearchParams({ language })
+    if (month) params.set('month', month)
+    if (filter !== 'All') params.set('status', filter)
+    if (query.trim()) params.set('search', query.trim())
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/v1/admin/tickets/export?${params}`, { headers: { authorization: `Bearer ${session!.accessToken}` }, cache: 'no-store' })
+      if (!response.ok) throw new Error(String(response.status))
+      const url = URL.createObjectURL(await response.blob())
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${language === 'tr' ? 'tur-biletleri' : 'tour-tickets'}-${month || (language === 'tr' ? 'tum-zamanlar' : 'all-time')}.xlsx`
+      document.body.append(link)
+      link.click()
+      link.remove()
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch {
+      setError(c.exportError)
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const confirmedRevenue = monthTickets
     .filter((ticket) => (ticket.status === 'Confirmed' || ticket.status === 'Used') && (!ticket.paymentStatus || ticket.paymentStatus === 'Paid' || ticket.paymentStatus === 'NotRequired'))
     .reduce((sum, ticket) => sum + ticket.amount, 0)
   const formatMoney = (amount: number) => new Intl.NumberFormat(language === 'tr' ? 'tr-TR' : 'en-US', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(amount)
   const formatDate = (date: string) => new Intl.DateTimeFormat(language === 'tr' ? 'tr-TR' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${date}T12:00:00`))
+  const formatSoldAt = (value: string) => new Intl.DateTimeFormat(language === 'tr' ? 'tr-TR' : 'en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Istanbul' }).format(new Date(value))
 
   const changeStatus = async (ticket: TourTicket, status: TicketStatus) => {
     if (!canManageManualTickets) return
@@ -148,21 +190,25 @@ export default function TicketsPage() {
   return <>
     <div className="admin-page-heading"><div><span>{c.eyebrow}</span><h1>{c.title}</h1><p>{c.subtitle}</p></div>{canManageManualTickets && <button className="admin-primary-button" onClick={() => setCreateOpen(true)}><Plus /> {c.create}</button>}</div>
     <div className="admin-stat-grid">
-      <article><span className="stat-icon stat-icon--blue"><TicketCheck /></span><div><small>{c.total}</small><strong>{tickets.length}</strong></div></article>
-      <article><span className="stat-icon stat-icon--green"><CircleDollarSign /></span><div><small>{c.revenue}</small><strong>{formatMoney(confirmedRevenue)}</strong></div></article>
-      <article><span className="stat-icon stat-icon--orange"><Clock3 /></span><div><small>{c.pending}</small><strong>{tickets.filter((ticket) => ticket.status === 'Pending').length}</strong></div></article>
-      <article><span className="stat-icon stat-icon--violet"><UsersRound /></span><div><small>{c.guests}</small><strong>{tickets.reduce((sum, ticket) => sum + ticket.guestCount, 0)}</strong></div></article>
+      <article><span className="stat-icon stat-icon--blue"><TicketCheck /></span><div><small>{c.total}{period}</small><strong>{monthTickets.length}</strong></div></article>
+      <article><span className="stat-icon stat-icon--green"><CircleDollarSign /></span><div><small>{c.revenue}{period}</small><strong>{formatMoney(confirmedRevenue)}</strong></div></article>
+      <article><span className="stat-icon stat-icon--orange"><Clock3 /></span><div><small>{c.pending}{period}</small><strong>{monthTickets.filter((ticket) => ticket.status === 'Pending').length}</strong></div></article>
+      <article><span className="stat-icon stat-icon--violet"><UsersRound /></span><div><small>{c.guests}{period}</small><strong>{monthTickets.reduce((sum, ticket) => sum + ticket.guestCount, 0)}</strong></div></article>
     </div>
     {error && <div className="admin-alert">{error}</div>}
     <section className="admin-table-card">
-      <div className="admin-table-tools"><label><Search /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={c.search} /></label><select value={filter} onChange={(event) => setFilter(event.target.value as 'All' | TicketStatus)}><option value="All">{c.all}</option>{(['Pending', 'Confirmed', 'Cancelled', 'Used'] as TicketStatus[]).map((status) => <option key={status} value={status}>{statusCopy[language][status]}</option>)}</select></div>
+      <div className="admin-table-tools"><label><Search /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={c.search} /></label><div className="ticket-table-filters">
+        <select aria-label={c.month} value={month} onChange={(event) => setMonth(event.target.value)}><option value="">{c.allMonths}</option>{monthOptions.map((key) => <option key={key} value={key}>{monthLabel(key)}</option>)}</select>
+        <select aria-label={c.status} value={filter} onChange={(event) => setFilter(event.target.value as 'All' | TicketStatus)}><option value="All">{c.all}</option>{(['Pending', 'Confirmed', 'Cancelled', 'Used'] as TicketStatus[]).map((status) => <option key={status} value={status}>{statusCopy[language][status]}</option>)}</select>
+        <button type="button" className="admin-export-button" disabled={exporting || loading} onClick={() => void downloadExcel()}><Download size={16} />{exporting ? c.exporting : c.excel}</button>
+      </div></div>
       <div className="admin-table-scroll"><table><thead><tr><th>{c.code}</th><th>{c.customer}</th><th>{c.tour}</th><th>{c.count}</th><th>{c.amount}</th><th>{c.channel}</th><th>{c.payment}</th><th>{c.status}</th></tr></thead><tbody>
         {loading && Array.from({ length: 4 }).map((_, index) => <tr className="table-skeleton" key={index}><td colSpan={8}><span /></td></tr>)}
         {!loading && visibleTickets.map((ticket) => {
           const paymentStatus = ticket.paymentStatus ?? 'NotRequired'
           const automatic = paymentStatus !== 'NotRequired'
           return <tr key={ticket.id}>
-            <td><strong className="ticket-code">{ticket.ticketCode}</strong>{ticket.externalVoucherGuid && <small className="admin-voucher">{ticket.externalVoucherGuid}</small>}</td>
+            <td><strong className="ticket-code">{ticket.ticketCode}</strong><small className="ticket-sold-at">{c.soldAt}: {formatSoldAt(ticket.createdAtUtc)}</small>{ticket.externalVoucherGuid && <small className="admin-voucher">{ticket.externalVoucherGuid}</small>}</td>
             <td><div className="table-person"><span>{ticket.customerName.slice(0, 1)}</span><div><strong>{ticket.customerName}</strong><small>{ticket.customerEmail}</small></div></div></td>
             <td><div className="table-tour"><strong>{ticket.tourName}</strong><small><CalendarDays /> {formatDate(ticket.tourDate)} · {ticket.departureTime.slice(0, 5)}</small></div></td>
             <td>{ticket.guestCount}</td><td><strong>{formatMoney(ticket.amount)}</strong></td><td><span className="channel-pill">{ticket.channel === 'Web' ? c.web : c.admin}</span></td>

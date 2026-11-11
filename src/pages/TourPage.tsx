@@ -61,7 +61,7 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
   useEffect(() => {
     const content = page?.document[language]
     const ready = !loading && !error && !!page && !!content
-    // Share image and breadcrumb follow what the page shows: its hero image, and Home / category / tour.
+    // Share image follows the page's hero image; the breadcrumb (Home / category / tour) is only sent to search engines.
     const listedImage = page && (tours.find(tour => tour.externalTourId === page.externalTourId)?.imageUrl
       || tours.find(tour => tour.categoryKey === page.categoryKey)?.imageUrl)
     setPageMetadata({ title: error === 'missing' ? c.missing : content?.title, description: content?.seoDescription, language, indexable: ready,
@@ -92,10 +92,6 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
     else document.getElementById('related-tours')?.scrollIntoView({ behavior: siteScrollBehavior() })
   }
   return <>
-    <nav className="shell tour-page-breadcrumb" aria-label={language === 'tr' ? 'Sayfa yolu' : 'Breadcrumb'}>
-      <Link to="/">{c.home}</Link><span>/</span>{page.externalTourId && <><Link to={categoryPath(page.categoryKey)}>{language === 'tr' ? 'İlgili turlar' : 'Related tours'}</Link><span>/</span></>}
-      <span aria-current="page">{page.document[language].title}</span>
-    </nav>
     <TourPageContent page={page} language={language} fallbackImage={ownTour?.imageUrl || tours.find(tour => tour.categoryKey === page.categoryKey)?.imageUrl || undefined}
       onBook={openBooking} bookingDisabled={catalogLoading || catalogError || (page.externalTourId ? !ownTour : related.length === 0)}>
       <section className="tour-page-related" id="related-tours"><div className="shell">

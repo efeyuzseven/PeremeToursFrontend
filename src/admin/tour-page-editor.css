@@ -1,5 +1,26 @@
 .tour-page-editor-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px; padding: 20px; border: 1px solid rgba(31,71,140,.13); border-radius: 14px; background: #fff; }
 .tour-page-editor-toolbar > label { flex: 1; min-width: 220px; }
+/* Page picker (TourPagePicker): a button that opens a grouped list of pages. */
+.tour-page-picker { position: relative; flex: 1; min-width: 220px; display: grid; gap: 8px; color: var(--blue); font-size: 11px; font-weight: 700; }
+.tour-page-picker__trigger { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 46px; padding: 0 14px; border: 1px solid rgba(31,71,140,.18); border-radius: 11px; color: var(--navy); background: #fff; font: 600 13px/1.4 'DM Sans', sans-serif; text-align: left; cursor: pointer; transition: border-color .18s ease, box-shadow .18s ease; }
+.tour-page-picker__trigger:hover:not(:disabled) { border-color: var(--sea); }
+.tour-page-picker__trigger[aria-expanded=true] { border-color: var(--sea); box-shadow: 0 0 0 3px rgba(106,157,210,.16); }
+.tour-page-picker__trigger:focus-visible { outline: 2px solid var(--sea); outline-offset: 2px; }
+.tour-page-picker__trigger:disabled { opacity: .6; cursor: default; }
+.tour-page-picker__trigger > span { display: flex; align-items: center; gap: 9px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tour-page-picker__trigger > svg { flex: 0 0 auto; color: var(--blue); transition: transform .2s ease; }
+.tour-page-picker__trigger[aria-expanded=true] > svg { transform: rotate(180deg); }
+.tour-page-picker i { flex: 0 0 auto; padding: 2px 7px; border-radius: 20px; color: var(--blue); background: rgba(106,157,210,.16); font-size: 10px; font-style: normal; font-weight: 700; }
+.tour-page-picker__panel { position: absolute; z-index: 30; top: calc(100% + 6px); left: 0; right: 0; display: flex; flex-direction: column; max-height: min(560px, 72vh); padding: 8px; border: 1px solid rgba(31,71,140,.14); border-radius: 14px; background: #fff; box-shadow: 0 22px 55px rgba(7,27,53,.18); }
+.tour-page-picker__panel [role=listbox] { flex: 1; min-height: 0; overflow-y: auto; }
+.tour-page-picker__panel [role=group] + [role=group] { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(31,71,140,.1); }
+.tour-page-picker__panel strong { display: block; padding: 8px 10px 6px; color: var(--blue); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.tour-page-picker__panel [role=option] { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 37px; padding: 0 10px; border: 0; border-radius: 9px; color: var(--navy); background: transparent; font: 500 13px/1.4 'DM Sans', sans-serif; text-align: left; cursor: pointer; }
+.tour-page-picker__panel [role=option] > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tour-page-picker__panel [role=option] > svg { flex: 0 0 auto; color: var(--blue); }
+.tour-page-picker__panel [role=option]:hover, .tour-page-picker__panel [role=option]:focus-visible { background: rgba(106,157,210,.14); outline: 0; }
+.tour-page-picker__panel [role=option][aria-selected=true] { background: rgba(106,157,210,.2); font-weight: 700; }
+.tour-page-picker__panel > p { flex: 0 0 auto; margin: 6px 2px 0; padding: 9px 10px 4px; border-top: 1px solid rgba(31,71,140,.1); color: var(--blue); font-size: 11px; font-weight: 500; line-height: 1.6; }
 .tour-page-editor-toolbar > a { display: flex; align-items: center; gap: 8px; padding: 12px 0; color: var(--blue); font-size: 11px; }
 .tour-page-editor-toolbar > button { min-height: 42px; }
 .tour-page-editor-toolbar label, .tour-page-editor-fields label { display: grid; gap: 8px; color: var(--blue); font-size: 11px; font-weight: 700; }
@@ -58,6 +79,7 @@
   .tour-page-editor-image > img { width: 100%; height: 150px; }
   .tour-page-editor-toolbar { align-items: stretch; }
   .tour-page-editor-toolbar > label { width: 100%; min-width: 0; flex-basis: 100%; }
+  .tour-page-picker { width: 100%; min-width: 0; flex-basis: 100%; }
   .tour-page-editor-toolbar select { text-overflow: ellipsis; }
   .tour-page-editor-gallery > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tour-page-editor-note { grid-template-columns: minmax(0, 1fr) auto; }

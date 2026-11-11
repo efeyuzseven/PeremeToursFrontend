@@ -7,13 +7,14 @@ import { bookingNotesFor, categoryImages, categoryLabels, mapSlots, pagePath, pa
   type TourPageBookingNote, type TourPageDocument, type TourPageItem, type TourPageMapPoint, type TourPageSection } from '../content/tour-pages'
 import { ApiError, apiRequest, apiUpload } from '../lib/api'
 import { setPageMetadata } from '../lib/site'
+import { TourPagePicker } from './TourPagePicker'
 import type { AdminLanguage } from './AdminLayout'
 import './tour-page-editor.css'
 
 const copy = {
   tr: {
     title: 'Tur Sayfaları', subtitle: 'Hizmet ve tur detay sayfalarını Türkçe / İngilizce düzenleyin. Fiyat ve seferler EasyTicket’tan gelmeye devam eder.',
-    page: 'Düzenlenecek sayfa', categories: 'Hizmet sayfaları', tours: 'Tur detay sayfaları', editor: 'Düzenle', preview: 'Canlı önizleme', view: 'Yayındaki sayfa',
+    page: 'Düzenlenecek sayfa', categories: 'Hizmet sayfaları', tours: 'Tur detay sayfaları', categoriesNote: 'Hizmet sayfaları sadece daha basit tanım sayfalarıdır.', editor: 'Düzenle', preview: 'Canlı önizleme', view: 'Yayındaki sayfa',
     save: 'Sayfayı kaydet', saving: 'Kaydediliyor…', saved: 'Sayfa kaydedildi ve yayına yansıdı.', error: 'Tur sayfaları yüklenemedi.', retry: 'Tekrar dene',
     unsaved: 'Kaydedilmemiş değişiklikler', confirm: 'Kaydedilmemiş değişiklikler var. Sayfayı değiştirmek istiyor musunuz?',
     hero: 'Kapak alanı', cover: 'Tam genişlik kapak', split: 'Görsel / metin yan yana', layout: 'Kapak düzeni', image: 'Kapak görseli',
@@ -42,7 +43,7 @@ const copy = {
   },
   en: {
     title: 'Tour Pages', subtitle: 'Edit service and tour detail pages in Turkish / English. Prices and departures remain supplied by EasyTicket.',
-    page: 'Page to edit', categories: 'Service pages', tours: 'Tour detail pages', editor: 'Edit', preview: 'Live preview', view: 'Published page',
+    page: 'Page to edit', categories: 'Service pages', tours: 'Tour detail pages', categoriesNote: 'Service pages are only simpler description pages.', editor: 'Edit', preview: 'Live preview', view: 'Published page',
     save: 'Save page', saving: 'Saving…', saved: 'Page saved and published.', error: 'Tour pages could not be loaded.', retry: 'Try again',
     unsaved: 'Unsaved changes', confirm: 'You have unsaved changes. Do you want to switch pages?',
     hero: 'Hero section', cover: 'Full-width cover', split: 'Image / text side by side', layout: 'Hero layout', image: 'Cover image',
@@ -173,7 +174,9 @@ export default function TourPagesPage() {
     apiRequest<TourPageItem[]>('/api/v1/admin/tour-pages', { token: session!.accessToken, signal: controller.signal, cache: 'no-store' })
       .then(result => {
         if (controller.signal.aborted) return
-        setPages(result); setSelectedKey(result[0]?.key ?? ''); setDocument(result[0] ? withTextDetails(structuredClone(result[0].document)) : null); setError('')
+        // Tour detail pages come first in the picker, so the screen opens on the first of them.
+        const first = result.find(page => page.externalTourId) ?? result[0]
+        setPages(result); setSelectedKey(first?.key ?? ''); setDocument(first ? withTextDetails(structuredClone(first.document)) : null); setError('')
       })
       .catch(caught => { if (!controller.signal.aborted) setError(caught instanceof ApiError ? caught.message : copy.tr.error) })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
@@ -239,7 +242,6 @@ export default function TourPagesPage() {
     } catch (caught) { setError(caught instanceof ApiError ? caught.message : c.error) }
     finally { setSaving(false) }
   }
-  const pageLabel = (page: TourPageItem) => page.externalTourId ? `${page.sourceName} · #${page.externalTourId}` : categoryLabels[page.categoryKey][language]
   const content = document?.[editLanguage].details ?? ''
   return <>
     <div className="admin-page-heading"><div><span>PEREME · CMS</span><h1>{c.title}</h1><p>{c.subtitle}</p></div></div>
@@ -247,10 +249,10 @@ export default function TourPagesPage() {
     {success && <div className="admin-alert site-content-success" role="status">{success}</div>}
     {loading ? <div className="site-content-loading"><span className="button-spinner" /></div> : !selected || !document ? <button type="button" className="admin-primary-button" onClick={() => { setLoading(true); setReload(value => value + 1) }}>{c.retry}</button> : <>
       <div className="tour-page-editor-toolbar">
-        <label>{c.page}<select value={selectedKey} disabled={busy} onChange={event => choosePage(event.target.value)}>
-          <optgroup label={c.categories}>{pages.filter(page => !page.externalTourId).map(page => <option key={page.key} value={page.key}>{pageLabel(page)}</option>)}</optgroup>
-          <optgroup label={c.tours}>{pages.filter(page => page.externalTourId).map(page => <option key={page.key} value={page.key}>{pageLabel(page)}</option>)}</optgroup>
-        </select></label>
+        <TourPagePicker label={c.page} value={selectedKey} disabled={busy} onChange={choosePage} groups={[
+          { title: c.tours, items: pages.filter(page => page.externalTourId).map(page => ({ key: page.key, name: page.sourceName, badge: `#${page.externalTourId}` })) },
+          { title: c.categories, footnote: c.categoriesNote, items: pages.filter(page => !page.externalTourId).map(page => ({ key: page.key, name: categoryLabels[page.categoryKey][language] })) },
+        ]} />
         <a href={pagePath(selected)} target="_blank" rel="noreferrer">{c.view}<ExternalLink size={15} /></a>
         <button className="admin-primary-button" type="button" disabled={busy || !dirty} onClick={() => void save()}><Save size={16} />{saving ? c.saving : c.save}</button>
       </div>

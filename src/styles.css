@@ -478,7 +478,8 @@ img {
 .hero__content {
   position: relative;
   z-index: 2;
-  padding-bottom: 66px;
+  /* The hero centres this box, so the extra bottom padding lifts the copy and the card towards the header. */
+  padding-bottom: 216px;
 }
 
 .hero__copy {
@@ -490,7 +491,7 @@ img {
   position: absolute;
   /* Vertically centred on the hero copy; the bottom offset matches .hero__content's padding. */
   top: 0;
-  bottom: 66px;
+  bottom: 216px;
   height: fit-content;
   margin-block: auto;
   right: 38px;
@@ -778,7 +779,7 @@ h2 em {
 .scroll-cue {
   position: absolute;
   right: 5px;
-  bottom: -67px;
+  bottom: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2405,7 +2406,7 @@ footer {
     background: linear-gradient(90deg, rgba(7,27,53,.87), rgba(7,27,53,.2)), linear-gradient(0deg, rgba(7,27,53,.8), transparent 58%, rgba(7,27,53,.45));
   }
   .hero__route-map { display: none; }
-  .hero__content { padding-top: 165px; }
+  .hero__content { padding-top: 165px; padding-bottom: 66px; }
   .hero h1 { font-size: clamp(51px, 15vw, 67px); }
   .hero__copy > p { margin: 22px 0 28px; font-size: 15px; line-height: 1.6; }
   .hero__buttons { gap: 20px; }

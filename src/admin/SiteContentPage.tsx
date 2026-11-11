@@ -11,7 +11,7 @@ const copy = {
   tr: { title: 'Ana Sayfa', subtitle: 'Ana sayfanın görsellerini ve metinlerini yönetin. TR / EN taslakları birlikte kaydedilir.',
     hero: 'Ana giriş alanı', why: 'Neden Pereme?',
  stories: 'Hikâyeler & Fotoğraflar', final: 'Son rezervasyon çağrısı',
-    booking: 'Tur arama ve kategori yazıları', marquee: 'Kayan bilgi şeridi', images: 'Kapak ve bölüm görselleri',
+    booking: 'Kategori yazıları', marquee: 'Kayan bilgi şeridi', images: 'Kapak ve bölüm görselleri',
     lead: 'Ana başlık', accent: 'Vurgulu başlık', description: 'Açıklama', eyebrow: 'Üst etiket', reviews: 'Puan altı metni', titleLabel: 'Başlık', browse: 'Turları gör butonu', bookingLabel: 'Rezervasyon butonu',
     quote: 'Fotoğraf yoksa gösterilecek yorum', meta: 'Yorum bilgisi', pre: 'Üst metin', action: 'Buton metni',
     imageHelp: 'JPG, PNG veya WebP · En fazla 8 MB. Görseller iki dil için ortaktır. Yükledikten sonra içerikleri kaydedin. Tur kartı görselleri ayrıca Tur İçerikleri ekranındadır.',
@@ -23,7 +23,7 @@ const copy = {
   en: { title: 'Homepage', subtitle: 'Manage homepage images and text. TR / EN drafts are saved together.',
     hero: 'Hero section', why: 'Why Pereme?',
  stories: 'Stories & Photos', final: 'Final booking call',
-    booking: 'Tour search and category labels', marquee: 'Scrolling information strip', images: 'Cover and section images',
+    booking: 'Category labels', marquee: 'Scrolling information strip', images: 'Cover and section images',
     lead: 'Main heading', accent: 'Accent heading', description: 'Description', eyebrow: 'Eyebrow', reviews: 'Rating subtext', titleLabel: 'Title', browse: 'View tours button', bookingLabel: 'Booking button',
     quote: 'Fallback review when no photos are added', meta: 'Review details', pre: 'Top text', action: 'Button label',
     imageHelp: 'JPG, PNG or WebP · Up to 8 MB. Images are shared across languages. Save content after uploading. Tour card images are managed in Tour Content.',
@@ -35,6 +35,8 @@ const copy = {
 }
 
 type Section = 'hero' | 'tours' | 'why' | 'stories' | 'final'
+// Texts that keep their saved value but are not offered for editing (search bar labels and the "all tours" filter).
+const hiddenTextFields = new Set<string>(['booking.experience', 'booking.date', 'booking.guest', 'booking.search', 'categories.all'])
 export default function SiteContentPage() {
   const { language } = useOutletContext<{ language: AdminLanguage }>()
   const { session } = useAuth()
@@ -81,10 +83,14 @@ export default function SiteContentPage() {
     } }
     return <label key={key} className={multiline ? 'field-wide' : ''}>{label}{multiline ? <textarea rows={3} {...props} /> : <input {...props} />}</label>
   }
-  const extraFields = (group: string) => homepageTextFields.filter(field => field[0] === group).map(field => <label key={field[1]}>
-    {field[language === 'tr' ? 2 : 3]}<textarea aria-label={field[language === 'tr' ? 2 : 3]} rows={field[1].includes('tagline') || field[1] === 'story.note' ? 2 : 1} maxLength={field[1] === 'footer.email' ? 200 : 3000}
-      value={content![editLanguage].texts![field[1]]} onChange={event => { const value = event.target.value; change(current => ({ ...current,
-        [editLanguage]: { ...current[editLanguage], texts: { ...current[editLanguage].texts, [field[1]]: value } } })) }} /></label>)
+  // Compact sections hold short one-line labels, so they use single-line inputs instead of text areas.
+  const extraFields = (group: string, compact = false) => homepageTextFields.filter(field => field[0] === group && !hiddenTextFields.has(field[1])).map(field => {
+    const label = field[language === 'tr' ? 2 : 3]
+    const props = { 'aria-label': label, maxLength: field[1] === 'footer.email' ? 200 : 3000, value: content![editLanguage].texts![field[1]],
+      onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => { const value = event.target.value; change(current => ({ ...current,
+        [editLanguage]: { ...current[editLanguage], texts: { ...current[editLanguage].texts, [field[1]]: value } } })) } }
+    return <label key={field[1]}>{label}{compact ? <input {...props} /> : <textarea rows={field[1].includes('tagline') || field[1] === 'story.note' ? 2 : 1} {...props} />}</label>
+  })
   const save = async (event: FormEvent) => {
     event.preventDefault()
     if (!content || busyRef.current) return
@@ -129,7 +135,7 @@ export default function SiteContentPage() {
             <label>{c.focus}<select value={content.imagePositions?.[slot.key] ?? 'center'} onChange={event => { const value = event.target.value; change(draft => ({ ...draft, imagePositions: { ...draft.imagePositions, [slot.key]: value } })) }}>{['center', 'top', 'bottom', 'left', 'right'].map((position, index) => <option key={position} value={position}>{c.positions[index]}</option>)}</select></label>
           </article>
         })}</div></section>
-        {(['hero', 'why', 'stories', 'final'] as const).map(section => <section key={section} data-content-section={section}><header>{section === 'stories' ? <Camera /> : <LayoutTemplate />}<div><h2>{c[section]}</h2></div></header>
+        {(['hero', 'why', 'stories', 'final'] as const).map(section => <section key={section} data-content-section={section} className={section === 'final' ? 'site-content-section--compact' : undefined}><header>{section === 'stories' ? <Camera /> : <LayoutTemplate />}<div><h2>{c[section]}</h2></div></header>
           <div className="site-content-fields">
             {section !== 'hero' && section !== 'final' && textField(section, 'eyebrow', c.eyebrow)}
             {section !== 'final' && <>{textField(section, 'lead', c.lead)}{textField(section, 'accent', c.accent)}</>}
@@ -152,7 +158,7 @@ export default function SiteContentPage() {
           </div>}
         </section>)}
         {/* Tour card buttons, the account button and the footer keep their saved texts but are not editable here. */}
-        {(['booking', 'marquee'] as const).map(group => <section key={group}><header><LayoutTemplate /><h2>{c[group]}</h2></header><div className="site-content-fields">{extraFields(group)}</div></section>)}
+        {(['booking', 'marquee'] as const).map(group => <section key={group} className="site-content-section--compact"><header><LayoutTemplate /><h2>{c[group]}</h2></header><div className="site-content-fields">{extraFields(group, true)}</div></section>)}
       </fieldset>
       <div className="site-content-save"><button className="admin-primary-button" disabled={saving || !!uploading || !dirty} type="submit"><Save />{saving ? c.saving : c.save}</button></div>
     </form>

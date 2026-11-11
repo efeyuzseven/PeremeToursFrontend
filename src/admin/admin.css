@@ -111,6 +111,14 @@
 .site-content-form input, .site-content-form textarea { width: 100%; padding: 0 12px; border: 1px solid rgba(106,157,210,.18); border-radius: 9px; outline: 0; color: var(--navy); background: #fff; font: inherit; font-size: 11px; }
 .site-content-form input { height: 43px; }
 .site-content-form textarea { min-height: 78px; padding-block: 11px; line-height: 1.55; resize: vertical; }
+/* Sections with only a few short labels: tighter padding and all fields side by side on one row. */
+.site-content-form section.site-content-section--compact { padding: 14px 20px 16px; }
+.site-content-form section.site-content-section--compact > header { align-items: center; padding-bottom: 10px; margin-bottom: 12px; }
+.site-content-form section.site-content-section--compact > header h2 { margin: 0; font-size: 13px; }
+.site-content-form section.site-content-section--compact > header > svg { width: 16px; }
+.site-content-section--compact .site-content-fields { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.site-content-form .site-content-section--compact label { gap: 5px; }
+.site-content-form .site-content-section--compact input { height: 36px; }
 .site-content-form input:focus, .site-content-form textarea:focus { border-color: #6a9dd2; box-shadow: 0 0 0 3px rgba(106,157,210,.07); }
 .site-content-repeat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; margin-top: 18px; }
 .site-content-repeat-grid article { display: grid; gap: 12px; padding: 16px; border: 1px solid rgba(106,157,210,.14); border-radius: 11px; background: rgba(106,157,210,.05); }

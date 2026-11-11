@@ -40,6 +40,7 @@ import { BookingDrawer } from './components/BookingDrawer'
 import AccountMenu from './components/AccountMenu'
 import SocialLinks, { XIcon } from './components/SocialLinks'
 import GoogleReviews from './components/GoogleReviews'
+import { TourCardImages } from './components/TourCardImages'
 import { categoryPath, tourCategories, tourPath } from './content/tour-pages'
 
 type Language = 'tr' | 'en'
@@ -60,6 +61,8 @@ type CatalogTour = {
   badgeTr?: string | null
   badgeEn?: string | null
   imageUrl?: string | null
+  // Extra card images after imageUrl; visitors flip through them with the arrows on the card.
+  galleryImageUrls?: string[] | null
   sortOrder?: number
 }
 
@@ -75,6 +78,7 @@ type Tour = {
   reviews: number
   live?: boolean
   image: string
+  gallery?: string[]
   imagePosition?: string
   remaining?: number
   sortOrder?: number
@@ -188,6 +192,7 @@ const mergeCatalogTours = (catalog: CatalogTour[]): Tour[] => {
         item.badgeEn || template.badge.en,
       ),
       image: resolveCatalogImage(item.imageUrl, template.image),
+      gallery: (item.galleryImageUrls ?? []).map((url) => url.startsWith('/api/') ? `${apiBaseUrl}${url}` : url),
       sortOrder: item.sortOrder,
     }]
   })
@@ -620,7 +625,7 @@ function App() {
             {filteredTours.map((tour, index) => (
               <article className="tour-card" key={tour.id} style={{ '--card-delay': `${index * 80}ms` } as CSSProperties}>
                 <div className="tour-card__media">
-                  <img src={tour.image} alt="" style={{ objectPosition: tour.imagePosition }} /><div className="tour-card__media-shade" /><span className="tour-card__badge">{tour.badge[language]}</span>
+                  <TourCardImages images={[tour.image, ...(tour.gallery ?? [])]} position={tour.imagePosition} title={tour.title[language]} language={language} /><div className="tour-card__media-shade" /><span className="tour-card__badge">{tour.badge[language]}</span>
                   <button className={`heart-button ${favorites.includes(tour.id) ? 'heart-button--active' : ''}`} type="button" aria-pressed={favorites.includes(tour.id)} aria-label={`${tour.title[language]} ${favorites.includes(tour.id) ? c.tours.favouriteRemove : c.tours.favouriteAdd}`} onClick={() => setFavorites((items) => items.includes(tour.id) ? items.filter((id) => id !== tour.id) : [...items, tour.id])}><Heart size={19} fill={favorites.includes(tour.id) ? 'currentColor' : 'none'} /></button>
                   <div className="tour-card__rating"><Star size={14} fill="currentColor" /> {tour.rating} <span>({tour.reviews})</span></div>
                 </div>

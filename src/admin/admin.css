@@ -64,6 +64,20 @@
 .tour-editor__image label:hover { background: var(--navy); }
 .tour-editor__image label svg, .tour-editor__image button svg { width: 14px; }
 .tour-editor__image input { position: absolute; width: 1px !important; height: 1px !important; opacity: 0; pointer-events: none; }
+.tour-editor__gallery { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; padding: 14px; border: 1px solid rgba(106,157,210,.14); border-radius: 12px; }
+.tour-editor__gallery strong { color: var(--navy); font-size: 11px; }
+.tour-editor__gallery small { color: #6a9dd2; font-size: 9px; line-height: 1.6; }
+.tour-editor__gallery > div { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; }
+.tour-editor__gallery figure { position: relative; margin: 0; }
+.tour-editor__gallery figure img { display: block; width: 100%; aspect-ratio: 4 / 3; border-radius: 9px; object-fit: cover; background: rgba(106,157,210,.12); }
+.tour-editor__gallery figure button { position: absolute; right: 6px; top: 6px; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; color: #1f478c; background: #fff; box-shadow: 0 2px 8px rgba(7,27,53,.2); cursor: pointer; }
+.tour-editor__gallery figure button svg { width: 14px; }
+.tour-editor__gallery > label { position: relative; display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 11px; border-radius: 8px; color: #fff; background: #1f478c; font-size: 9px; font-weight: 800; cursor: pointer; }
+.tour-editor__gallery > label:hover { background: var(--navy); }
+.tour-editor__gallery > label svg { width: 14px; }
+.tour-editor__gallery > label:focus-within { outline: 2px solid #6a9dd2; outline-offset: 2px; }
+.tour-editor__gallery input { position: absolute; width: 1px !important; height: 1px !important; opacity: 0; pointer-events: none; }
+@media (max-width: 780px) { .tour-editor__gallery > div { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .site-content-loading { display: grid; place-items: center; min-height: 360px; }
 .site-content-success { color: #1f478c; background: rgba(106,157,210,.12); }
 .site-content-language-tabs { display: flex; gap: 9px; margin-bottom: 19px; }

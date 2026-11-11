@@ -1283,7 +1283,40 @@ h2 em {
   position: absolute;
   inset: 0;
   background: linear-gradient(0deg, rgba(31,71,140,.55), transparent 52%);
+  pointer-events: none;
 }
+
+/* A card with several images: a strip of slides moved by the arrows or a swipe (see TourCardImages). */
+.tour-card__slides { position: absolute; inset: 0; overflow: hidden; }
+.tour-card__track { display: flex; height: 100%; transition: transform 450ms cubic-bezier(.4, 0, .2, 1); }
+.tour-card__track img { flex: 0 0 100%; }
+.tour-card:hover .tour-card__media .tour-card__track img { transform: none; }
+.tour-card__arrow {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  width: 32px;
+  height: 32px;
+  margin-top: -16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--navy);
+  background: rgba(255,255,255,.88);
+  box-shadow: 0 4px 14px rgba(7,27,53,.25);
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+.tour-card__arrow:hover { background: #fff; }
+.tour-card__arrow:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.tour-card__arrow--previous { left: 10px; }
+.tour-card__arrow--next { right: 10px; }
+.tour-card__dots { position: absolute; z-index: 2; right: 15px; bottom: 19px; display: flex; align-items: center; gap: 5px; pointer-events: none; }
+.tour-card__dots i { width: 6px; height: 6px; border-radius: 6px; background: rgba(255,255,255,.55); transition: width 250ms ease, background 250ms ease; }
+.tour-card__dots i.active { width: 14px; background: #fff; }
+@media (prefers-reduced-motion: reduce) { .tour-card__track { transition: none; } }
 
 .tour-card__badge {
   position: absolute;

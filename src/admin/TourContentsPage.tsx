@@ -1,5 +1,5 @@
 import { Eye, EyeOff, ImageIcon, Images, Pencil, Save, Search, Trash2, Upload, X } from 'lucide-react'
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { apiBaseUrl, ApiError, apiRequest, apiUpload } from '../lib/api'
@@ -19,6 +19,7 @@ type ManagedTourContent = {
   badgeTr?: string | null
   badgeEn?: string | null
   imageUrl?: string | null
+  galleryImageUrls?: string[] | null
   hasCustomImage: boolean
   sortOrder: number
   isVisible: boolean
@@ -34,6 +35,8 @@ const copy = {
     modalTitle: 'Tur içeriğini düzenle', modalText: 'Boş bıraktığınız metinlerde EasyTicket veya varsayılan içerik kullanılır.', titleTr: 'Türkçe başlık',
     titleEn: 'İngilizce başlık', descriptionTr: 'Türkçe açıklama', descriptionEn: 'İngilizce açıklama', badgeTr: 'Türkçe rozet', badgeEn: 'İngilizce rozet',
     order: 'Gösterim sırası', publish: 'Sitede göster', image: 'Kapak görseli', imageHint: 'JPG, PNG veya WebP · en fazla 8 MB', chooseImage: 'Görsel seç',
+    gallery: 'Ek görseller (kaydırmalı)', galleryHint: 'Buraya görsel eklerseniz ana sayfadaki tur kartında sağ / sol oklarla kaydırılır: önce kapak görseli, sonra bu görseller. En fazla 8 görsel · JPG, PNG veya WebP · en fazla 8 MB.',
+    addGalleryImage: 'Görsel ekle', uploadingImage: 'Yükleniyor…', removeGalleryImage: 'Görseli kaldır', invalidImage: 'JPG, PNG veya WebP formatında, en fazla 8 MB bir görsel seçin.',
     removeImage: 'Özel görseli kaldır', removeImageConfirm: 'Özel görsel kaldırılsın mı? Tur varsayılan görseline dönecek.', save: 'Değişiklikleri kaydet', cancel: 'Vazgeç', saving: 'Kaydediliyor...',
   },
   en: {
@@ -43,6 +46,8 @@ const copy = {
     modalTitle: 'Edit tour content', modalText: 'EasyTicket or default content is used for text fields you leave blank.', titleTr: 'Turkish title',
     titleEn: 'English title', descriptionTr: 'Turkish description', descriptionEn: 'English description', badgeTr: 'Turkish badge', badgeEn: 'English badge',
     order: 'Display order', publish: 'Show on website', image: 'Cover image', imageHint: 'JPG, PNG or WebP · maximum 8 MB', chooseImage: 'Choose image',
+    gallery: 'Extra images (slider)', galleryHint: 'Images added here can be flipped through with the left / right arrows on the homepage tour card: the cover image first, then these. Up to 8 images · JPG, PNG or WebP · maximum 8 MB.',
+    addGalleryImage: 'Add image', uploadingImage: 'Uploading…', removeGalleryImage: 'Remove image', invalidImage: 'Choose a JPG, PNG or WebP image, maximum 8 MB.',
     removeImage: 'Remove custom image', removeImageConfirm: 'Remove the custom image? The tour will return to its default image.', save: 'Save changes', cancel: 'Cancel', saving: 'Saving...',
   },
 }
@@ -65,6 +70,9 @@ export default function TourContentsPage() {
   const [tours, setTours] = useState<ManagedTourContent[]>([])
   const [selected, setSelected] = useState<ManagedTourContent | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
+  // Extra card images of the tour being edited; uploads go to the tour's page image store and the list is saved with the form.
+  const [gallery, setGallery] = useState<string[]>([])
+  const [galleryUploading, setGalleryUploading] = useState(false)
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -110,7 +118,27 @@ export default function TourContentsPage() {
   const editTour = (tour: ManagedTourContent) => {
     setError('')
     setImageFile(null)
+    setGallery(tour.galleryImageUrls ?? [])
     setSelected(tour)
+  }
+
+  const addGalleryImage = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file || !selected) return
+    if (file.size > 8 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setError(c.invalidImage); return }
+    setGalleryUploading(true)
+    setError('')
+    const upload = new FormData()
+    upload.append('file', file)
+    try {
+      const result = await apiUpload<{ url: string }>(`/api/v1/admin/tour-pages/tour-${selected.externalTourId}/images`, upload, session!.accessToken)
+      setGallery((items) => [...items, result.url].slice(0, 8))
+    } catch (caught) {
+      setError(caught instanceof ApiError ? caught.message : c.error)
+    } finally {
+      setGalleryUploading(false)
+    }
   }
 
   const saveTour = async (event: FormEvent<HTMLFormElement>) => {
@@ -128,6 +156,7 @@ export default function TourContentsPage() {
           descriptionTr: data.get('descriptionTr'), descriptionEn: data.get('descriptionEn'),
           badgeTr: data.get('badgeTr'), badgeEn: data.get('badgeEn'),
           sortOrder: Number(data.get('sortOrder')), isVisible: data.get('isVisible') === 'on',
+          galleryImageUrls: gallery,
         },
       })
       if (imageFile) {
@@ -195,7 +224,12 @@ export default function TourContentsPage() {
           <label className="field-wide">{c.descriptionEn}<textarea name="descriptionEn" maxLength={3000} rows={4} defaultValue={selected.descriptionEn ?? ''} /></label>
           <div className="tour-editor__settings field-wide"><label>{c.order}<input name="sortOrder" type="number" min={0} max={9999} required defaultValue={selected.sortOrder} /></label><label className="tour-editor__visibility"><input name="isVisible" type="checkbox" defaultChecked={selected.isVisible} /><span>{c.publish}</span></label></div>
           <div className="tour-editor__image field-wide"><img src={uploadPreview ?? imageUrl(selected)} alt="" /><div><strong>{c.image}</strong><small>{c.imageHint}</small><label><Upload /> {c.chooseImage}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setImageFile(event.target.files?.[0] ?? null)} /></label>{selected.hasCustomImage && <button type="button" disabled={saving} onClick={() => void removeImage()}><Trash2 /> {c.removeImage}</button>}</div></div>
-          <div className="admin-modal__actions field-wide"><button type="button" disabled={saving} onClick={() => setSelected(null)}>{c.cancel}</button><button className="admin-primary-button" disabled={saving} type="submit"><Save /> {saving ? c.saving : c.save}</button></div>
+          <div className="tour-editor__gallery field-wide"><strong>{c.gallery}</strong><small>{c.galleryHint}</small>
+            {gallery.length > 0 && <div>{gallery.map((url, index) => <figure key={`${url}-${index}`}><img src={url.startsWith('/') ? `${apiBaseUrl}${url}` : url} alt="" />
+              <button type="button" aria-label={c.removeGalleryImage} title={c.removeGalleryImage} disabled={saving} onClick={() => setGallery((items) => items.filter((_, item) => item !== index))}><Trash2 /></button></figure>)}</div>}
+            {gallery.length < 8 && <label><Upload /> {galleryUploading ? c.uploadingImage : c.addGalleryImage}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={galleryUploading || saving} onChange={(event) => void addGalleryImage(event)} /></label>}
+          </div>
+          <div className="admin-modal__actions field-wide"><button type="button" disabled={saving} onClick={() => setSelected(null)}>{c.cancel}</button><button className="admin-primary-button" disabled={saving || galleryUploading} type="submit"><Save /> {saving ? c.saving : c.save}</button></div>
         </form>
       </section>
     </div>}

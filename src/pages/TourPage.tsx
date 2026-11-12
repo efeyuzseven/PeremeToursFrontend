@@ -20,7 +20,9 @@ const copy = {
     details: 'Explore tour', booking: 'Book now', all: 'View all tours', relatedEmpty: 'There are currently no other tours in this category.', live: 'See current departures, ticket types and prices in the booking screen.' },
 }
 
-function TourPageBody({ pageKey, language }: { pageKey: string | null; language: TourLanguage }) {
+// pageKey is what the API is asked for: a service page ("sunset"), a tour number ("tour-2") or "by-address/{slug}".
+// address is the readable address the page was opened with, if any.
+function TourPageBody({ pageKey, address, language }: { pageKey: string | null; address: string | null; language: TourLanguage }) {
   const [page, setPage] = useState<TourPageItem | null>(null)
   const [tours, setTours] = useState<PublicTourItem[]>([])
   const [loading, setLoading] = useState(!!pageKey)
@@ -47,7 +49,7 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
       .then(result => {
         if (controller.signal.aborted) return
         const slug = result.externalTourId ? result.document.slug : null
-        if (slug && pageKey !== slug) setMovedTo(tourPath(result.externalTourId!, slug))
+        if (slug && address !== slug) setMovedTo(tourPath(result.externalTourId!, slug))
         else setPage(result)
       })
       .catch(caught => { if (!controller.signal.aborted) setError(caught instanceof ApiError && caught.status === 404 ? 'missing' : 'unavailable') })
@@ -65,7 +67,7 @@ function TourPageBody({ pageKey, language }: { pageKey: string | null; language:
       setSelected(tour)
     }).catch(() => {})
     return () => controller.abort()
-  }, [pageKey, reload, bookingLink])
+  }, [pageKey, address, reload, bookingLink])
   useEffect(() => {
     const content = page?.document[language]
     const ready = !loading && !error && !!page && !!content
@@ -123,6 +125,8 @@ export default function TourPage() {
   const category = tourCategories.find(key => categorySlugs[key] === categorySlug)
   const id = tourId && /^[1-9]\d*$/.test(tourId) && Number(tourId) <= 2147483647 ? Number(tourId) : null
   // /tur/{number} is the tour with that number; anything else there is a tour page's readable address.
-  const key = category || (id ? `tour-${id}` : tourId && isTourSlug(tourId) ? tourId : null)
-  return <PublicPageLayout>{language => <TourPageBody key={key ?? 'missing'} pageKey={key} language={language} />}</PublicPageLayout>
+  // An address is asked for on its own API route: it may spell like a service page's key ("sunset", "daytime").
+  const address = !category && !id && tourId && isTourSlug(tourId) ? tourId : null
+  const key = category || (id ? `tour-${id}` : address ? `by-address/${address}` : null)
+  return <PublicPageLayout>{language => <TourPageBody key={key ?? 'missing'} pageKey={key} address={address} language={language} />}</PublicPageLayout>
 }

@@ -142,15 +142,6 @@
 .contract-document__body th { width: 32%; color: var(--blue); background: rgba(106,157,210,.06); font-weight: 700; }
 .contract-document__body td { color: rgba(7,27,53,.72); }
 
-.info-footer { color: rgba(255,255,255,.68); background: var(--navy); }
-.info-footer__grid { display: grid; grid-template-columns: 1.5fr .6fr .6fr; gap: 70px; padding: 65px 0 55px; }
-.info-footer__grid > div { display: flex; flex-direction: column; align-items: flex-start; gap: 11px; }
-.info-footer__grid img { width: 150px; margin-bottom: 7px; filter: brightness(0) invert(1); }
-.info-footer__grid p { max-width: 280px; margin: 0 0 5px; font-size: 13px; line-height: 1.7; }
-.info-footer__grid strong { margin-bottom: 9px; color: #fff; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
-.info-footer__grid a { font-size: 12px; }
-.info-footer__grid a:hover { color: #fff; }
-.info-footer__bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 22px 0; border-top: 1px solid rgba(255,255,255,.1); font-size: 10px; }
 
 @media (max-width: 900px) {
   .info-header nav { display: none; }
@@ -198,6 +189,4 @@
   .contract-document__body .contract-item { padding-left: 12px; }
   .contract-document__body th, .contract-document__body td { display: block; width: auto; }
   .contract-document__body td { border-top: 0; }
-  .info-footer__grid { grid-template-columns: 1fr 1fr; gap: 45px 25px; }
-  .info-footer__grid > div:first-child { grid-column: 1 / -1; }
 }

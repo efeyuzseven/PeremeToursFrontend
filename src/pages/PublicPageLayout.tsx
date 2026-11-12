@@ -1,13 +1,12 @@
-import { ArrowRight, Camera, Globe2, Menu, UserRound, X } from 'lucide-react'
+import { ArrowRight, Globe2, Menu, UserRound, X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { panelHome } from '../auth/roles'
-import { pagePath } from '../lib/content-pages'
-import { mainNavigation, useAnnouncementsAvailable, useFooterPages } from '../lib/navigation'
-import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, SITE_NAME, X_HANDLE, X_PROFILE_URL } from '../lib/site'
+import { mainNavigation, useAnnouncementsAvailable } from '../lib/navigation'
 import AccountMenu from '../components/AccountMenu'
-import SocialLinks, { XIcon } from '../components/SocialLinks'
+import SiteFooter from '../components/SiteFooter'
+import SocialLinks from '../components/SocialLinks'
 import './info-pages.css'
 
 export type PublicLanguage = 'tr' | 'en'
@@ -42,7 +41,6 @@ export default function PublicPageLayout({ children, language: controlledLanguag
   const { user } = useAuth()
   const c = copy[language]
   const navigation = mainNavigation(language, useAnnouncementsAvailable())
-  const footerPages = useFooterPages(language)
 
   useEffect(() => {
     document.documentElement.lang = language
@@ -82,14 +80,6 @@ export default function PublicPageLayout({ children, language: controlledLanguag
 
     <main>{children(language)}</main>
 
-    <footer className="info-footer">
-      <div className="shell info-footer__grid">
-        <div><img src="/assets/pereme-logo.svg" alt="Dentur Pereme" /><p>{c.tagline}</p><a href="mailto:merhaba@peremetours.com">merhaba@peremetours.com</a></div>
-        <div><strong>{c.explore}</strong>{navigation.filter(item => !['/sikca-sorulan-sorular', '/iletisim'].includes(item.href)).map(item => <Link key={item.href} to={item.href}>{item.label}</Link>)}
-          {footerPages.map(page => <Link key={page.slug} to={pagePath(language, page.slug)}>{page.title}</Link>)}</div>
-        <div><strong>{c.support}</strong><Link to="/sikca-sorulan-sorular">{c.faq}</Link><Link to="/iletisim">{c.contact}</Link><Link to="/kvkk-aydinlatma-metni">{c.kvkk}</Link><Link to="/mesafeli-satis-sozlesmesi">{c.contract}</Link></div>
-      </div>
-      <div className="shell info-footer__bottom"><span>© 2026 {SITE_NAME}</span><div className="footer-social"><a className="footer-instagram" href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><Camera size={22} /> {INSTAGRAM_HANDLE}</a><a className="footer-instagram" href={X_PROFILE_URL} target="_blank" rel="noopener noreferrer"><XIcon size={20} /> {X_HANDLE}</a></div></div>
-    </footer>
+    <SiteFooter language={language} />
   </div>
 }

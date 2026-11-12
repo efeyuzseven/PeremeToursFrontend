@@ -2115,16 +2115,16 @@ footer {
 }
 
 .footer__top {
-  padding: 75px 0 62px;
+  padding: 46px 0 36px;
   display: grid;
   grid-template-columns: .9fr 2.25fr;
   gap: 65px;
 }
 
 .footer__brand p {
-  margin: 28px 0 25px;
+  margin: 18px 0 14px;
   font-family: 'Playfair Display', serif;
-  font-size: 18px;
+  font-size: 17px;
   font-style: italic;
   line-height: 1.55;
 }
@@ -2143,11 +2143,11 @@ footer {
 .footer__links > div {
   display: flex;
   flex-direction: column;
-  gap: 13px;
+  gap: 10px;
 }
 
 .footer__links strong {
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   color: #fff;
   font-size: 11px;
   letter-spacing: .1em;
@@ -2162,7 +2162,7 @@ footer {
 .footer__links a:hover { color: var(--coral); }
 
 .footer__bottom {
-  min-height: 70px;
+  min-height: 58px;
   border-top: 1px solid rgba(255,255,255,.1);
   display: flex;
   align-items: center;
@@ -2181,7 +2181,7 @@ footer {
 .footer-instagram { display: inline-flex; align-items: center; gap: 10px; padding: 9px 16px; border: 1px solid rgba(255,255,255,.22); border-radius: 100px; color: #fff; font-size: 14px; font-weight: 700; letter-spacing: 0; transition: background .2s ease, border-color .2s ease; }
 .footer-instagram:hover { border-color: #fff; background: rgba(255,255,255,.08); }
 /* Room under the last footer row so the fixed support buttons (bottom right) never cover it. */
-.footer__bottom, .info-footer__bottom { padding-bottom: 72px !important; }
+.footer__bottom { padding-bottom: 72px !important; }
 
 .booking-overlay {
   position: fixed;
@@ -2539,8 +2539,8 @@ footer {
   .final-cta { min-height: 430px; }
   .final-cta p { font-size: 20px; }
   .final-cta h2 { font-size: 50px; }
-  .footer__top { grid-template-columns: 1fr; padding: 60px 0 50px; }
-  .footer__links { grid-template-columns: 1fr 1fr; row-gap: 42px; }
+  .footer__top { grid-template-columns: 1fr; padding: 44px 0 36px; }
+  .footer__links { grid-template-columns: 1fr 1fr; row-gap: 30px; }
   .footer__bottom { padding: 25px 0; flex-wrap: wrap; gap: 14px; }
   .booking-drawer { padding: 42px 22px 30px; }
   .booking-drawer__close { top: 18px; right: 18px; }
@@ -2599,7 +2599,7 @@ footer {
   .final-cta { min-height: 390px; }
   .final-cta p { font-size: 18px; }
   .final-cta h2 { font-size: 44px; }
-  .footer__top { padding: 52px 0 42px; gap: 45px; }
+  .footer__top { padding: 38px 0 30px; gap: 32px; }
   .footer__links { gap: 30px 18px; }
   .footer__bottom { align-items: flex-start; flex-direction: column; }
   .booking-drawer {

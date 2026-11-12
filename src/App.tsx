@@ -33,14 +33,14 @@ import { useAuth } from './auth/AuthContext'
 import { panelHome } from './auth/roles'
 import { normalizeHomepage, type HomepageContentDocument } from './content/homepage'
 import { apiBaseUrl, apiRequest } from './lib/api'
-import { pagePath as contentPagePath } from './lib/content-pages'
-import { mainNavigation, useFooterPages } from './lib/navigation'
-import { INSTAGRAM_HANDLE, INSTAGRAM_PROFILE_URL, organizationSchema, setPageMetadata, siteScrollBehavior, SITE_NAME, websiteSchema, X_HANDLE, X_PROFILE_URL } from './lib/site'
+import { mainNavigation } from './lib/navigation'
+import { INSTAGRAM_PROFILE_URL, organizationSchema, setPageMetadata, siteScrollBehavior, SITE_NAME, websiteSchema } from './lib/site'
 import { BookingDrawer } from './components/BookingDrawer'
 import AccountMenu from './components/AccountMenu'
-import SocialLinks, { XIcon } from './components/SocialLinks'
+import SocialLinks from './components/SocialLinks'
 import GoogleReviews from './components/GoogleReviews'
 import { TourCardImages } from './components/TourCardImages'
+import SiteFooter from './components/SiteFooter'
 import { categoryPath, tourCategories, tourPath } from './content/tour-pages'
 
 type Language = 'tr' | 'en'
@@ -394,7 +394,6 @@ function App() {
   const base = copy[language]
   const t = (key: string, fallback: string) => page?.texts?.[key] ?? fallback
   const hidden = (key: string) => homepageContent?.hiddenSections?.includes(key) ?? false
-  const footerPages = useFooterPages(language)
   const announcements = hidden('announcements') ? [] : (homepageContent?.announcements ?? []).filter((item) => item.isVisible && item.tr.title.trim())
   const image = (key: string, fallback: string) => {
     if (!homepageReady) return undefined
@@ -697,23 +696,7 @@ function App() {
 
       {!hidden('final') && <section className="final-cta"><div className="final-cta__image" style={{ backgroundImage: `linear-gradient(rgba(7,27,53,.48), rgba(7,27,53,.72))${finalImage ? `, url("${finalImage}")` : ''}`,...(position('final') ? { backgroundPosition: position('final') } : {}) }} /><div className="final-cta__rings" aria-hidden="true"><span /><span /><span /></div><div className="shell final-cta__content"><p>{page?.final.pre ?? c.final.pre}</p><h2>{page?.final.title ?? c.final.title}</h2><button className="button button--coral" type="button" onClick={() => openBooking()}>{page?.final.action ?? c.final.action} <ArrowRight size={19} /></button></div></section>}
 
-      <footer>
-        <div className="shell footer__top">
-          <div className="footer__brand"><Logo light language={language} /><p>{c.footer.tagline.split('\n').map((line, index) => <span key={index}>{line}<br /></span>)}</p><a href={`mailto:${encodeURIComponent(t('footer.email', 'merhaba@peremetours.com')).replaceAll('%40', '@')}`}>{t('footer.email', 'merhaba@peremetours.com')}</a></div>
-          <div className="footer__links">{c.footer.columns.map(([title, ...links], columnIndex) => <div key={columnIndex}><strong>{title}</strong>{links.map((link, index) => {
-            const to = columnIndex === 0
-              ? ['/#turlar', categoryPath('bosphorus'), categoryPath('turkish-night'), categoryPath('daytime')][index]
-              : columnIndex === 1
-                ? ['/#neden-biz', '/#hikayeler', '/sikca-sorulan-sorular', '/iletisim'][index]
-                : ['/kvkk-aydinlatma-metni', '/mesafeli-satis-sozlesmesi'][index]
-            // "All tours", "About us" and "Stories" are no longer listed; their saved labels simply go unused.
-            if (columnIndex === 0 && index === 0 || columnIndex === 1 && index <= 1) return null
-            return <Link key={index} to={to}>{link}</Link>
-          })}{columnIndex === 1 && <><Link to={language === 'tr' ? '/blog' : '/en/blog'}>Blog</Link>
-            {footerPages.map((page) => <Link key={page.slug} to={contentPagePath(language, page.slug)}>{page.title}</Link>)}</>}</div>)}</div>
-        </div>
-        <div className="shell footer__bottom"><span>{c.footer.copyright}</span><div className="footer-social"><a className="footer-instagram" href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer"><Camera size={22} /> {INSTAGRAM_HANDLE}</a><a className="footer-instagram" href={X_PROFILE_URL} target="_blank" rel="noopener noreferrer"><XIcon size={20} /> {X_HANDLE}</a></div></div>
-      </footer>
+      <SiteFooter language={language} texts={page?.texts ?? null} />
 
       {bookingOpen && selectedTour && <BookingDrawer key={selectedTour.id} tour={selectedTour} language={language} initialDate={date} initialGuests={guests} onClose={() => setBookingOpen(false)} />}
     </main>

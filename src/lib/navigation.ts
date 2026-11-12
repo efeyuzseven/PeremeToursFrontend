@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { HomepageContentDocument } from '../content/homepage'
+import { normalizeHomepage, type HomepageContentDocument } from '../content/homepage'
 import { apiRequest } from './api'
 import type { ContentLanguage, ContentPageLink } from './content-pages'
 
@@ -33,6 +33,20 @@ export function useAnnouncementsAvailable() {
     return () => { active = false }
   }, [])
   return available
+}
+
+// The homepage's saved texts in one language (the footer uses them on every page); undefined until they arrive.
+// `skip` is for callers that already have the texts.
+export function useHomepageTexts(language: ContentLanguage, skip = false) {
+  const [content, setContent] = useState<HomepageContentDocument | null>(null)
+  useEffect(() => {
+    if (skip) return
+    let active = true
+    homepageRequest ??= apiRequest<HomepageContentDocument>('/api/v1/site-content/homepage', { cache: 'no-store' }).catch(() => null)
+    void homepageRequest.then(result => { if (active && result) setContent(normalizeHomepage(result)) })
+    return () => { active = false }
+  }, [skip])
+  return content?.[language].texts
 }
 
 // Standalone pages the admin chose to show in the footer.
